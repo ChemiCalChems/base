@@ -38,57 +38,6 @@ typedef unsigned long long int ullong;
 #define unlink _unlink
 #endif
 
-void *operator new(size_t, bool);
-void *operator new[](size_t, bool);
-//inline void *operator new(size_t, void *p) { return p; }
-//inline void *operator new[](size_t, void *p) { return p; }
-//inline void operator delete(void *, void *) {}
-//inline void operator delete[](void *, void *) {}
-
-/*
-#ifdef swap
-#undef swap
-#endif
-template<class T>
-static inline void swap(T &a, T &b)
-{
-    T t = a;
-    a = b;
-    b = t;
-}
-#ifdef max
-#undef max
-#endif
-#ifdef min
-#undef min
-#endif
-template<class T>
-static inline T max(T a, T b)
-{
-    return a > b ? a : b;
-}
-template<class T>
-static inline T max(T a, T b, T c)
-{
-    return max(max(a, b), c);
-}
-template<class T>
-static inline T min(T a, T b)
-{
-    return a < b ? a : b;
-}
-template<class T>
-static inline T min(T a, T b, T c)
-{
-    return min(min(a, b), c);
-}
-template<class T, class U>
-static inline T clamp(T a, U b, U c)
-{
-    return max(T(b), min(a, T(c)));
-}
-*/
-
 #include <algorithm>
 template <typename T>
 static inline void swap(T& a, T& b) {
@@ -102,6 +51,7 @@ template <typename T> T min(const T& a, const T& b) {
 }
 template <typename T1, typename T2> T1 clamp(const T1& x, const T2& lo, const T2& hi) {
 	//return std::clamp(x, static_cast<T1>(lo), static_cast<T1>(hi));
+	// For some reason, the commented out version causes a segfault (???)
 	return max(static_cast<T1>(lo), min(x, static_cast<T1>(hi)));
 }
 
