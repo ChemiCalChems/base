@@ -195,7 +195,7 @@ int selinview()
     vec o(sel.o), s(sel.s);
     s.mul(sel.grid / 2.0f);
     o.add(s);
-    return isvisiblesphere(max(s.x, s.y, s.z), o);
+    return isvisiblesphere(max(max(s.x, s.y), s.z), o);
 }
 ICOMMAND(0, getselvfc, "", (), intret(selinview()));
 ICOMMAND(0, getselvisible, "", (),

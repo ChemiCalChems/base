@@ -707,7 +707,7 @@ void save_mapshot(char *mname, bool forcesave = false)
     progress(0, "Saving map preview image..");
 
     float oldaspect = aspect, oldfovy = fovy, oldfov = curfov;
-    int oldvieww = vieww, oldviewh = viewh, rsize = min(mapshotsize*2, vieww, viewh);
+    int oldvieww = vieww, oldviewh = viewh, rsize = min(min(mapshotsize*2, vieww), viewh);
 
     physent *oldcamera = camera1;
     static physent cmcamera;
