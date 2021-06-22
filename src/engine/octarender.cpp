@@ -401,7 +401,7 @@ struct vacollect : verthash
         if(e.attrs[1]) orient.rotate_around_z(sincosmod360(e.attrs[1]));
         if(e.attrs[2]) orient.rotate_around_x(sincosmod360(e.attrs[2]));
         if(e.attrs[3]) orient.rotate_around_y(sincosmod360(-e.attrs[3]));
-        vec size(max(float(e.attrs[4]), 1.0f));
+        vec size(std::max(float(e.attrs[4]), 1.0f));
         size.y *= s.depth;
         if(!s.sts.empty())
         {
@@ -606,8 +606,8 @@ struct vacollect : verthash
                     loopvj(t.tris)
                     {
                         curbuf[j] += va->voffset;
-                        e.minvert = min(e.minvert, curbuf[j]);
-                        e.maxvert = max(e.maxvert, curbuf[j]);
+                        e.minvert = std::min(e.minvert, curbuf[j]);
+                        e.maxvert = std::max(e.maxvert, curbuf[j]);
                     }
 
                     curbuf += t.tris.length();
@@ -663,8 +663,8 @@ struct vacollect : verthash
                     loopvj(t.tris)
                     {
                         curbuf[j] += va->voffset;
-                        e.minvert = min(e.minvert, curbuf[j]);
-                        e.maxvert = max(e.maxvert, curbuf[j]);
+                        e.minvert = std::min(e.minvert, curbuf[j]);
+                        e.maxvert = std::max(e.maxvert, curbuf[j]);
                     }
 
                     curbuf += t.tris.length();
@@ -781,7 +781,7 @@ void addtris(VSlot &vslot, int orient, const sortkey &key, vertex *verts, int *i
                 int axis = abs(d.x) > abs(d.y) ? (abs(d.x) > abs(d.z) ? 0 : 2) : (abs(d.y) > abs(d.z) ? 1 : 2);
                 if(d[axis] < 0) d.neg();
                 reduceslope(d);
-                int origin = int(min(v1.pos[axis], v2.pos[axis])*8)&~0x7FFF,
+                int origin = int(std::min(v1.pos[axis], v2.pos[axis])*8)&~0x7FFF,
                     offset1 = (int(v1.pos[axis]*8) - origin) / d[axis],
                     offset2 = (int(v2.pos[axis]*8) - origin) / d[axis];
                 vec o = vec(v1.pos).sub(vec(d).mul(offset1/8.0f));
@@ -839,14 +839,14 @@ void addgrasstri(int face, vertex *verts, int numv, ushort texture, int layer)
     g.surface.toplane(g.v[0], g.v[1], g.v[2]);
     if(g.surface.z <= 0) { vc.grasstris.pop(); return; }
 
-    g.minz = min(min(g.v[0].z, g.v[1].z), min(g.v[2].z, g.v[3].z));
-    g.maxz = max(max(g.v[0].z, g.v[1].z), max(g.v[2].z, g.v[3].z));
+    g.minz = std::min(std::min(g.v[0].z, g.v[1].z), std::min(g.v[2].z, g.v[3].z));
+    g.maxz = std::max(std::max(g.v[0].z, g.v[1].z), std::max(g.v[2].z, g.v[3].z));
 
     g.center = vec(0, 0, 0);
     loopk(numv) g.center.add(g.v[k]);
     g.center.div(numv);
     g.radius = 0;
-    loopk(numv) g.radius = max(g.radius, g.v[k].dist(g.center));
+    loopk(numv) g.radius = std::max(g.radius, g.v[k].dist(g.center));
 
     g.texture = texture;
     g.blend = layer == LAYER_BLEND ? ((int(g.center.x)>>12)+1) | (((int(g.center.y)>>12)+1)<<8) : 0;
@@ -1072,7 +1072,7 @@ void gencubeedges(cube &c, const ivec &co, int size)
             if(d[axis] < 0)
             {
                 d.neg();
-                swap(e1, e2);
+                std::swap(e1, e2);
             }
             reduceslope(d);
 
@@ -1387,7 +1387,7 @@ int genmergedfaces(cube &c, const ivec &co, int size, int minlevel = -1)
         int level = calcmergedsize(i, co, size, mf.verts, mf.numverts&MAXFACEVERTS);
         if(level > minlevel)
         {
-            maxlevel = max(maxlevel, level);
+            maxlevel = std::max(maxlevel, level);
 
             while(tj >= 0 && tjoints[tj].edge < i*(MAXFACEVERTS+1)) tj = tjoints[tj].next;
             if(tj >= 0 && tjoints[tj].edge < (i+1)*(MAXFACEVERTS+1)) mf.tjoints = tj;
@@ -1411,7 +1411,7 @@ int genmergedfaces(cube &c, const ivec &co, int size, int minlevel = -1)
     }
     if(maxlevel >= 0)
     {
-        vamergemax = max(vamergemax, maxlevel);
+        vamergemax = std::max(vamergemax, maxlevel);
         vahasmerges |= MERGE_ORIGIN;
     }
     return maxlevel;
@@ -1427,7 +1427,7 @@ int findmergedfaces(cube &c, const ivec &co, int size, int csi, int minlevel)
         {
             ivec o(i, co, size/2);
             int level = findmergedfaces(c.children[i], o, size/2, csi-1, minlevel);
-            maxlevel = max(maxlevel, level);
+            maxlevel = std::max(maxlevel, level);
         }
         return maxlevel;
     }
@@ -1472,7 +1472,7 @@ void rendercube(cube &c, const ivec &co, int size, int csi, int &maxlevel) // cr
     //if(size<=16) return;
     if(c.ext && c.ext->va)
     {
-        maxlevel = max(maxlevel, c.ext->va->mergelevel);
+        maxlevel = std::max(maxlevel, c.ext->va->mergelevel);
         finddecals(c.ext->va);
         return; // don't re-render
     }
@@ -1488,7 +1488,7 @@ void rendercube(cube &c, const ivec &co, int size, int csi, int &maxlevel) // cr
             rendercube(c.children[i], o, size/2, csi-1, level);
             if(level >= csi)
                 c.escaped |= 1<<i;
-            maxlevel = max(maxlevel, level);
+            maxlevel = std::max(maxlevel, level);
         }
         --neighbourdepth;
 
@@ -1505,7 +1505,7 @@ void rendercube(cube &c, const ivec &co, int size, int csi, int &maxlevel) // cr
     if(!isempty(c))
     {
         gencubeverts(c, co, size, csi);
-        if(c.merged) maxlevel = max(maxlevel, genmergedfaces(c, co, size));
+        if(c.merged) maxlevel = std::max(maxlevel, genmergedfaces(c, co, size));
     }
     if(c.material != MAT_AIR)
     {
@@ -1564,7 +1564,7 @@ void setva(cube &c, const ivec &co, int size, int csi)
     int maxlevel = -1;
     rendercube(c, co, size, csi, maxlevel);
 
-    if(size == min(0x1000, worldsize/2) || !vc.emptyva())
+    if(size == std::min(0x1000, worldsize/2) || !vc.emptyva())
     {
         vtxarray *va = newva(co, size);
         ext(c).va = va;
@@ -1637,7 +1637,7 @@ int updateva(cube *c, const ivec &co, int size, int csi)
             }
             else count += setcubevisibility(c[i], o, size);
             int tcount = count + (csi <= MAXMERGELEVEL ? vamerges[csi].length() : 0);
-            if(tcount > vafacemax || (tcount >= vafacemin && size >= vacubesize) || size == min(0x1000, worldsize/2))
+            if(tcount > vafacemax || (tcount >= vafacemin && size >= vacubesize) || size == std::min(0x1000, worldsize/2))
             {
                 loadprogress = clamp(recalcprogress/float(allocnodes), 0.0f, 1.0f);
                 setva(c[i], o, size, csi);
@@ -1652,7 +1652,7 @@ int updateva(cube *c, const ivec &co, int size, int csi)
                     varoot.add(c[i].ext->va);
                     if(vamergemax > size)
                     {
-                        cmergemax = max(cmergemax, vamergemax);
+                        cmergemax = std::max(cmergemax, vamergemax);
                         chasmerges |= vahasmerges&~MERGE_USE;
                     }
                     continue;
@@ -1661,7 +1661,7 @@ int updateva(cube *c, const ivec &co, int size, int csi)
             }
         }
         if(csi+1 <= MAXMERGELEVEL && vamerges[csi].length()) vamerges[csi+1].move(vamerges[csi]);
-        cmergemax = max(cmergemax, vamergemax);
+        cmergemax = std::max(cmergemax, vamergemax);
         chasmerges |= vahasmerges;
         ccount += count;
     }

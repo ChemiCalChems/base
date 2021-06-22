@@ -30,7 +30,7 @@ namespace fx
             "<invalid>"
         };
 
-        return strings[min(type, (int)FX_TYPES)];
+        return strings[std::min(type, (int)FX_TYPES)];
     }
 
     static const char *fxmodstring(int mod)
@@ -41,7 +41,7 @@ namespace fx
             "<invalid>"
         };
 
-        return strings[min(mod, (int)FX_MODS)];
+        return strings[std::min(mod, (int)FX_MODS)];
     }
 
     static const struct

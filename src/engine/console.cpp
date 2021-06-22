@@ -292,10 +292,10 @@ ICOMMAND(0, getbind,     "s", (char *key), getbind(key, keym::ACTION_DEFAULT));
 ICOMMAND(0, getspecbind, "s", (char *key), getbind(key, keym::ACTION_SPECTATOR));
 ICOMMAND(0, geteditbind, "s", (char *key), getbind(key, keym::ACTION_EDITING));
 ICOMMAND(0, getwaitbind, "s", (char *key), getbind(key, keym::ACTION_WAITING));
-ICOMMAND(0, searchbinds,     "sissssb", (char *action, int *limit, char *s1, char *s2, char *sep1, char *sep2, int *force), { vector<char> list; searchbindlist(action, keym::ACTION_DEFAULT, max(*limit, 0), s1, s2, sep1, sep2, list, *force!=0); result(list.getbuf()); });
-ICOMMAND(0, searchspecbinds, "sissssb", (char *action, int *limit, char *s1, char *s2, char *sep1, char *sep2, int *force), { vector<char> list; searchbindlist(action, keym::ACTION_SPECTATOR, max(*limit, 0), s1, s2, sep1, sep2, list, *force!=0); result(list.getbuf()); });
-ICOMMAND(0, searcheditbinds, "sissssb", (char *action, int *limit, char *s1, char *s2, char *sep1, char *sep2, int *force), { vector<char> list; searchbindlist(action, keym::ACTION_EDITING, max(*limit, 0), s1, s2, sep1, sep2, list, *force!=0); result(list.getbuf()); });
-ICOMMAND(0, searchwaitbinds, "sissssb", (char *action, int *limit, char *s1, char *s2, char *sep1, char *sep2, int *force), { vector<char> list; searchbindlist(action, keym::ACTION_WAITING, max(*limit, 0), s1, s2, sep1, sep2, list, *force!=0); result(list.getbuf()); });
+ICOMMAND(0, searchbinds,     "sissssb", (char *action, int *limit, char *s1, char *s2, char *sep1, char *sep2, int *force), { vector<char> list; searchbindlist(action, keym::ACTION_DEFAULT, std::max(*limit, 0), s1, s2, sep1, sep2, list, *force!=0); result(list.getbuf()); });
+ICOMMAND(0, searchspecbinds, "sissssb", (char *action, int *limit, char *s1, char *s2, char *sep1, char *sep2, int *force), { vector<char> list; searchbindlist(action, keym::ACTION_SPECTATOR, std::max(*limit, 0), s1, s2, sep1, sep2, list, *force!=0); result(list.getbuf()); });
+ICOMMAND(0, searcheditbinds, "sissssb", (char *action, int *limit, char *s1, char *s2, char *sep1, char *sep2, int *force), { vector<char> list; searchbindlist(action, keym::ACTION_EDITING, std::max(*limit, 0), s1, s2, sep1, sep2, list, *force!=0); result(list.getbuf()); });
+ICOMMAND(0, searchwaitbinds, "sissssb", (char *action, int *limit, char *s1, char *s2, char *sep1, char *sep2, int *force), { vector<char> list; searchbindlist(action, keym::ACTION_WAITING, std::max(*limit, 0), s1, s2, sep1, sep2, list, *force!=0); result(list.getbuf()); });
 
 void keym::clear(int type)
 {
@@ -313,7 +313,7 @@ ICOMMAND(0, cleareditbinds, "", (), enumerate(keyms, keym, km, km.clear(keym::AC
 ICOMMAND(0, clearwaitbinds, "", (), enumerate(keyms, keym, km, km.clear(keym::ACTION_WAITING)));
 ICOMMAND(0, clearallbinds, "", (), enumerate(keyms, keym, km, km.clear()));
 
-ICOMMAND(0, keyspressed, "issss", (int *limit, char *s1, char *s2, char *sep1, char *sep2), { vector<char> list; getkeypressed(max(*limit, 0), s1, s2, sep1, sep2, list); result(list.getbuf()); });
+ICOMMAND(0, keyspressed, "issss", (int *limit, char *s1, char *s2, char *sep1, char *sep2), { vector<char> list; getkeypressed(std::max(*limit, 0), s1, s2, sep1, sep2, list); result(list.getbuf()); });
 
 void inputcommand(char *init, char *action = NULL, char *prompt = NULL, char *icon = NULL, int colour = colourwhite, char *flags = NULL) // turns input to the command line on or off
 {
@@ -533,9 +533,9 @@ bool consoleinput(const char *str, int len)
 
     resetcomplete();
     int maxlen = int(sizeof(commandbuf));
-    if(commandflags&CF_MESSAGE || commandbuf[0] != '/') maxlen = min(client::maxmsglen(), maxlen);
+    if(commandflags&CF_MESSAGE || commandbuf[0] != '/') maxlen = std::min(client::maxmsglen(), maxlen);
     int cmdlen = (int)strlen(commandbuf), cmdspace = maxlen - (cmdlen+1);
-    len = min(len, cmdspace);
+    len = std::min(len, cmdspace);
     if(len <= 0) return true;
 
     if(commandpos<0)
@@ -621,7 +621,7 @@ bool consolekey(int code, bool isdown)
                 break;
 
             case SDLK_v:
-                if(SDL_GetModState()&MOD_KEYS) pastetext(commandbuf, min(client::maxmsglen(), int(sizeof(commandbuf))));
+                if(SDL_GetModState()&MOD_KEYS) pastetext(commandbuf, std::min(client::maxmsglen(), int(sizeof(commandbuf))));
                 break;
         }
     }

@@ -75,7 +75,7 @@ struct editline
     {
         if(chop < 0) chop = INT_MAX; else chop++;
         set("");
-        while(len + 1 < chop && f->getline(&text[len], min(maxlen, chop) - len))
+        while(len + 1 < chop && f->getline(&text[len], std::min(maxlen, chop) - len))
         {
             len += strlen(&text[len]);
             if(len > 0 && text[len-1] == '\n')
@@ -262,8 +262,8 @@ struct editor
         sy = (mx >= 0) ? my : cy;
         ex = cx;
         ey = cy;
-        if(sy > ey) { swap(sy, ey); swap(sx, ex); }
-        else if(sy == ey && sx > ex) swap(sx, ex);
+        if(sy > ey) { std::swap(sy, ey); std::swap(sx, ex); }
+        else if(sy == ey && sx > ex) std::swap(sx, ex);
         return (sx != ex) || (sy != ey);
     }
 
@@ -399,7 +399,7 @@ struct editor
             {
                 editline newline(&current.text[cx]);
                 current.chop(cx);
-                cy = min(lines.length(), cy+1);
+                cy = std::min(lines.length(), cy+1);
                 lines.insert(cy, newline);
             }
             else current.chop(cx);
@@ -432,7 +432,7 @@ struct editor
             if(slen > 0)
             {
                 int len = current.len;
-                if(maxx >= 0 && slen + cx + len > maxx) len = max(0, maxx-(cx+slen));
+                if(maxx >= 0 && slen + cx + len > maxx) len = std::max(0, maxx-(cx+slen));
                 current.insert(str, cx, len);
                 cx += slen;
             }

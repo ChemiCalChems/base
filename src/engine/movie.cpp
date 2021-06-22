@@ -301,7 +301,7 @@ struct aviwriter
         f->putlil<uint>(videow); // horizontal total
         f->putlil<uint>(videoh); // vertical total
         int gcd = screenw, rem = screenh;
-        while(rem > 0) { gcd %= rem; swap(gcd, rem); }
+        while(rem > 0) { gcd %= rem; std::swap(gcd, rem); }
         f->putlil<ushort>(screenh/gcd); // aspect denominator
         f->putlil<ushort>(screenw/gcd); // aspect numerator
         f->putlil<uint>(videow); // frame width
@@ -899,7 +899,7 @@ namespace recorder
         }
         else if(state == REC_OK)
         {
-            uint nextframe = (max(gettime() - starttime, 0)*file->videofps)/1000;
+            uint nextframe = (std::max(gettime() - starttime, 0)*file->videofps)/1000;
             soundbuffer &s = soundbuffers.add();
             s.load((uchar *)stream, len, nextframe);
         }
@@ -1012,7 +1012,7 @@ namespace recorder
         if(usefbo)
         {
             uint tw = screenw, th = screenh;
-            if(hasFBB && movieaccelblit) { tw = max(tw/2, m.w); th = max(th/2, m.h); }
+            if(hasFBB && movieaccelblit) { tw = std::max(tw/2, m.w); th = std::max(th/2, m.h); }
             if(tw != scalew || th != scaleh)
             {
                 if(!scalefb) glGenFramebuffers_(1, &scalefb);
@@ -1055,7 +1055,7 @@ namespace recorder
                 glBindFramebuffer_(GL_FRAMEBUFFER, scalefb);
                 do
                 {
-                    uint dw = max(tw/2, m.w), dh = max(th/2, m.h);
+                    uint dw = std::max(tw/2, m.w), dh = std::max(th/2, m.h);
                     glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, scaletex[1], 0);
                     glViewport(0, 0, dw, dh);
                     glBindTexture(GL_TEXTURE_RECTANGLE, scaletex[0]);
@@ -1064,7 +1064,7 @@ namespace recorder
                     screenquad(tw, th);
                     tw = dw;
                     th = dh;
-                    swap(scaletex[0], scaletex[1]);
+                    std::swap(scaletex[0], scaletex[1]);
                 } while(tw > m.w || th > m.h);
             }
             if(accelyuv)
@@ -1105,7 +1105,7 @@ namespace recorder
         }
         SDL_LockMutex(videolock);
         if(moviesync && videobuffers.full()) SDL_CondWait(shouldread, videolock);
-        uint nextframe = (max(gettime() - starttime, 0)*file->videofps)/1000;
+        uint nextframe = (std::max(gettime() - starttime, 0)*file->videofps)/1000;
         if(!videobuffers.full() && (lastframe == ~0U || nextframe > lastframe))
         {
             videobuffer &m = videobuffers.adding();

@@ -1289,7 +1289,7 @@ char *conc(tagval *v, int n, bool space, const char *prefix, int prefixlen)
         default: vlen[i] = 0; break;
     }
 overflow:
-    if(space) len += max(prefix ? i : i-1, 0);
+    if(space) len += std::max(prefix ? i : i-1, 0);
     char *buf = newstring(len + numlen);
     int offset = 0, numoffset = 0;
     if(prefix)
@@ -2617,8 +2617,8 @@ static inline void callcommand(ident *id, tagval *args, int numargs, bool lookup
 #ifndef STANDALONE
         case 'D': if(++i < numargs) freearg(args[i]); addreleaseaction(id, args, i); fakeargs++; break;
 #endif
-        case 'C': { i = max(i+1, numargs); vector<char> buf; ((comfun1)id->fun)(conc(buf, args, i, true)); goto cleanup; }
-        case 'V': i = max(i+1, numargs); ((comfunv)id->fun)(args, i); goto cleanup;
+        case 'C': { i = std::max(i+1, numargs); vector<char> buf; ((comfun1)id->fun)(conc(buf, args, i, true)); goto cleanup; }
+        case 'V': i = std::max(i+1, numargs); ((comfunv)id->fun)(args, i); goto cleanup;
         case '1': case '2': case '3': case '4': if(i+1 < numargs) { fmt -= *fmt-'0'+1; rep = true; } break;
     }
     ++i;
@@ -3988,7 +3988,7 @@ void chopstr(char *s, int *lim, char *ellipsis)
     if(len > maxlen)
     {
         int elen = strlen(ellipsis);
-        maxlen = max(maxlen, elen);
+        maxlen = std::max(maxlen, elen);
         char *chopped = newstring(maxlen);
         if(*lim < 0)
         {
@@ -4009,7 +4009,7 @@ COMMAND(0, chopstr, "sis");
 
 void sublist(const char *s, int *skip, int *count, int *numargs)
 {
-    int offset = max(*skip, 0), len = *numargs >= 3 ? max(*count, 0) : -1;
+    int offset = std::max(*skip, 0), len = *numargs >= 3 ? std::max(*count, 0) : -1;
     loopi(offset) if(!parselist(s)) break;
     if(len < 0) { if(offset > 0) skiplist(s); commandret->setstr(newstring(s)); return; }
     const char *list = s, *start, *end, *qstart, *qend = s;
@@ -4126,7 +4126,7 @@ void loopsublist(ident *id, const char *list, int *skip, int *count, const uint 
 {
     if(id->type!=ID_ALIAS) return;
     identstack stack;
-    int n = 0, offset = max(*skip, 0), len = *count < 0 ? INT_MAX : offset + *count;
+    int n = 0, offset = std::max(*skip, 0), len = *count < 0 ? INT_MAX : offset + *count;
     for(const char *s = list, *start, *end, *qstart; parselist(s, start, end, qstart) && n < len; n++) if(n >= offset)
     {
         setiter(*id, listelem(start, end, qstart), stack);
@@ -4353,7 +4353,7 @@ LISTMERGECMD(listunion, p.put(list, strlen(list)), elems, list, <);
 
 void listsplice(const char *s, const char *vals, int *skip, int *count)
 {
-    int offset = max(*skip, 0), len = max(*count, 0);
+    int offset = std::max(*skip, 0), len = std::max(*count, 0);
     const char *list = s, *start, *end, *qstart, *qend = s;
     loopi(offset) if(!parselist(s, start, end, qstart, qend)) break;
     vector<char> p;
@@ -4515,7 +4515,7 @@ void sortlist(char *list, ident *x, ident *y, uint *body, uint *unique)
     poparg(*y);
 
     char *sorted = cstr;
-    int sortedlen = totalunique + max(numunique - 1, 0);
+    int sortedlen = totalunique + std::max(numunique - 1, 0);
     if(clen < sortedlen)
     {
         delete[] cstr;
@@ -4597,7 +4597,7 @@ MATHICMD(|, 0, );
 MATHICMD(^~, 0, );
 MATHICMD(&~, 0, );
 MATHICMD(|~, 0, );
-MATHCMD("<<", i, int, val = val2 < 32 ? val << max(val2, 0) : 0, 0, );
+MATHCMD("<<", i, int, val = val2 < 32 ? val << std::max(val2, 0) : 0, 0, );
 MATHCMD(">>", i, int, val >>= clamp(val2, 0, 31), 0, );
 
 MATHFCMD(+, 0, );
@@ -4667,10 +4667,10 @@ ICOMMAND(0, exp, "f", (float *a), floatret(exp(*a)));
         type##ret(val); \
     })
 
-MINMAXCMD(min, i, int, min);
-MINMAXCMD(max, i, int, max);
-MINMAXCMD(minf, f, float, min);
-MINMAXCMD(maxf, f, float, max);
+MINMAXCMD(min, i, int, std::min);
+MINMAXCMD(max, i, int, std::max);
+MINMAXCMD(minf, f, float, std::min);
+MINMAXCMD(maxf, f, float, std::max);
 
 #define CLAMPCMD(name, fmt, type, op) \
     ICOMMAND(0, name, #fmt "1V", (tagval *args, int numargs), \
@@ -4690,7 +4690,7 @@ ICOMMAND(0, abs, "i", (int *n), intret(abs(*n)));
 ICOMMAND(0, absf, "f", (float *n), floatret(fabs(*n)));
 ICOMMAND(0, precf, "fi", (float *a, int *b),
 {
-    defformatstring(format, "%%.%df", max(*b, 0));
+    defformatstring(format, "%%.%df", std::max(*b, 0));
     defformatstring(retval, format, *a);
     result(retval);
 });
@@ -4809,7 +4809,7 @@ ICOMMAND(0, rndstr, "i", (int *len),
     for(int i = 0; i < n;)
     {
         uint r = randomMT();
-        for(int j = min(i + 4, n); i < j; i++)
+        for(int j = std::min(i + 4, n); i < j; i++)
         {
             s[i] = (r%255) + 1;
             r /= 255;
@@ -4823,7 +4823,7 @@ ICOMMAND(0, tohex, "ii", (int *n, int *p),
 {
     const int len = 20;
     char *buf = newstring(len);
-    nformatstring(buf, len, "0x%.*X", max(*p, 1), *n);
+    nformatstring(buf, len, "0x%.*X", std::max(*p, 1), *n);
     stringret(buf);
 });
 
@@ -4992,7 +4992,7 @@ vector<sleepcmd> sleepcmds;
 void addsleep(int *msec, char *cmd)
 {
     sleepcmd &s = sleepcmds.add();
-    s.delay = max(*msec, 1);
+    s.delay = std::max(*msec, 1);
     s.millis = lastmillis;
     s.command = newstring(cmd);
     s.flags = identflags;

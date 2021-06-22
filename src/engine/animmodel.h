@@ -42,8 +42,8 @@ struct animmodel : model
             }
             else
             {
-                fr1 = min(fr1, info.range-1)+info.frame;
-                fr2 = min(fr1+1, info.frame+info.range-1);
+                fr1 = std::min(fr1, info.range-1)+info.frame;
+                fr2 = std::min(fr1+1, info.frame+info.range-1);
             }
             if(info.anim&ANIM_REVERSE)
             {
@@ -197,8 +197,8 @@ struct animmodel : model
                 LOCALPARAMF(patternscale, patternscale);
             }
 
-            LOCALPARAM(material1, material1 > 0 ? modelmaterial[min(material1, int(MAXMDLMATERIALS))-1].tocolor().mul(matbright.x) : vec(matbright.x));
-            LOCALPARAM(material2, material2 > 0 ? modelmaterial[min(material2, int(MAXMDLMATERIALS))-1].tocolor().mul(matbright.y) : vec(matbright.y));
+            LOCALPARAM(material1, material1 > 0 ? modelmaterial[std::min(material1, int(MAXMDLMATERIALS))-1].tocolor().mul(matbright.x) : vec(matbright.x));
+            LOCALPARAM(material2, material2 > 0 ? modelmaterial[std::min(material2, int(MAXMDLMATERIALS))-1].tocolor().mul(matbright.y) : vec(matbright.y));
 
             if(fullbright) LOCALPARAMF(fullbright, 0.0f, fullbright);
             else LOCALPARAMF(fullbright, 1.0f, as->cur.anim&ANIM_FULLBRIGHT ? 0.5f*fullbrightmodels/100.0f : 0.0f);
@@ -666,7 +666,7 @@ struct animmodel : model
         virtual int totalframes() const { return 1; }
         bool hasframe(int i) const { return i>=0 && i<totalframes(); }
         bool hasframes(int i, int n) const { return i>=0 && i+n<=totalframes(); }
-        int clipframes(int i, int n) const { return min(n, totalframes() - i); }
+        int clipframes(int i, int n) const { return std::min(n, totalframes() - i); }
 
         virtual void cleanup() {}
         virtual void preload(part *p) {}
@@ -982,7 +982,7 @@ struct animmodel : model
             if(d && interp>=0)
             {
                 animinterpinfo &ai = d->animinterp[interp];
-                if((info.anim&(ANIM_LOOP|ANIM_CLAMP))==ANIM_CLAMP) aitime = min(aitime, int(info.range*info.speed*0.5e-3f));
+                if((info.anim&(ANIM_LOOP|ANIM_CLAMP))==ANIM_CLAMP) aitime = std::min(aitime, int(info.range*info.speed*0.5e-3f));
                 void *ak = meshes->animkey();
                 if(d->ragdoll && d->ragdoll->millis != lastmillis)
                 {
@@ -1177,7 +1177,7 @@ struct animmodel : model
                     if(windanimfalloff)
                         falloff = 1.0f - clamp((dist-getwindanimdist())/windanimfalloff, 0.0f, 1.0f);
 
-                    GLOBALPARAMF(windparams, max(1.0f - dist/animdist, 0.0f), d ? 0 : pos.magnitude());
+                    GLOBALPARAMF(windparams, std::max(1.0f - dist/animdist, 0.0f), d ? 0 : pos.magnitude());
                     GLOBALPARAM(windvec, getwind(pos, d).mul(resize * model->wind * falloff));
                     gle::colorf(0, 0, 0, 0);
                 }
@@ -2156,7 +2156,7 @@ template<class MDL, class MESH> struct modelcommands
 
     static void setalphatest(char *meshname, float *cutoff)
     {
-        loopskins(meshname, s, s.alphatest = max(0.0f, min(1.0f, *cutoff)));
+        loopskins(meshname, s, s.alphatest = std::max(0.0f, std::min(1.0f, *cutoff)));
     }
 
     static void setdither(char *meshname, int *dither)
@@ -2166,12 +2166,12 @@ template<class MDL, class MESH> struct modelcommands
 
     static void setblend(char *meshname, float *blend)
     {
-        loopskins(meshname, s, s.blend = max(0.0f, min(1.0f, *blend)));
+        loopskins(meshname, s, s.blend = std::max(0.0f, std::min(1.0f, *blend)));
     }
 
     static void setblendmode(char *meshname, int *blendmode)
     {
-        loopskins(meshname, s, s.blendmode = max((int)MDL_BLEND_TEST, min((int)MDL_BLEND_ALPHA, *blendmode)));
+        loopskins(meshname, s, s.blendmode = std::max((int)MDL_BLEND_TEST, std::min((int)MDL_BLEND_ALPHA, *blendmode)));
     }
 
     static void setcullface(char *meshname, int *cullface)

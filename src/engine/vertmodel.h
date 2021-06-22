@@ -122,12 +122,12 @@ struct vertmodel : animmodel
                     {
                         int &vidx = htdata[(htidx+k)&(htlen-1)];
                         if(vidx < 0) { vidx = idxs.add(ushort(vverts.length())); vverts.add(vv); break; }
-                        else if(!memcmp(&vverts[vidx], &vv, sizeof(T))) { minvert = min(minvert, idxs.add(ushort(vidx))); break; }
+                        else if(!memcmp(&vverts[vidx], &vv, sizeof(T))) { minvert = std::min(minvert, idxs.add(ushort(vidx))); break; }
                     }
                 }
             }
-            minvert = min(minvert, ushort(voffset));
-            maxvert = max(minvert, ushort(vverts.length()-1));
+            minvert = std::min(minvert, ushort(voffset));
+            maxvert = std::max(minvert, ushort(vverts.length()-1));
             elen = idxs.length()-eoffset;
             return vverts.length()-voffset;
         }
@@ -250,7 +250,7 @@ struct vertmodel : animmodel
                     tag *dst = &newtags[(numtags+1)*i], *src = &tags[numtags*i];
                     if(!i)
                     {
-                        loopj(numtags) swap(dst[j].name, src[j].name);
+                        loopj(numtags) std::swap(dst[j].name, src[j].name);
                         dst[numtags].name = newstring(name);
                     }
                     loopj(numtags) dst[j].matrix = src[j].matrix;

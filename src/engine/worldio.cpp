@@ -259,7 +259,7 @@ void loadc(stream *f, cube &c, const ivec &co, int size, bool &failed)
     {
         int surfmask, totalverts;
         surfmask = f->getchar();
-        totalverts = max(f->getchar(), 0);
+        totalverts = std::max(f->getchar(), 0);
         newcubeext(c, totalverts, false);
         memset(c.ext->surfaces, 0, sizeof(c.ext->surfaces));
         memset(c.ext->verts(), 0, totalverts*sizeof(vertinfo));
@@ -457,8 +457,8 @@ void loadvslot(stream *f, VSlot &vs, int changed)
         {
             SlotShaderParam &p = vs.params.add();
             int nlen = f->getlil<ushort>();
-            f->read(name, min(nlen, MAXSTRLEN-1));
-            name[min(nlen, MAXSTRLEN-1)] = '\0';
+            f->read(name, std::min(nlen, MAXSTRLEN-1));
+            name[std::min(nlen, MAXSTRLEN-1)] = '\0';
             if(nlen >= MAXSTRLEN) f->seek(nlen - (MAXSTRLEN-1), SEEK_CUR);
             p.name = getshaderparamname(name);
             p.loc = -1;
@@ -707,7 +707,7 @@ void save_mapshot(char *mname, bool forcesave = false)
     progress(0, "Saving map preview image..");
 
     float oldaspect = aspect, oldfovy = fovy, oldfov = curfov;
-    int oldvieww = vieww, oldviewh = viewh, rsize = min(min(mapshotsize*2, vieww), viewh);
+    int oldvieww = vieww, oldviewh = viewh, rsize = std::min(std::min(mapshotsize*2, vieww), viewh);
 
     physent *oldcamera = camera1;
     static physent cmcamera;

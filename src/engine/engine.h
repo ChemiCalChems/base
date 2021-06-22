@@ -423,10 +423,10 @@ extern int lighttilealignw, lighttilealignh, lighttilevieww, lighttileviewh, lig
 template<class T>
 static inline void calctilebounds(float sx1, float sy1, float sx2, float sy2, T &bx1, T &by1, T &bx2, T &by2)
 {
-    int tx1 = max(int(floor(((sx1 + 1)*0.5f*vieww)/lighttilealignw)), 0),
-        ty1 = max(int(floor(((sy1 + 1)*0.5f*viewh)/lighttilealignh)), 0),
-        tx2 = min(int(ceil(((sx2 + 1)*0.5f*vieww)/lighttilealignw)), lighttilevieww),
-        ty2 = min(int(ceil(((sy2 + 1)*0.5f*viewh)/lighttilealignh)), lighttileviewh);
+    int tx1 = std::max(int(floor(((sx1 + 1)*0.5f*vieww)/lighttilealignw)), 0),
+        ty1 = std::max(int(floor(((sy1 + 1)*0.5f*viewh)/lighttilealignh)), 0),
+        tx2 = std::min(int(ceil(((sx2 + 1)*0.5f*vieww)/lighttilealignw)), lighttilevieww),
+        ty2 = std::min(int(ceil(((sy2 + 1)*0.5f*viewh)/lighttilealignh)), lighttileviewh);
     bx1 = T((tx1 * lighttilew) / lighttilevieww);
     by1 = T((ty1 * lighttileh) / lighttileviewh);
     bx2 = T((tx2 * lighttilew + lighttilevieww - 1) / lighttilevieww);

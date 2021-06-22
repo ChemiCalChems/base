@@ -2042,7 +2042,7 @@ namespace client
         putuint(q, physstate);
         putuint(q, d->impulse[IM_METER]);
         ivec o = ivec(vec(d->o.x, d->o.y, d->o.z-d->height).mul(DMF)), f = ivec(vec(d->floorpos.x, d->floorpos.y, d->floorpos.z).mul(DMF));
-        uint vel = min(int(d->vel.magnitude()*DVELF), 0xFFFF), fall = min(int(d->falling.magnitude()*DVELF), 0xFFFF);
+        uint vel = std::min(int(d->vel.magnitude()*DVELF), 0xFFFF), fall = std::min(int(d->falling.magnitude()*DVELF), 0xFFFF);
         // 3 bits position, 3 bits floor, 1 bit velocity, 3 bits falling, 1 bit conopen, X bits actions
         uint flags = 0;
         if(o.x < 0 || o.x > 0xFFFF) flags |= 1<<0;
@@ -2945,7 +2945,7 @@ namespace client
                         float maxscale = 1;
                         int sub = W2(weap, ammosub, etype >= 1);
                         if(sub > 1 && m->weapammo[weap][W_A_CLIP] < sub) maxscale = m->weapammo[weap][W_A_CLIP]/float(sub);
-                        m->setweapstate(weap, etype >= 2 ? W_S_ZOOM : W_S_POWER, max(int(W2(weap, cooktime, etype >= 1)*maxscale), 1), lastmillis, offtime);
+                        m->setweapstate(weap, etype >= 2 ? W_S_ZOOM : W_S_POWER, std::max(int(W2(weap, cooktime, etype >= 1)*maxscale), 1), lastmillis, offtime);
                     }
                     else m->setweapstate(weap, W_S_IDLE, 0, lastmillis, 0, true);
                     break;
@@ -3075,7 +3075,7 @@ namespace client
                 {
                     int tcn = getint(p), unpacklen = getint(p), packlen = getint(p);
                     gameent *d = game::getclient(tcn);
-                    ucharbuf q = p.subbuf(max(packlen, 0));
+                    ucharbuf q = p.subbuf(std::max(packlen, 0));
                     if(d) unpackeditinfo(d->edit, q.buf, q.maxlen, unpacklen);
                     break;
                 }
@@ -3085,7 +3085,7 @@ namespace client
                 {
                     int cn = getint(p), unpacklen = getint(p), packlen = getint(p);
                     gameent *d = game::getclient(cn);
-                    ucharbuf q = p.subbuf(max(packlen, 0));
+                    ucharbuf q = p.subbuf(std::max(packlen, 0));
                     if(d) unpackundo(q.buf, q.maxlen, unpacklen);
                     break;
                 }

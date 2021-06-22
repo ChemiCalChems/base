@@ -546,7 +546,7 @@ void sendfile(int cn, int chan, stream *file, const char *format, ...)
     }
     else if(!clients.inrange(cn)) return;
 
-    int len = file ? (int)min(file->size(), stream::offset(INT_MAX)) : 0;
+    int len = file ? (int)std::min(file->size(), stream::offset(INT_MAX)) : 0;
     if(len < 0 || len > 16<<20) return;
 
     packetbuf p(MAXTRANS+len, ENET_PACKET_FLAG_RELIABLE);
@@ -854,7 +854,7 @@ void checkserversockets()        // reply all server info requests
 #define ADDSOCKET(sock, write) \
     if(sock != ENET_SOCKET_NULL) \
     { \
-        maxsock = maxsock == ENET_SOCKET_NULL ? sock : max(maxsock, sock); \
+        maxsock = maxsock == ENET_SOCKET_NULL ? sock : std::max(maxsock, sock); \
         ENET_SOCKETSET_ADD(readset, sock); \
         if(write) ENET_SOCKETSET_ADD(writeset, sock); \
     }
@@ -994,7 +994,7 @@ int getclockmillis()
     int millis = SDL_GetTicks() - clockrealbase;
     if(clockfix) millis = int(millis*(double(clockerror)/1000000));
     millis += clockvirtbase;
-    return max(millis, totalmillis);
+    return std::max(millis, totalmillis);
 #endif
 }
 
@@ -1297,7 +1297,7 @@ void logoutfv(const char *fmt, va_list args)
         logline &line = loglines.add();
         vformatstring(line.buf, fmt, args, sizeof(line.buf));
         if(logfile) writelog(logfile, line.buf);
-        line.len = min(strlen(line.buf), sizeof(line.buf)-2);
+        line.len = std::min(strlen(line.buf), sizeof(line.buf)-2);
         line.buf[line.len++] = '\n';
         line.buf[line.len] = '\0';
         if(outhandle) writeline(line);

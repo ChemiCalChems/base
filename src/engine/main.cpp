@@ -302,8 +302,8 @@ void screenres(int w, int h)
         if(fullscreendesktop)
         {
             getdisplaymode();
-            scr_w = min(scr_w, desktopw);
-            scr_h = min(scr_h, desktoph);
+            scr_w = std::min(scr_w, desktopw);
+            scr_h = std::min(scr_h, desktoph);
         }
         if(SDL_GetWindowFlags(screen)&SDL_WINDOW_FULLSCREEN) resetfullscreen();
         else
@@ -380,8 +380,8 @@ void setupscreen(bool dogl = true)
     scr_h = clamp(scr_h, SCR_MINH, SCR_MAXH);
     if(fullscreendesktop)
     {
-        scr_w = min(scr_w, desktopw);
-        scr_h = min(scr_h, desktoph);
+        scr_w = std::min(scr_w, desktopw);
+        scr_h = std::min(scr_h, desktoph);
     }
 
     int winx = SDL_WINDOWPOS_UNDEFINED, winy = SDL_WINDOWPOS_UNDEFINED, winw = scr_w, winh = scr_h,
@@ -731,7 +731,7 @@ VAR(IDF_PERSIST, maxfpsrefreshoffset, 0, 1, VAR_MAX);
 void limitfps(int &millis, int curmillis)
 {
     int curmax = GETFPS(maxfps), curmenu = GETFPS(menufps),
-        limit = (hasnoview() || (minimized && !renderunfocused)) && curmenu ? (curmax > 0 ? min(curmax, curmenu) : curmenu) : curmax;
+        limit = (hasnoview() || (minimized && !renderunfocused)) && curmenu ? (curmax > 0 ? std::min(curmax, curmenu) : curmenu) : curmax;
     if(!limit || (limit >= refresh && vsync)) return;
     static int fpserror = 0;
     int delay = 1000/limit - (millis-curmillis);
@@ -858,7 +858,7 @@ void resetfps()
 
 void updatefps(int frames, int millis)
 {
-    fpshistory[fpspos++] = max(1, min(1000, millis));
+    fpshistory[fpspos++] = std::max(1, std::min(1000, millis));
     if(fpspos >= MAXFPSHISTORY) fpspos = 0;
 
     int fps, bestdiff, worstdiff;

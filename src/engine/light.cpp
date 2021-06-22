@@ -233,7 +233,7 @@ bool PackNode::insert(ushort &tx, ushort &ty, ushort tw, ushort th)
     {
         bool inserted = child1->insert(tx, ty, tw, th) ||
                         child2->insert(tx, ty, tw, th);
-        available = max(child1->available, child2->available);
+        available = std::max(child1->available, child2->available);
         if(!available) discardchildren();
         return inserted;
     }
@@ -257,7 +257,7 @@ bool PackNode::insert(ushort &tx, ushort &ty, ushort tw, ushort th)
     }
 
     bool inserted = child1->insert(tx, ty, tw, th);
-    available = max(child1->available, child2->available);
+    available = std::max(child1->available, child2->available);
     return inserted;
 }
 
@@ -268,20 +268,20 @@ void PackNode::reserve(ushort tx, ushort ty, ushort tw, ushort th)
     {
         child1->reserve(tx, ty, tw, th);
         child2->reserve(tx, ty, tw, th);
-        available = max(child1->available, child2->available);
+        available = std::max(child1->available, child2->available);
         return;
     }
-    int dx1 = tx - x, dx2 = x + w - tx - tw, dx = max(dx1, dx2),
-        dy1 = ty - y, dy2 = y + h - ty - th, dy = max(dy1, dy2),
+    int dx1 = tx - x, dx2 = x + w - tx - tw, dx = std::max(dx1, dx2),
+        dy1 = ty - y, dy2 = y + h - ty - th, dy = std::max(dy1, dy2),
         split;
     if(dx > dy)
     {
-        if(dx1 > dx2) split = min(dx1, int(w));
-        else split = w - max(dx2, 0);
+        if(dx1 > dx2) split = std::min(dx1, int(w));
+        else split = w - std::max(dx2, 0);
         if(w - split <= 0)
         {
             w = split;
-            available = min(w, h);
+            available = std::min(w, h);
             if(dy > 0) reserve(tx, ty, tw, th);
             else if(tx <= x && tx + tw >= x + w) available = 0;
             return;
@@ -290,7 +290,7 @@ void PackNode::reserve(ushort tx, ushort ty, ushort tw, ushort th)
         {
             x += split;
             w -= split;
-            available = min(w, h);
+            available = std::min(w, h);
             if(dy > 0) reserve(tx, ty, tw, th);
             else if(tx <= x && tx + tw >= x + w) available = 0;
             return;
@@ -300,12 +300,12 @@ void PackNode::reserve(ushort tx, ushort ty, ushort tw, ushort th)
     }
     else
     {
-        if(dy1 > dy2) split = min(dy1, int(h));
-        else split = h - max(dy2, 0);
+        if(dy1 > dy2) split = std::min(dy1, int(h));
+        else split = h - std::max(dy2, 0);
         if(h - split <= 0)
         {
             h = split;
-            available = min(w, h);
+            available = std::min(w, h);
             if(dx > 0) reserve(tx, ty, tw, th);
             else if(ty <= y && ty + th >= y + h) available = 0;
             return;
@@ -314,7 +314,7 @@ void PackNode::reserve(ushort tx, ushort ty, ushort tw, ushort th)
         {
             y += split;
             h -= split;
-            available = min(w, h);
+            available = std::min(w, h);
             if(dx > 0) reserve(tx, ty, tw, th);
             else if(ty <= y && ty + th >= y + h) available = 0;
             return;
@@ -324,7 +324,7 @@ void PackNode::reserve(ushort tx, ushort ty, ushort tw, ushort th)
     }
     child1->reserve(tx, ty, tw, th);
     child2->reserve(tx, ty, tw, th);
-    available = max(child1->available, child2->available);
+    available = std::max(child1->available, child2->available);
 }
 
 static void clearsurfaces(cube *c)
@@ -473,13 +473,13 @@ static void calcsurfaces(cube &c, const ivec &co, int size, int usefacemask, int
             loopj(numverts-1)
             {
                 const vertinfo &v = curlitverts[j];
-                x1 = min(x1, int(v.x));
-                y1 = min(y1, int(v.y));
-                x2 = max(x2, int(v.x));
-                y2 = max(y2, int(v.y));
+                x1 = std::min(x1, int(v.x));
+                y1 = std::min(y1, int(v.y));
+                x2 = std::max(x2, int(v.x));
+                y2 = std::max(y2, int(v.y));
             }
-            x2 = max(x2, x1+1);
-            y2 = max(y2, y1+1);
+            x2 = std::max(x2, x1+1);
+            y2 = std::max(y2, y1+1);
             x1 = (x1>>3) + (co.x&~0xFFF);
             y1 = (y1>>3) + (co.y&~0xFFF);
             x2 = ((x2+7)>>3) + (co.x&~0xFFF);

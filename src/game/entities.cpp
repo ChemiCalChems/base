@@ -162,7 +162,7 @@ namespace entities
             for(int i = ent; ents.inrange(i); )
             { // build the rails for this line
                 gameentity &e = *(gameentity *)ents[i];
-                rails.add(rail(i, e.o, max(e.attrs[0], 0), e.attrs[1], e.attrs[7], e.attrs[8]/100.f));
+                rails.add(rail(i, e.o, std::max(e.attrs[0], 0), e.attrs[1], e.attrs[7], e.attrs[8]/100.f));
                 i = -1;
 
                 loopvj(e.links)
@@ -243,7 +243,7 @@ namespace entities
 
             if(flags&(1<<RAIL_YAW) || flags&(1<<RAIL_PITCH))
             {
-                float part = step >= rcur.rotend ? 1.f : (step >= rcur.rotstart ? (step-rcur.rotstart)/float(max(rcur.rotlen, 1)) : 0.f);
+                float part = step >= rcur.rotend ? 1.f : (step >= rcur.rotstart ? (step-rcur.rotstart)/float(std::max(rcur.rotlen, 1)) : 0.f);
                 if(flags&(1<<RAIL_SPLINE))
                 {
                     vec spline[4] = { rprev.dir, rcur.dir, rnext.dir, rnext2.dir };
@@ -295,7 +295,7 @@ namespace entities
             lastoffset = offset;
             lastdir = dir;
 
-            millis = elapsed%max(length[iter], 1);
+            millis = elapsed%std::max(length[iter], 1);
             offset = rails[0].pos;
             if(flags&(1<<RAIL_YAW) || flags&(1<<RAIL_PITCH)) dir = rails[0].dir;
 
@@ -406,8 +406,8 @@ namespace entities
                     }
                     rotatebb(center, radius, int(newyaw), int(newpitch), int(newroll));
 
-                    float xradius = radius.x + fabs(center.x), yradius = radius.y + fabs(center.y), rradius = m->collidetype == COLLIDE_OBB ? sqrtf(xradius*xradius + yradius*yradius) : max(xradius, yradius),
-                          offz = center.z-radius.z, height = max(offz, 0.f) + radius.z*2*mmi->m->height, aboveeye = radius.z*2*(1.0f-mmi->m->height);
+                    float xradius = radius.x + fabs(center.x), yradius = radius.y + fabs(center.y), rradius = m->collidetype == COLLIDE_OBB ? sqrtf(xradius*xradius + yradius*yradius) : std::max(xradius, yradius),
+                          offz = center.z-radius.z, height = std::max(offz, 0.f) + radius.z*2*mmi->m->height, aboveeye = radius.z*2*(1.0f-mmi->m->height);
 
                     newpos.z += height;
                     if(offz < 0) newpos.z += offz;
@@ -435,7 +435,7 @@ namespace entities
 
                         for(int s = curstep; s > 0; )
                         {
-                            int step = min(s, physics::physframetime);
+                            int step = std::min(s, physics::physframetime);
                             float part = step/float(curstep);
                             vec dir = vec(m->moved).mul(part);
                             vec4 resize = vec4(m->resized).mul(part);
@@ -443,7 +443,7 @@ namespace entities
                             m->o.add(dir);
                             m->xradius += resize.x;
                             m->yradius += resize.y;
-                            m->radius = m->collidetype == COLLIDE_OBB ? sqrtf(xradius*xradius + yradius*yradius) : max(xradius, yradius);
+                            m->radius = m->collidetype == COLLIDE_OBB ? sqrtf(xradius*xradius + yradius*yradius) : std::max(xradius, yradius);
                             m->zradius += resize.z;
                             m->height = m->zradius;
                             m->aboveeye += resize.w;
@@ -1403,7 +1403,7 @@ namespace entities
                             else
                             {
                                 int offset = f->weapload[f->weapselect][W_A_CLIP];
-                                f->weapammo[f->weapselect][W_A_CLIP] = max(f->weapammo[f->weapselect][W_A_CLIP]-offset, 0);
+                                f->weapammo[f->weapselect][W_A_CLIP] = std::max(f->weapammo[f->weapselect][W_A_CLIP]-offset, 0);
                                 if(W(f->weapselect, ammostore) > 0)
                                     f->weapammo[f->weapselect][W_A_STORE] = clamp(f->weapammo[f->weapselect][W_A_STORE]+offset, 0, W(f->weapselect, ammostore));
                                 f->weapload[f->weapselect][W_A_CLIP] = -f->weapload[f->weapselect][W_A_CLIP];
@@ -1450,8 +1450,8 @@ namespace entities
                         float mag = vec(d->vel).add(d->falling).magnitude(), yaw = f.attrs[0] < 0 ? (lastmillis/5)%360 : f.attrs[0], pitch = f.attrs[1];
                         if(!projent::shot(d))
                         {
-                            if(f.attrs[2] > 0) mag = max(mag, float(f.attrs[2]));
-                            else if(f.attrs[2] < 0) mag = min(mag, float(-f.attrs[2]));
+                            if(f.attrs[2] > 0) mag = std::max(mag, float(f.attrs[2]));
+                            else if(f.attrs[2] < 0) mag = std::min(mag, float(-f.attrs[2]));
                         }
                         game::fixrange(yaw, pitch);
                         if(mag != 0 && f.attrs[5] < 6) d->vel = vec(yaw*RAD, pitch*RAD).mul(mag);
@@ -1525,7 +1525,7 @@ namespace entities
                                     if(!g->beenused)
                                     {
                                         g->beenused = 1;
-                                        g->lifetime = min(g->lifetime, g->fadetime);
+                                        g->lifetime = std::min(g->lifetime, g->fadetime);
                                     }
                                     if(g->lifetime > 0) break;
                                 }
@@ -1618,8 +1618,8 @@ namespace entities
         static vector<actitem> actitems;
         actitems.setsize(0);
         vec pos = d->center();
-        float radius = max(d->xradius, d->yradius);
-        if(gameent::is(d)) radius = max(d->height*0.5f, radius);
+        float radius = std::max(d->xradius, d->yradius);
+        if(gameent::is(d)) radius = std::max(d->height*0.5f, radius);
         if(collateitems(d, pos, radius, actitems))
         {
             bool tried = false;
@@ -1673,7 +1673,7 @@ namespace entities
                 gameentity &e = *(gameentity *)ents[i];
                 putint(p, i);
                 putint(p, int(e.type));
-                putint(p, min(e.attrs.length(), MAXENTATTRS));
+                putint(p, std::min(e.attrs.length(), MAXENTATTRS));
                 loopvj(e.attrs)
                 {
                     if(j >= MAXENTATTRS) break;
@@ -1682,7 +1682,7 @@ namespace entities
                 if(enttype[e.type].syncpos) loopj(3) putint(p, int(e.o[j]*DMF));
                 if(enttype[e.type].synckin)
                 {
-                    putint(p, min(e.kin.length(), MAXENTKIN));
+                    putint(p, std::min(e.kin.length(), MAXENTKIN));
                     loopvj(e.kin)
                     {
                         if(j >= MAXENTKIN) break;
@@ -2060,8 +2060,8 @@ namespace entities
         if(e.type == TRIGGER && !cantrigger(index)) return;
         if(!local) e.lastemit = lastmillis;
         bool commit = false;
-        int fstent = min(firstent(MAPMODEL), min(firstent(LIGHTFX), min(firstent(PARTICLES), firstent(MAPSOUND)))),
-            lstent = max(lastent(MAPMODEL), max(lastent(LIGHTFX), max(lastent(PARTICLES), lastent(MAPSOUND))));
+        int fstent = std::min(firstent(MAPMODEL), std::min(firstent(LIGHTFX), std::min(firstent(PARTICLES), firstent(MAPSOUND)))),
+            lstent = std::max(lastent(MAPMODEL), std::max(lastent(LIGHTFX), std::max(lastent(PARTICLES), lastent(MAPSOUND))));
         for(int i = fstent; i < lstent; ++i) if(ents[i]->links.find(index) >= 0)
         {
             gameentity &f = *(gameentity *)ents[i];
@@ -2196,10 +2196,10 @@ namespace entities
             client::addmsg(N_EDITENT, "ri5iv", i, (int)(e.o.x*DMF), (int)(e.o.y*DMF), (int)(e.o.z*DMF), e.type, e.attrs.length(), e.attrs.length(), e.attrs.getbuf());
         if(e.type < MAXENTTYPES)
         {
-            firstenttype[e.type] = min(firstenttype[e.type], i);
-            firstusetype[enttype[e.type].usetype] = min(firstusetype[enttype[e.type].usetype], i);
-            lastenttype[e.type] = max(lastenttype[e.type], i+1);
-            lastusetype[enttype[e.type].usetype] = max(lastusetype[enttype[e.type].usetype], i+1);
+            firstenttype[e.type] = std::min(firstenttype[e.type], i);
+            firstusetype[enttype[e.type].usetype] = std::min(firstusetype[enttype[e.type].usetype], i);
+            lastenttype[e.type] = std::max(lastenttype[e.type], i+1);
+            lastusetype[enttype[e.type].usetype] = std::max(lastusetype[enttype[e.type].usetype], i+1);
         }
     }
 
@@ -2315,7 +2315,7 @@ namespace entities
         int offsets[MAXENTTYPES];
         memset(offsets, -1, sizeof(offsets));
         int priority = INT_MIN, nextpriority = INT_MIN;
-        loopi(MAXENTTYPES) nextpriority = max(nextpriority, enttype[i].priority);
+        loopi(MAXENTTYPES) nextpriority = std::max(nextpriority, enttype[i].priority);
         int offset = 0;
         do
         {
@@ -2324,7 +2324,7 @@ namespace entities
             loopi(MAXENTTYPES) if(offsets[i] < 0)
             {
                 if(enttype[i].priority >= priority) { offsets[i] = offset; offset += numents[i]; }
-                else nextpriority = max(nextpriority, enttype[i].priority);
+                else nextpriority = std::max(nextpriority, enttype[i].priority);
             }
         } while(nextpriority < priority);
         idxs.setsize(0);
@@ -2492,10 +2492,10 @@ namespace entities
             gameentity &e = *(gameentity *)ents[i];
             if(e.type >= 0 && e.type < MAXENTTYPES)
             {
-                firstenttype[e.type] = min(firstenttype[e.type], i);
-                firstusetype[enttype[e.type].usetype] = min(firstusetype[enttype[e.type].usetype], i);
-                lastenttype[e.type] = max(lastenttype[e.type], i+1);
-                lastusetype[enttype[e.type].usetype] = max(lastusetype[enttype[e.type].usetype], i+1);
+                firstenttype[e.type] = std::min(firstenttype[e.type], i);
+                firstusetype[enttype[e.type].usetype] = std::min(firstusetype[enttype[e.type].usetype], i);
+                lastenttype[e.type] = std::max(lastenttype[e.type], i+1);
+                lastusetype[enttype[e.type].usetype] = std::max(lastusetype[enttype[e.type].usetype], i+1);
             }
             if(enttype[e.type].usetype == EU_ITEM || e.type == TRIGGER) setspawn(i, 0);
             if(enttype[e.type].syncs && enttype[e.type].synckin) // find shared kin
@@ -2541,7 +2541,7 @@ namespace entities
 
     bool shouldshowents(int level)
     {
-        return max(showentradius, max(showentdir, showentlinks)) >= level;
+        return std::max(showentradius, std::max(showentdir, showentlinks)) >= level;
     }
 
     void renderentshow(gameentity &e, int idx, int level, bool dynamic = false)
@@ -2792,8 +2792,8 @@ namespace entities
                         int n = newentity(o, int(ROUTE), attrs);
                         if(ents.inrange(lastroutenode)) ents[lastroutenode]->links.add(n);
                         curnode = n;
-                        firstenttype[ROUTE] = min(firstenttype[ROUTE], n);
-                        lastenttype[ROUTE] = max(lastenttype[ROUTE], n);
+                        firstenttype[ROUTE] = std::min(firstenttype[ROUTE], n);
+                        lastenttype[ROUTE] = std::max(lastenttype[ROUTE], n);
                         if(game::player1->airmillis) airnodes.add(n);
                     }
                     if(!game::player1->airmillis && !airnodes.empty()) airnodes.setsize(0);
@@ -3109,8 +3109,8 @@ namespace entities
         if(drawtex) return;
 
         bool hasroute = (m_edit(game::gamemode) || m_race(game::gamemode)) && routeid >= 0;
-        int fstent = m_edit(game::gamemode) ? 0 : min(firstuse(EU_ITEM), firstent(hasroute ? ROUTE : TELEPORT)),
-            lstent = m_edit(game::gamemode) ? ents.length() : max(lastuse(EU_ITEM), lastent(hasroute ? ROUTE : TELEPORT));
+        int fstent = m_edit(game::gamemode) ? 0 : std::min(firstuse(EU_ITEM), firstent(hasroute ? ROUTE : TELEPORT)),
+            lstent = m_edit(game::gamemode) ? ents.length() : std::max(lastuse(EU_ITEM), lastent(hasroute ? ROUTE : TELEPORT));
 
         for(int i = fstent; i < lstent; ++i)
         {
@@ -3147,11 +3147,11 @@ namespace entities
             float skew = 1;
             if(proj.fadetime && proj.lifemillis)
             {
-                int interval = min(proj.lifemillis, proj.fadetime);
+                int interval = std::min(proj.lifemillis, proj.fadetime);
                 if(proj.lifetime < interval) skew = float(proj.lifetime)/float(interval);
                 else if(proj.lifemillis > interval)
                 {
-                    interval = min(proj.lifemillis-interval, proj.fadetime);
+                    interval = std::min(proj.lifemillis-interval, proj.fadetime);
                     if(proj.lifemillis-proj.lifetime < interval) skew = float(proj.lifemillis-proj.lifetime)/float(interval);
                 }
             }

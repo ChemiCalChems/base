@@ -259,9 +259,9 @@ struct masterclient
         int ret = 1;
         for(const char *c = flags; *c; c++) switch(*c)
         {
-            case 'm': ret = max(ret, 4); break;
-            case 's': case 'u': ret = max(ret, sendstats ? 3 : 2); break;
-            case 'b': ret = max(ret, 2); break;
+            case 'm': ret = std::max(ret, 4); break;
+            case 's': case 'u': ret = std::max(ret, sendstats ? 3 : 2); break;
+            case 'b': ret = std::max(ret, 2); break;
             default: break;
         }
         return ret;
@@ -484,7 +484,7 @@ float playeravgpos(const char *handle)
 
     if(sqlite3_step(stmt) == SQLITE_ROW)
     {
-        ret = sqlite3_column_int(stmt, 1) ? max(sqlite3_column_double(stmt, 0), (double)0) : ret;
+        ret = sqlite3_column_int(stmt, 1) ? std::max(sqlite3_column_double(stmt, 0), (double)0) : ret;
     }
 
     sqlite3_finalize(stmt);
@@ -724,7 +724,7 @@ void addauth(char *name, char *flags, char *pubkey, char *email, char *steamid)
             flagbuf[flagidx] = 0; \
             if(flagidx >= MAXSTRLEN-1) check; \
         }
-    loopi(min(int(strlen(flags)), MAXSTRLEN-1))
+    loopi(std::min(int(strlen(flags)), MAXSTRLEN-1))
     {
         ADDFLAG(flags[i], break);
         if(flags[i] == 'm') { ADDFLAG('o', break); }
@@ -1215,7 +1215,7 @@ void checkmaster()
     if(mastersocket == ENET_SOCKET_NULL || pingsocket == ENET_SOCKET_NULL) return;
 
     ENetSocketSet readset, writeset;
-    ENetSocket maxsock = max(mastersocket, pingsocket);
+    ENetSocket maxsock = std::max(mastersocket, pingsocket);
     ENET_SOCKETSET_EMPTY(readset);
     ENET_SOCKETSET_EMPTY(writeset);
     ENET_SOCKETSET_ADD(readset, mastersocket);
@@ -1251,7 +1251,7 @@ void checkmaster()
         }
         if(c.outputpos < c.output.length()) ENET_SOCKETSET_ADD(writeset, c.socket);
         else ENET_SOCKETSET_ADD(readset, c.socket);
-        maxsock = max(maxsock, c.socket);
+        maxsock = std::max(maxsock, c.socket);
 
         if(c.wantstats && ENET_TIME_DIFFERENCE(totalmillis, c.laststats) > STATSDB_RETRYTIME) savestats(c);
     }
@@ -1321,7 +1321,7 @@ void checkmaster()
             if(res > 0)
             {
                 c.inputpos += res;
-                c.input[min(c.inputpos, (int)sizeof(c.input)-1)] = '\0';
+                c.input[std::min(c.inputpos, (int)sizeof(c.input)-1)] = '\0';
                 if(!checkmasterclientinput(c)) { purgemasterclient(i--); continue; }
             }
             else { purgemasterclient(i--); continue; }

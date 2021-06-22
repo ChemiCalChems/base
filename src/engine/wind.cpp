@@ -185,7 +185,7 @@ static vec getentwindvec(const dynent *d)
         v = vec(d->vel).add(d->falling).mul(-WIND_DYNENT_MOVE_SCALE);
 
         // limit the magnitude to WIND_MAX_SPEED
-        v.mul(min(1.0f, WIND_MAX_SPEED / v.magnitude()));
+        v.mul(std::min(1.0f, WIND_MAX_SPEED / v.magnitude()));
     }
 
     return v;
@@ -215,7 +215,7 @@ vec getwind(const vec &o, const dynent *d)
 
         // attenuate the strength depending on the distance
         float atten = we->attrs.atten;
-        float div = max(1.0f, distsq * atten * WIND_ATTEN_SCALE);
+        float div = std::max(1.0f, distsq * atten * WIND_ATTEN_SCALE);
         float speed = (we->curspeed * we->attrs.speed) / div;
 
         // vectored mode, so we're getting the direction from the yaw parameter
@@ -263,7 +263,7 @@ void addwind(const vec &o, int mode, float speed, windemitter **hook, int yaw, i
         we->attrs.o = o;
         we->attrs.mode = mode;
         we->attrs.yaw = yaw;
-        we->attrs.speed = min(1.0f, speed) * WIND_MAX_SPEED;
+        we->attrs.speed = std::min(1.0f, speed) * WIND_MAX_SPEED;
         we->attrs.radius = radius;
         we->attrs.atten = atten;
         we->attrs.interval = interval;
@@ -289,7 +289,7 @@ void addwind(extentity *e)
         we->attrs.o = e->o;
         we->attrs.mode = e->attrs[0];
         we->attrs.yaw = e->attrs[1];
-        we->attrs.speed = min(1.0f, e->attrs[2] / 255.0f) * WIND_MAX_SPEED;
+        we->attrs.speed = std::min(1.0f, e->attrs[2] / 255.0f) * WIND_MAX_SPEED;
         we->attrs.radius = e->attrs[3];
         we->attrs.atten = e->attrs[4] / 100.0f;
         we->attrs.interval = e->attrs[5];

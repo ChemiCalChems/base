@@ -30,7 +30,7 @@ namespace ai
         showwaypoints = dropwaypoints = 0;
     }
 
-    float viewdist(int x) { return x <= 100 ? clamp((SIGHTMIN+(SIGHTMAX-SIGHTMIN))/100.f*float(x), float(SIGHTMIN), max(float(getfog()), SIGHTMIN)) : max(float(getfog()), SIGHTMIN); }
+    float viewdist(int x) { return x <= 100 ? clamp((SIGHTMIN+(SIGHTMAX-SIGHTMIN))/100.f*float(x), float(SIGHTMIN), std::max(float(getfog()), SIGHTMIN)) : std::max(float(getfog()), SIGHTMIN); }
     float viewfieldx(int x) { return x <= 100 ? clamp((VIEWMIN+(VIEWMAX-VIEWMIN))/100.f*float(x), float(VIEWMIN), float(VIEWMAX)) : float(VIEWMAX); }
     float viewfieldy(int x) { return viewfieldx(x)*3.f/4.f; }
 
@@ -73,7 +73,7 @@ namespace ai
     bool badhealth(gameent *d)
     {
         int hp = d->gethealth(game::gamemode, game::mutators);
-        if(d->skill < 100 && d->health < hp) return d->health <= (111-d->skill)*max(hp*0.01f, 1.f);
+        if(d->skill < 100 && d->health < hp) return d->health <= (111-d->skill)*std::max(hp*0.01f, 1.f);
         return false;
     }
 
@@ -133,9 +133,9 @@ namespace ai
         if(lastmillis >= d->ai->lastaimrnd)
         {
             int radius = ceilf(e->radius*W2(d->weapselect, aiskew, alt));
-            float speed = clamp(e->vel.magnitude()/max(e->speed, 1.f), 0.f, 1.f), scale = speed+((1-speed)*((101-d->skill)/100.f));
+            float speed = clamp(e->vel.magnitude()/std::max(e->speed, 1.f), 0.f, 1.f), scale = speed+((1-speed)*((101-d->skill)/100.f));
             loopk(3) d->ai->aimrnd[k] = (rnd((radius*2)+1)-radius)*scale;
-            int dur = max(d->skill*2, 30)*5;
+            int dur = std::max(d->skill*2, 30)*5;
             d->ai->lastaimrnd = lastmillis+dur+rnd(dur);
         }
         return o.add(d->ai->aimrnd);
@@ -159,7 +159,7 @@ namespace ai
         if(itemweap(weap)) { if(noitems) return false; }
         else
         {
-            int weapnum = min(m_maxcarry(d->actortype, game::gamemode, game::mutators), d->loadweap.length()),
+            int weapnum = std::min(m_maxcarry(d->actortype, game::gamemode, game::mutators), d->loadweap.length()),
                 weaphas = d->loadweap.find(weap);
             if(weaphas < 0 || weaphas >= m_maxcarry(d->actortype, game::gamemode, game::mutators))
             {
@@ -983,7 +983,7 @@ namespace ai
         if(d->ai->route.empty() || !d->ai->route.inrange(n)) return false;
         int len = d->ai->route.length();
         if(len <= 2 || (d->ai->lastcheck && lastmillis-d->ai->lastcheck <= 500)) return false;
-        int w = iswaypoint(d->lastnode) ? d->lastnode : d->ai->route[n], c = min(len, NUMPREVNODES);
+        int w = iswaypoint(d->lastnode) ? d->lastnode : d->ai->route[n], c = std::min(len, NUMPREVNODES);
         if(c >= 3) loopj(c) // check ahead to see if we need to go around something
         {
             int m = len-j-1;
@@ -1112,7 +1112,7 @@ namespace ai
 
     void process(gameent *d, aistate &b, bool &occupied, bool &firing, vector<actitem> &items)
     {
-        int skmod = max(101-d->skill, 1);
+        int skmod = std::max(101-d->skill, 1);
         float frame = d->skill <= 100 ? ((lastmillis-d->ai->lastrun)*(100.f/gamespeed))/float(skmod*10) : 1;
         if(d->dominating.length()) frame *= 1+d->dominating.length(); // berserker mode
         bool dancing = b.type == AI_S_OVERRIDE && b.overridetype == AI_O_DANCE,
@@ -1255,10 +1255,10 @@ namespace ai
             if(dancing || actors[d->actortype].onlyfwd) frame *= 10;
             else if(!m_insta(game::gamemode, game::mutators))
             {
-                int hp = max(d->gethealth(game::gamemode, game::mutators)/3, 1);
+                int hp = std::max(d->gethealth(game::gamemode, game::mutators)/3, 1);
                 if(b.acttype == AI_A_NORMAL && (d->health <= hp || (iswaypoint(d->ai->targnode) && obstacles.find(d->ai->targnode, d))))
                     b.acttype = AI_A_HASTE;
-                if(b.acttype == AI_A_HASTE) frame *= 1+(hp/float(max(d->health, 1)));
+                if(b.acttype == AI_A_HASTE) frame *= 1+(hp/float(std::max(d->health, 1)));
             }
             else frame *= 2;
             game::scaleyawpitch(d->yaw, d->pitch, d->ai->targyaw, d->ai->targpitch, frame, frame*0.5f);
@@ -1324,7 +1324,7 @@ namespace ai
             static vector<actitem> actitems;
             actitems.setsize(0);
             vec pos = d->center();
-            float radius = max(d->height*0.5f, max(d->xradius, d->yradius));
+            float radius = std::max(d->height*0.5f, std::max(d->xradius, d->yradius));
             if(entities::collateitems(d, pos, radius, actitems))
             {
                 while(!actitems.empty())
@@ -1410,7 +1410,7 @@ namespace ai
             items.pop();
         }
 
-        bool timepassed = d->weapstate[d->weapselect] == W_S_IDLE && (d->weapammo[d->weapselect][W_A_CLIP] <= 0 || lastmillis-d->weaptime[d->weapselect] >= max(6000-(d->skill*50), W(d->weapselect, delayswitch)));
+        bool timepassed = d->weapstate[d->weapselect] == W_S_IDLE && (d->weapammo[d->weapselect][W_A_CLIP] <= 0 || lastmillis-d->weaptime[d->weapselect] >= std::max(6000-(d->skill*50), W(d->weapselect, delayswitch)));
         if(!firing && (!occupied || d->weapammo[d->weapselect][W_A_CLIP] <= 0) && timepassed && d->hasweap(d->weapselect, sweap) && weapons::weapreload(d, d->weapselect))
         {
             d->ai->lastaction = lastmillis;
@@ -1601,7 +1601,7 @@ namespace ai
                 radius.mul(scale);
             }
             rotatebb(center, radius, int(e.attrs[1]), int(e.attrs[2]), int(e.attrs[3]));
-            float xy = max(radius.x, radius.y), z = radius.z;
+            float xy = std::max(radius.x, radius.y), z = radius.z;
             xy += WAYPOINTRADIUS;
             z += WAYPOINTRADIUS;
             obstacles.avoidnear(NULL, e.o.z + z + 1, e.o, xy + 1);

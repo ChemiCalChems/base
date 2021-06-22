@@ -39,20 +39,10 @@ typedef unsigned long long int ullong;
 #endif
 
 #include <algorithm>
-template <typename T>
-static inline void swap(T& a, T& b) {
-	return std::swap(a, b);
-}
-template <typename T> T max(const T& a, const T& b) {
-	return std::max(a, b);
-}
-template <typename T> T min(const T& a, const T& b) {
-	return std::min(a, b);
-}
 template <typename T1, typename T2> T1 clamp(const T1& x, const T2& lo, const T2& hi) {
 	//return std::clamp(x, static_cast<T1>(lo), static_cast<T1>(hi));
 	// For some reason, the commented out version causes a segfault (???)
-	return max(static_cast<T1>(lo), min(x, static_cast<T1>(hi)));
+	return std::max(static_cast<T1>(lo), std::min(x, static_cast<T1>(hi)));
 }
 
 #ifdef __GNUC__
@@ -190,13 +180,13 @@ static inline int bitscan(uint mask)
     } \
     else if(c < 0) \
     { \
-        lcs##v##start = clamp(m-1-max(s, 0)+c+1, 0, m-1); \
-        lcs##v##end = clamp(m-1-max(s, 0), 0, m-1); \
+        lcs##v##start = clamp(m-1-std::max(s, 0)+c+1, 0, m-1); \
+        lcs##v##end = clamp(m-1-std::max(s, 0), 0, m-1); \
     } \
     else \
     { \
         lcs##v##start = clamp(s, 0, m-1); \
-        lcs##v##end = max(m-1, 0); \
+        lcs##v##end = std::max(m-1, 0); \
     } \
     for(int v = lcs##v##start; v <= lcs##v##end; v++)
 
@@ -215,7 +205,7 @@ static inline int bitscan(uint mask)
     } \
     else if(c < 0) \
     { \
-        lcs##v##start = clamp(max(s, 0)-c-1, 0, m-1); \
+        lcs##v##start = clamp(std::max(s, 0)-c-1, 0, m-1); \
         lcs##v##end = clamp(s, 0, m-1); \
     } \
     else \
@@ -292,7 +282,7 @@ template<size_t N> inline void vformatstring(char (&d)[N], const char *fmt, va_l
 
 inline char *copystring(char *d, const char *s, size_t len)
 {
-    size_t slen = min(strlen(s), len-1);
+    size_t slen = std::min(strlen(s), len-1);
     memcpy(d, s, slen);
     d[slen] = 0;
     return d;
@@ -304,8 +294,8 @@ template<size_t N> inline char *concatstring(char (&d)[N], const char *s) { retu
 
 inline char *prependstring(char *d, const char *s, size_t len)
 {
-    size_t slen = min(strlen(s), len);
-    memmove(&d[slen], d, min(len - slen, strlen(d) + 1));
+    size_t slen = std::min(strlen(s), len);
+    memmove(&d[slen], d, std::min(len - slen, strlen(d) + 1));
     memcpy(d, s, slen);
     d[len-1] = 0;
     return d;
@@ -451,7 +441,7 @@ struct databuf
     T *pad(int numvals)
     {
         T *vals = &buf[len];
-        len += min(numvals, maxlen-len);
+        len += std::min(numvals, maxlen-len);
         return vals;
     }
 
@@ -486,10 +476,10 @@ struct databuf
 
     void offset(int n)
     {
-        n = min(n, maxlen);
+        n = std::min(n, maxlen);
         buf += n;
         maxlen -= n;
-        len = max(len-n, 0);
+        len = std::max(len-n, 0);
     }
 
     T *getbuf() const { return buf; }
@@ -536,7 +526,7 @@ struct packetbuf : ucharbuf
 
     void checkspace(int n)
     {
-        if(len + n > maxlen && packet && growth > 0) resize(max(len + n, maxlen + growth));
+        if(len + n > maxlen && packet && growth > 0) resize(std::max(len + n, maxlen + growth));
     }
 
     ucharbuf subbuf(int sz)
@@ -630,13 +620,13 @@ static inline void quicksort(T *start, T *end, F fun)
         }
         else if(fun(*start, end[-1])) { pivot = *start; *start = *mid; } /*mid <= start < end */
         else if(fun(*mid, end[-1])) { pivot = end[-1]; end[-1] = *start; *start = *mid; } /* mid < end <= start */
-        else { pivot = *mid; swap(*start, end[-1]); }  /* end <= mid <= start */
+        else { pivot = *mid; std::swap(*start, end[-1]); }  /* end <= mid <= start */
         *mid = end[-2];
         do
         {
             while(fun(*i, pivot)) if(++i >= j) goto partitioned;
             while(fun(pivot, *--j)) if(i >= j) goto partitioned;
-            swap(*i, *j);
+            std::swap(*i, *j);
         }
         while(++i < j);
     partitioned:
@@ -708,7 +698,7 @@ inline int stringlen(const stringslice &s) { return s.len; }
 
 inline char *copystring(char *d, const stringslice &s, size_t len)
 {
-    size_t slen = min(size_t(s.len), len-1);
+    size_t slen = std::min(size_t(s.len), len-1);
     memcpy(d, s.str, slen);
     d[slen] = 0;
     return d;
@@ -810,9 +800,9 @@ template <class T> struct vector
     {
         if(!ulen)
         {
-            swap(buf, v.buf);
-            swap(ulen, v.ulen);
-            swap(alen, v.alen);
+            std::swap(buf, v.buf);
+            std::swap(ulen, v.ulen);
+            std::swap(alen, v.alen);
         }
         else
         {
@@ -861,7 +851,7 @@ template <class T> struct vector
     void growbuf(int sz)
     {
         int olen = alen;
-        if(alen <= 0) alen = max(MINSIZE, sz);
+        if(alen <= 0) alen = std::max(MINSIZE, sz);
         else while(alen < sz) alen += alen/2;
         if(alen <= olen) return;
         uchar *newbuf = new uchar[alen*sizeof(T)];
@@ -980,7 +970,7 @@ template <class T> struct vector
 
     void reverse()
     {
-        loopi(ulen/2) swap(buf[i], buf[ulen-1-i]);
+        loopi(ulen/2) std::swap(buf[i], buf[ulen-1-i]);
     }
 
     static int heapparent(int i) { return (i - 1) >> 1; }
@@ -998,7 +988,7 @@ template <class T> struct vector
         {
             int pi = heapparent(i);
             if(score >= heapscore(buf[pi])) break;
-            swap(buf[i], buf[pi]);
+            std::swap(buf[i], buf[pi]);
             i = pi;
         }
         return i;
@@ -1020,10 +1010,10 @@ template <class T> struct vector
             float cscore = heapscore(buf[ci]);
             if(score > cscore)
             {
-               if(ci+1 < ulen && heapscore(buf[ci+1]) < cscore) { swap(buf[ci+1], buf[i]); i = ci+1; }
-               else { swap(buf[ci], buf[i]); i = ci; }
+               if(ci+1 < ulen && heapscore(buf[ci+1]) < cscore) { std::swap(buf[ci+1], buf[i]); i = ci+1; }
+               else { std::swap(buf[ci], buf[i]); i = ci; }
             }
-            else if(ci+1 < ulen && heapscore(buf[ci+1]) < score) { swap(buf[ci+1], buf[i]); i = ci+1; }
+            else if(ci+1 < ulen && heapscore(buf[ci+1]) < score) { std::swap(buf[ci+1], buf[i]); i = ci+1; }
             else break;
         }
         return i;
@@ -1057,11 +1047,11 @@ template <class T> struct vector
     }
     void uniquedeletecontents()
     {
-        UNIQUE(swap(buf[n], buf[i]), deletecontents(n));
+        UNIQUE(std::swap(buf[n], buf[i]), deletecontents(n));
     }
     void uniquedeletearrays()
     {
-        UNIQUE(swap(buf[n], buf[i]), deletearrays(n));
+        UNIQUE(std::swap(buf[n], buf[i]), deletearrays(n));
     }
     #undef UNIQUE
 };
@@ -1092,7 +1082,7 @@ template <class T> struct smallvector
 
     void growbuf(int sz)
     {
-        len = max(sz, 0);
+        len = std::max(sz, 0);
         if(len)
         {
             buf = (T *)realloc(buf, len*sizeof(T));
@@ -1151,7 +1141,7 @@ template <class T> struct smallvector
 
     void write(int i, const smallvector<T>& v, int n)
     {
-        write(i, v.getbuf(), min(v.length(), n));
+        write(i, v.getbuf(), std::min(v.length(), n));
     }
 
     void shrink(int i)
@@ -1505,7 +1495,7 @@ struct unionfind
 
     void unite (int x, int y)
     {
-        while(ufvals.length() <= max(x, y)) ufvals.add();
+        while(ufvals.length() <= std::max(x, y)) ufvals.add();
         x = compressfind(x);
         y = compressfind(y);
         if(x==y) return;
@@ -1553,7 +1543,7 @@ template <class T, int SIZE> struct queue
     databuf<T> reserve(int sz)
     {
         if(!len) head = tail = 0;
-        return databuf<T>(&data[tail], min(sz, SIZE-tail));
+        return databuf<T>(&data[tail], std::min(sz, SIZE-tail));
     }
 
     void advance(int sz)

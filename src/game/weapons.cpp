@@ -96,7 +96,7 @@ namespace weapons
             if(newoff)
             {
                 int offset = d->weapload[oldweap][W_A_CLIP];
-                d->weapammo[oldweap][W_A_CLIP] = max(d->weapammo[oldweap][W_A_CLIP]-offset, 0);
+                d->weapammo[oldweap][W_A_CLIP] = std::max(d->weapammo[oldweap][W_A_CLIP]-offset, 0);
                 if(W(oldweap, ammostore) > 0) d->weapammo[oldweap][W_A_STORE] = clamp(d->weapammo[oldweap][W_A_STORE]+offset, 0, W(oldweap, ammostore));
                 d->weapload[oldweap][W_A_CLIP] = -d->weapload[oldweap][W_A_CLIP];
             }
@@ -117,19 +117,19 @@ namespace weapons
                 return false;
             }
             client::addmsg(N_RELOAD, "ri3", d->clientnum, lastmillis-game::maptime, weap);
-            int oldammo = max(d->weapammo[weap][W_A_CLIP], 0), ammoadd = W(weap, ammoadd);
+            int oldammo = std::max(d->weapammo[weap][W_A_CLIP], 0), ammoadd = W(weap, ammoadd);
             if(d->actortype < A_ENEMY && W(weap, ammostore) > 0)
             {
                 store = d->weapammo[weap][W_A_STORE];
-                ammoadd = min(store, ammoadd);
+                ammoadd = std::min(store, ammoadd);
             }
-            ammo = min(oldammo+ammoadd, W(weap, ammoclip));
+            ammo = std::min(oldammo+ammoadd, W(weap, ammoclip));
             int diff = ammo-oldammo;
             if(W(weap, ammostore) > 0) store = clamp(store-diff, 0, W(weap, ammostore));
             load = diff;
         }
         d->weapload[weap][W_A_CLIP] = load;
-        d->weapammo[weap][W_A_CLIP] = min(ammo, W(weap, ammoclip));
+        d->weapammo[weap][W_A_CLIP] = std::min(ammo, W(weap, ammoclip));
         if(W(weap, ammostore) > 0) d->weapammo[weap][W_A_STORE] = clamp(store, 0, W(weap, ammostore));
         playsound(WSND(weap, S_W_RELOAD), d->o, d, 0, -1, -1, -1, &d->wschan[WS_MAIN_CHAN]);
         d->setweapstate(weap, W_S_RELOAD, W(weap, delayreload), lastmillis);
@@ -182,7 +182,7 @@ namespace weapons
             else
             {
                 int offset = d->weapload[d->weapselect][W_A_CLIP];
-                d->weapammo[d->weapselect][W_A_CLIP] = max(d->weapammo[d->weapselect][W_A_CLIP]-offset, 0);
+                d->weapammo[d->weapselect][W_A_CLIP] = std::max(d->weapammo[d->weapselect][W_A_CLIP]-offset, 0);
                 if(W(d->weapselect, ammostore) > 0) d->weapammo[d->weapselect][W_A_STORE] = clamp(d->weapammo[d->weapselect][W_A_STORE]+offset, 0, W(d->weapselect, ammostore));
                 d->weapload[d->weapselect][W_A_CLIP] = -d->weapload[d->weapselect][W_A_CLIP];
             }
@@ -293,7 +293,7 @@ namespace weapons
         {
             float maxscale = 1;
             if(sub > 1 && d->weapammo[weap][W_A_CLIP] < sub) maxscale = d->weapammo[weap][W_A_CLIP]/float(sub);
-            int len = max(int(W2(weap, cooktime, secondary)*maxscale), 1), type = zooming ? W_S_ZOOM : W_S_POWER;
+            int len = std::max(int(W2(weap, cooktime, secondary)*maxscale), 1), type = zooming ? W_S_ZOOM : W_S_POWER;
             if(!cooked)
             {
                 if(d->weapstate[weap] != type)
@@ -303,7 +303,7 @@ namespace weapons
                     {
                         if(offset > 0)
                         {
-                            d->weapammo[weap][W_A_CLIP] = max(curammo, 0);
+                            d->weapammo[weap][W_A_CLIP] = std::max(curammo, 0);
                             if(W(weap, ammostore) > 0) d->weapammo[weap][W_A_STORE] = clamp(d->weapammo[weap][W_A_STORE]+offset, 0, W(weap, ammostore));
                             d->weapload[weap][W_A_CLIP] = -offset;
                         }
@@ -333,7 +333,7 @@ namespace weapons
         }
         int rays = W2(weap, rays, secondary);
         if(rays > 1 && W2(weap, cooked, secondary)&W_C_RAYS && W2(weap, cooktime, secondary) && scale < 1)
-            rays = max(1, int(ceilf(rays*scale)));
+            rays = std::max(1, int(ceilf(rays*scale)));
         if(weap == W_MELEE || WF(false, weap, collide, secondary)&COLLIDE_LENGTH)
         {
             if(weap == W_MELEE)

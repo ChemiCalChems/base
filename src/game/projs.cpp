@@ -284,12 +284,12 @@ namespace projs
         bool push = WF(WK(proj.flags), proj.weap, wavepush, WS(proj.flags)) != 0, radiated = false;
         #define radialpush(rs,xx,yx,yy,yz1,yz2,zz) \
             if(!proj.o.rejectxyz(xx, yx, yy, yz1, yz2)) zz = 0; \
-            else if(!proj.o.reject(xx, rs+max(yx, yy))) \
+            else if(!proj.o.reject(xx, rs+std::max(yx, yy))) \
             { \
                 vec bottom(xx), top(xx); \
                 bottom.z -= yz1; \
                 top.z += yz2; \
-                zz = closestpointcylinder(proj.o, bottom, top, max(yx, yy)).dist(proj.o); \
+                zz = closestpointcylinder(proj.o, bottom, top, std::max(yx, yy)).dist(proj.o); \
             }
         if(gameent::is(d))
         {
@@ -666,8 +666,8 @@ namespace projs
         }
         if(!dir[1].iszero())
         {
-            mag = max(mag, proj.speedmin);
-            if(proj.speedmax > 0) mag = min(mag, proj.speedmax);
+            mag = std::max(mag, proj.speedmin);
+            if(proj.speedmax > 0) mag = std::min(mag, proj.speedmax);
             proj.vel = vec(dir[1]).mul(mag);
         }
     }
@@ -683,12 +683,12 @@ namespace projs
         float trans = WF(WK(proj.flags), proj.weap, blend, WS(proj.flags));
         if(WF(WK(proj.flags), proj.weap, fadein, WS(proj.flags)) != 0)
         {
-            int millis = proj.lifemillis-proj.lifetime, len = min(WF(WK(proj.flags), proj.weap, fadein, WS(proj.flags)), proj.lifemillis);
+            int millis = proj.lifemillis-proj.lifetime, len = std::min(WF(WK(proj.flags), proj.weap, fadein, WS(proj.flags)), proj.lifemillis);
             if(len > 0 && millis < len) trans *= millis/float(len);
         }
         if(WF(WK(proj.flags), proj.weap, fadeout, WS(proj.flags)) != 0)
         {
-            int len = min(WF(WK(proj.flags), proj.weap, fadeout, WS(proj.flags)), proj.lifemillis);
+            int len = std::min(WF(WK(proj.flags), proj.weap, fadeout, WS(proj.flags)), proj.lifemillis);
             if(len > 0 && proj.lifetime < len) trans *= proj.lifetime/float(len);
         }
         if(WF(WK(proj.flags), proj.weap, fade, WS(proj.flags))&(proj.owner != game::focus ? 2 : 1) && WF(WK(proj.flags), proj.weap, fadeat, WS(proj.flags)) > 0)
@@ -720,8 +720,8 @@ namespace projs
                 {
                     if(rev)
                     {
-                        float mag = max(max(proj.vel.magnitude()*proj.elasticity, proj.speedmin), 1.f);
-                        if(proj.speedmax > 0) mag = min(mag, proj.speedmax);
+                        float mag = std::max(std::max(proj.vel.magnitude()*proj.elasticity, proj.speedmin), 1.f);
+                        if(proj.speedmax > 0) mag = std::min(mag, proj.speedmax);
                         proj.vel = vec(proj.o).sub(orig).normalize().mul(mag);
                     }
                     return true;
@@ -739,8 +739,8 @@ namespace projs
                 {
                     if(rev)
                     {
-                        float mag = max(max(proj.vel.magnitude()*proj.elasticity, proj.speedmin), 1.f);
-                        if(proj.speedmax > 0) mag = min(mag, proj.speedmax);
+                        float mag = std::max(std::max(proj.vel.magnitude()*proj.elasticity, proj.speedmin), 1.f);
+                        if(proj.speedmax > 0) mag = std::min(mag, proj.speedmax);
                         proj.vel = vec(proj.o).sub(orig).normalize().mul(mag);
                     }
                     return true;
@@ -763,7 +763,7 @@ namespace projs
                 if(init) break;
                 else if(proj.lifemillis && proj.fadetime)
                 {
-                    int interval = min(proj.lifemillis, proj.fadetime);
+                    int interval = std::min(proj.lifemillis, proj.fadetime);
                     if(proj.lifetime < interval)
                     {
                         size *= float(proj.lifetime)/float(interval);
@@ -788,7 +788,7 @@ namespace projs
             rotatebb(center, radius, proj.yaw, 0, 0);
             proj.xradius = radius.x;
             proj.yradius = radius.y;
-            proj.radius = max(radius.x, radius.y);
+            proj.radius = std::max(radius.x, radius.y);
             proj.height = proj.zradius = proj.aboveeye = radius.z;
         }
         else switch(proj.projtype)
@@ -831,8 +831,8 @@ namespace projs
         {
             float len = WF(WK(proj.flags), proj.weap, partlen, WS(proj.flags))*(1.1f-proj.lifespan)*proj.curscale,
                   minsize = WF(WK(proj.flags), proj.weap, fxscale, WS(proj.flags))*proj.curscale,
-                  maxsize = min(WF(WK(proj.flags), proj.weap, partlen, WS(proj.flags)), dist),
-                  cursize = clamp(len, min(minsize, maxsize), maxsize);
+                  maxsize = std::min(WF(WK(proj.flags), proj.weap, partlen, WS(proj.flags)), dist),
+                  cursize = clamp(len, std::min(minsize, maxsize), maxsize);
             if(cursize > 0)
             {
                 proj.trailpos = vec(dir).mul(cursize).add(proj.o);
@@ -1121,7 +1121,7 @@ namespace projs
                 float blocked = tracecollide(&proj, proj.owner->o, eyedir, eyedist, RAY_CLIPMAT|RAY_ALPHAPOLY, false, GUARDRADIUS);
                 if(blocked >= 0)
                 {
-                    proj.o = vec(eyedir).mul(blocked-max(proj.radius, 1e-3f)).add(proj.owner->o);
+                    proj.o = vec(eyedir).mul(blocked-std::max(proj.radius, 1e-3f)).add(proj.owner->o);
                     proj.dest = vec(eyedir).mul(blocked).add(proj.owner->o);
                 }
             }
@@ -1232,8 +1232,8 @@ namespace projs
             if(cooked&W_C_SCALEN)  skew = 1-scale; // inverted scale
             if(cooked&W_C_LIFE)    life = int(ceilf(life*scale)); // life scale
             if(cooked&W_C_LIFEN)   life = int(ceilf(life*(1-scale))); // inverted life
-            if(cooked&W_C_SPEED)   speed = speedlimit+int(ceilf(max(speed-speedlimit, 0)*scale)); // speed scale
-            if(cooked&W_C_SPEEDN)  speed = speedlimit+int(ceilf(max(speed-speedlimit, 0)*(1-scale))); // inverted speed
+            if(cooked&W_C_SPEED)   speed = speedlimit+int(ceilf(std::max(speed-speedlimit, 0)*scale)); // speed scale
+            if(cooked&W_C_SPEEDN)  speed = speedlimit+int(ceilf(std::max(speed-speedlimit, 0)*(1-scale))); // inverted speed
         }
 
         if(weaptype[weap].sound >= 0 && (weap != W_MELEE || !(WS(flags))))
@@ -1285,12 +1285,12 @@ namespace projs
             }
         }
         loopv(shots)
-            create(orig, vec(shots[i].pos).div(DMF), local, d, PRJ_SHOT, weap, flags, max(life, 1), W2(weap, time, WS(flags)), delay+(iter*i), speed, shots[i].id, weap, -1, flags, skew, false, v);
+            create(orig, vec(shots[i].pos).div(DMF), local, d, PRJ_SHOT, weap, flags, std::max(life, 1), W2(weap, time, WS(flags)), delay+(iter*i), speed, shots[i].id, weap, -1, flags, skew, false, v);
         if(W2(weap, ammosub, WS(flags)) && ejectfade && weaptype[weap].eject && *weaptype[weap].eprj) loopi(W2(weap, ammosub, WS(flags)))
             create(d->ejecttag(), d->ejecttag(), local, d, PRJ_EJECT, -1, 0, rnd(ejectfade)+ejectfade, 0, delay, rnd(weaptype[weap].espeed)+weaptype[weap].espeed, 0, weap, -1, flags);
 
         d->setweapstate(weap, WS(flags) ? W_S_SECONDARY : W_S_PRIMARY, delayattack, lastmillis);
-        d->weapammo[weap][W_A_CLIP] = max(d->weapammo[weap][W_A_CLIP]-sub-offset, 0);
+        d->weapammo[weap][W_A_CLIP] = std::max(d->weapammo[weap][W_A_CLIP]-sub-offset, 0);
         d->weapshot[weap] = sub;
         if(offset > 0)
         {
@@ -1352,8 +1352,8 @@ namespace projs
                       spanout = WF(WK(proj.flags), proj.weap, taperout, WS(proj.flags));
                 if(type >= 3)
                 { // timer-to-span translation
-                    spanin /= max(proj.lifemillis, 1);
-                    spanout /= max(proj.lifemillis, 1);
+                    spanin /= std::max(proj.lifemillis, 1);
+                    spanout /= std::max(proj.lifemillis, 1);
                 }
                 if(spanin+spanout > 1)
                 {
@@ -1368,7 +1368,7 @@ namespace projs
                             spanout = 0;
                         }
                     }
-                    spanin = max(0.f, spanin-off);
+                    spanin = std::max(0.f, spanin-off);
                 }
                 if(proj.lifespan < spanin)
                 {
@@ -1391,7 +1391,7 @@ namespace projs
     void iter(projent &proj)
     {
         proj.movement = 0;
-        proj.lifespan = clamp((proj.lifemillis-proj.lifetime)/float(max(proj.lifemillis, 1)), 0.f, 1.f);
+        proj.lifespan = clamp((proj.lifemillis-proj.lifetime)/float(std::max(proj.lifemillis, 1)), 0.f, 1.f);
         if(proj.target && proj.target->state != CS_ALIVE) proj.target = NULL;
         updatesticky(proj);
         if(proj.projtype == PRJ_SHOT)
@@ -1409,7 +1409,7 @@ namespace projs
             float yaw, pitch;
             vectoyawpitch(vec(proj.vel).normalize(), yaw, pitch);
             part_radius(proj.o, vec(proj.radius, proj.radius, proj.radius), 2, 1, 1, 0x22FFFF);
-            part_dir(proj.o, yaw, pitch, max(proj.vel.magnitude(), proj.radius+2), 2, 1, 1, 0xFF22FF);
+            part_dir(proj.o, yaw, pitch, std::max(proj.vel.magnitude(), proj.radius+2), 2, 1, 1, 0xFF22FF);
         }
 
         if(proj.projtype == PRJ_SHOT) updatetaper(proj, proj.distance);
@@ -1418,7 +1418,7 @@ namespace projs
 
     void destroy(projent &proj)
     {
-        proj.lifespan = clamp((proj.lifemillis-proj.lifetime)/float(max(proj.lifemillis, 1)), 0.f, 1.f);
+        proj.lifespan = clamp((proj.lifemillis-proj.lifetime)/float(std::max(proj.lifemillis, 1)), 0.f, 1.f);
         if(proj.projcollide&COLLIDE_PROJ)
         {
             collideprojs.removeobj(&proj);
@@ -1435,13 +1435,13 @@ namespace projs
                     {
                         int f = W2(proj.weap, fragweap, WS(proj.flags)), w = f%W_MAX,
                             life = W2(proj.weap, fragtime, WS(proj.flags)), delay = W2(proj.weap, fragtimedelay, WS(proj.flags));
-                        float mag = max(proj.vel.magnitude(), W2(proj.weap, fragspeedmin, WS(proj.flags))),
+                        float mag = std::max(proj.vel.magnitude(), W2(proj.weap, fragspeedmin, WS(proj.flags))),
                               scale = W2(proj.weap, fragscale, WS(proj.flags))*proj.curscale,
                               offset = proj.hit || proj.stick ? W2(proj.weap, fragoffset, WS(proj.flags)) : 1e-6f,
                               skew = proj.hit || proj.stuck ? W2(proj.weap, fragskew, WS(proj.flags)) : W2(proj.weap, fragspread, WS(proj.flags));
                         vec dir = vec(proj.stuck ? proj.norm : proj.vel).normalize(),
                             pos = vec(proj.o).sub(vec(dir).mul(offset));
-                        if(W2(proj.weap, fragspeedmax, WS(proj.flags)) > 0) mag = min(mag, W2(proj.weap, fragspeedmax, WS(proj.flags)));
+                        if(W2(proj.weap, fragspeedmax, WS(proj.flags)) > 0) mag = std::min(mag, W2(proj.weap, fragspeedmax, WS(proj.flags)));
                         if(W2(proj.weap, fragjump, WS(proj.flags)) > 0) life -= int(ceilf(life*W2(proj.weap, fragjump, WS(proj.flags))));
                         loopi(W2(proj.weap, fragrays, WS(proj.flags)))
                         {
@@ -1450,7 +1450,7 @@ namespace projs
                                 mag = rnd(W2(proj.weap, fragspeed, WS(proj.flags)))*0.5f+W2(proj.weap, fragspeed, WS(proj.flags))*0.5f;
                             if(skew > 0) to.add(vec(rnd(2001)-1000, rnd(2001)-1000, rnd(2001)-1000).normalize().mul(skew*mag));
                             if(W2(proj.weap, fragrel, WS(proj.flags)) != 0) to.add(vec(dir).mul(W2(proj.weap, fragrel, WS(proj.flags))*mag));
-                            create(pos, to, proj.local, proj.owner, PRJ_SHOT, proj.weap, proj.flags, max(life, 1), W2(proj.weap, fragtime, WS(proj.flags)), delay, W2(proj.weap, fragspeed, WS(proj.flags)), proj.id, w, -1, (f >= W_MAX ? HIT(ALT) : 0)|HIT(FLAK), scale, true, proj.target);
+                            create(pos, to, proj.local, proj.owner, PRJ_SHOT, proj.weap, proj.flags, std::max(life, 1), W2(proj.weap, fragtime, WS(proj.flags)), delay, W2(proj.weap, fragspeed, WS(proj.flags)), proj.id, w, -1, (f >= W_MAX ? HIT(ALT) : 0)|HIT(FLAK), scale, true, proj.target);
                             delay += W2(proj.weap, fragtimeiter, WS(proj.flags));
                         }
                     }
@@ -1493,7 +1493,7 @@ namespace projs
             if(chk&1 && !proj.limited && !WK(proj.flags) && proj.weap != W_MELEE)
             {
                 int vol = clamp(int(ceilf(48*proj.curscale)), 0, 255), snd = S_EXTINGUISH;
-                float size = max(proj.radius, 1.f);
+                float size = std::max(proj.radius, 1.f);
                 if(proj.projtype == PRJ_SHOT && isweap(proj.weap))
                 {
                     snd = WSND2(proj.weap, WS(proj.flags), S_W_EXTINGUISH);
@@ -1504,7 +1504,7 @@ namespace projs
                 }
                 else size *= 2.5f;
                 if(vol > 0) playsound(snd, proj.o, NULL, 0, vol);
-                part_create(PART_SMOKE, 500, proj.o, 0xAAAAAA, max(size, 1.5f), 1, -10);
+                part_create(PART_SMOKE, 500, proj.o, 0xAAAAAA, std::max(size, 1.5f), 1, -10);
                 proj.limited = true;
                 if(proj.projtype == PRJ_DEBRIS) proj.material = bvec::fromcolor(colourwhite);
             }
@@ -1644,7 +1644,7 @@ namespace projs
                     if(dist >= 0)
                     {
                         proj.o = vec(proj.from).add(vec(scan).mul(dist));
-                        total = 0-max(scandist-dist, 0.f);
+                        total = 0-std::max(scandist-dist, 0.f);
                     }
                 }
             }
@@ -1742,7 +1742,7 @@ namespace projs
                         proj.o = pos;
                         if(proj.projtype == PRJ_SHOT)
                         {
-                            dir.rescale(max(dir.magnitude()-0.15f, 0.0f));
+                            dir.rescale(std::max(dir.magnitude()-0.15f, 0.0f));
                             proj.o.add(dir);
                         }
                         return false;
@@ -1780,12 +1780,12 @@ namespace projs
                     {
                         if(proj.pitch < 0)
                         {
-                            proj.pitch += max(diff, !proj.lastbounce || proj.movement > 0 ? 1.f : 5.f);
+                            proj.pitch += std::max(diff, !proj.lastbounce || proj.movement > 0 ? 1.f : 5.f);
                             if(proj.pitch > 0) proj.pitch = 0;
                         }
                         else if(proj.pitch > 0)
                         {
-                            proj.pitch -= max(diff, !proj.lastbounce || proj.movement > 0 ? 1.f : 5.f);
+                            proj.pitch -= std::max(diff, !proj.lastbounce || proj.movement > 0 ? 1.f : 5.f);
                             if(proj.pitch < 0) proj.pitch = 0;
                         }
                     }
@@ -1841,12 +1841,12 @@ namespace projs
                 {
                     if(proj.pitch < 0)
                     {
-                        proj.pitch += max(diff, !proj.lastbounce || proj.movement > 0 ? 1.f : 5.f);
+                        proj.pitch += std::max(diff, !proj.lastbounce || proj.movement > 0 ? 1.f : 5.f);
                         if(proj.pitch > 0) proj.pitch = 0;
                     }
                     else if(proj.pitch > 0)
                     {
-                        proj.pitch -= max(diff, !proj.lastbounce || proj.movement > 0 ? 1.f : 5.f);
+                        proj.pitch -= std::max(diff, !proj.lastbounce || proj.movement > 0 ? 1.f : 5.f);
                         if(proj.pitch < 0) proj.pitch = 0;
                     }
                 }
@@ -1854,12 +1854,12 @@ namespace projs
                 {
                     if(proj.roll < 0)
                     {
-                        proj.roll += max(diff, !proj.lastbounce || proj.movement > 0 ? 1.f : 5.f);
+                        proj.roll += std::max(diff, !proj.lastbounce || proj.movement > 0 ? 1.f : 5.f);
                         if(proj.roll > 0) proj.roll = 0;
                     }
                     else if(proj.roll > 0)
                     {
-                        proj.roll -= max(diff, !proj.lastbounce || proj.movement > 0 ? 1.f : 5.f);
+                        proj.roll -= std::max(diff, !proj.lastbounce || proj.movement > 0 ? 1.f : 5.f);
                         if(proj.roll < 0) proj.roll = 0;
                     }
                 }
@@ -1879,8 +1879,8 @@ namespace projs
             if(!targ.iszero())
             {
                 vec dir = vec(proj.vel).normalize();
-                float amt = clamp(bomberspeeddelta*secs, 1e-8f, 1.f), mag = max(proj.vel.magnitude(), bomberspeedmin);
-                if(bomberspeedmax > 0) mag = min(mag, bomberspeedmax);
+                float amt = clamp(bomberspeeddelta*secs, 1e-8f, 1.f), mag = std::max(proj.vel.magnitude(), bomberspeedmin);
+                if(bomberspeedmax > 0) mag = std::min(mag, bomberspeedmax);
                 dir.mul(1.f-amt).add(targ.mul(amt)).normalize();
                 if(!dir.iszero()) (proj.vel = dir).mul(mag);
             }
@@ -1936,7 +1936,7 @@ namespace projs
             if(!proj.dest.iszero())
             {
                 float amt = clamp(WF(WK(proj.flags), proj.weap, speeddelta, WS(proj.flags))*secs, 1e-8f, 1.f),
-                      mag = max(proj.vel.magnitude(), physics::movevelocity(&proj));
+                      mag = std::max(proj.vel.magnitude(), physics::movevelocity(&proj));
                 dir.mul(1.f-amt).add(vec(proj.dest).sub(proj.o).safenormalize().mul(amt)).normalize();
                 if(!dir.iszero()) (proj.vel = dir).mul(mag);
             }
@@ -2071,7 +2071,7 @@ namespace projs
                             if(!proj.beenused)
                             {
                                 proj.beenused = 1;
-                                proj.lifetime = min(proj.lifetime, proj.fadetime);
+                                proj.lifetime = std::min(proj.lifetime, proj.fadetime);
                             }
                             if(proj.lifetime > 0) break;
                         }
@@ -2085,7 +2085,7 @@ namespace projs
                 }
                 else for(int rtime = curtime; proj.state != CS_DEAD && rtime > 0;)
                 {
-                    int qtime = min(rtime, 30);
+                    int qtime = std::min(rtime, 30);
                     rtime -= qtime;
 
                     if(((proj.lifetime -= qtime) <= 0 && proj.lifemillis) || (!proj.usestuck() && !move(proj, qtime)))
@@ -2129,7 +2129,7 @@ namespace projs
                             if(proxim == 1 && !proj.beenused && f != oldstick && f->center().dist(proj.o) <= dist)
                             {
                                 proj.beenused = 1;
-                                proj.lifetime = min(proj.lifetime, WF(WK(proj.flags), proj.weap, proxtime, WS(proj.flags)));
+                                proj.lifetime = std::min(proj.lifetime, WF(WK(proj.flags), proj.weap, proxtime, WS(proj.flags)));
                             }
                         }
                         if(proxim == 2 && !proj.beenused)
@@ -2143,7 +2143,7 @@ namespace projs
                                 if(blocked >= 0 && collideplayer && collideplayer->state == CS_ALIVE && physics::issolid(collideplayer, &proj, true, false))
                                 {
                                     proj.beenused = 1;
-                                    proj.lifetime = min(proj.lifetime, WF(WK(proj.flags), proj.weap, proxtime, WS(proj.flags)));
+                                    proj.lifetime = std::min(proj.lifetime, WF(WK(proj.flags), proj.weap, proxtime, WS(proj.flags)));
                                 }
                             }
                         }
@@ -2185,7 +2185,7 @@ namespace projs
         if(proj.projtype == PRJ_SHOT && proj.owner && physics::isghost(proj.owner, game::focus, true)) trans *= 0.5f;
         if(proj.fadetime && proj.lifemillis)
         {
-            int interval = min(proj.lifemillis, proj.fadetime);
+            int interval = std::min(proj.lifemillis, proj.fadetime);
             if(proj.lifetime < interval)
             {
                 float amt = float(proj.lifetime)/float(interval);
@@ -2194,7 +2194,7 @@ namespace projs
             }
             else if(proj.projtype != PRJ_EJECT && proj.lifemillis > interval)
             {
-                interval = min(proj.lifemillis-interval, proj.fadetime);
+                interval = std::min(proj.lifemillis-interval, proj.fadetime);
                 if(proj.lifemillis-proj.lifetime < interval)
                 {
                     float amt = float(proj.lifemillis-proj.lifetime)/float(interval);

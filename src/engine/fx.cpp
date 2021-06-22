@@ -258,7 +258,7 @@ namespace fx
         hook = NULL;
     }
 
-    void emitter::updateend(int end) { endmillis = max(endmillis, end); }
+    void emitter::updateend(int end) { endmillis = std::max(endmillis, end); }
 
     void emitter::init(emitter **newhook)
     {

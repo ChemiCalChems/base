@@ -160,11 +160,11 @@ struct flarerenderer : partrenderer
                 yaw -= camera1->yaw;
                 if(yaw < 0.0f) yaw = -yaw;
                 if(yaw >= 180.0f) yaw = fmodf(yaw + 180.0f, 360.0f) - 180.0f;
-                blend *= 1-min(yaw/(curfov*0.5f)*flareadjust, 1.f);
+                blend *= 1-std::min(yaw/(curfov*0.5f)*flareadjust, 1.f);
                 pitch -= camera1->pitch;
                 if(pitch < 0.0f) pitch = -pitch;
                 if(pitch >= 180.0f) pitch = fmodf(pitch + 180.0f, 360.0f) - 180.0f;
-                blend *= 1-min(pitch/(fovy*0.5f)*flareadjust, 1.f);
+                blend *= 1-std::min(pitch/(fovy*0.5f)*flareadjust, 1.f);
             }
             bvec4 color(f.color, 255);
             loopj(f.sparkle ? (f.sparkle != 2 ? 12 : 3) : 9)

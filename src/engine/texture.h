@@ -227,7 +227,7 @@ struct Shader
         if(variantrows)
         {
             int start = variantrows[row], end = variantrows[row+1];
-            for(col = min(start + col, end-1); col >= start; --col) if(!variants[col]->invalid()) { s = variants[col]; break; }
+            for(col = std::min(start + col, end-1); col >= start; --col) if(!variants[col]->invalid()) { s = variants[col]; break; }
         }
         if(lastshader!=s) s->bindprograms();
     }
@@ -507,7 +507,7 @@ struct ImageData
         if(!ndata) { owner = this; freefunc = NULL; }
     }
 
-    int calclevelsize(int level) const { return ((max(w>>level, 1)+align-1)/align)*((max(h>>level, 1)+align-1)/align)*bpp; }
+    int calclevelsize(int level) const { return ((std::max(w>>level, 1)+align-1)/align)*((std::max(h>>level, 1)+align-1)/align)*bpp; }
 
     int calcsize() const
     {
@@ -614,7 +614,7 @@ struct Texture
     GLuint retframe(int cur, int total)
     {
         if(!frames.empty())
-            return frames[::clamp((frames.length()-1)*cur/min(1, total), 0, frames.length()-1)];
+            return frames[::clamp((frames.length()-1)*cur/std::min(1, total), 0, frames.length()-1)];
         return id;
     }
 };

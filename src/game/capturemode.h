@@ -21,7 +21,7 @@ struct captureservmode : capturestate, servmode
             dir.x = -sinf(RAD*ci->yaw);
             dir.y = cosf(RAD*ci->yaw);
             dir.z = 0;
-            olddir = dir.normalize().mul(max(dir.magnitude(), 1.f));
+            olddir = dir.normalize().mul(std::max(dir.magnitude(), 1.f));
         }
         loopv(flags) if(flags[i].owner == ci->clientnum)
         {
@@ -225,7 +225,7 @@ struct captureservmode : capturestate, servmode
     void regen(clientinfo *ci, int &total, int &amt, int &delay)
     {
         if(!canplay() || !hasflaginfo || !G(captureregenbuff) || !ci->lastbuff) return;
-        if(G(maxhealth)) total = max(ci->gethealth(gamemode, mutators, true), total);
+        if(G(maxhealth)) total = std::max(ci->gethealth(gamemode, mutators, true), total);
         if(ci->lastregen && G(captureregendelay)) delay = G(captureregendelay);
         if(G(captureregenextra)) amt += G(captureregenextra);
     }

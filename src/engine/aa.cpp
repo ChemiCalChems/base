@@ -76,7 +76,7 @@ VAR(0, debugtqaa, 0, 0, 2);
 
 void viewtqaa()
 {
-    int w = min(hudw, hudh)*1.0f, h = (w*hudh)/hudw, tw = gw, th = gh;
+    int w = std::min(hudw, hudh)*1.0f, h = (w*hudh)/hudw, tw = gw, th = gh;
     SETSHADER(hudrect);
     gle::colorf(1, 1, 1);
     switch(debugtqaa)
@@ -103,8 +103,8 @@ void resolvetqaa(GLuint outfbo)
     LOCALPARAM(quincunx, quincunx);
     screenquad(vieww, viewh);
 
-    swap(tqaafbo[0], tqaafbo[1]);
-    swap(tqaatex[0], tqaatex[1]);
+    std::swap(tqaafbo[0], tqaafbo[1]);
+    std::swap(tqaatex[0], tqaatex[1]);
     tqaaprevscreenmatrix = screenmatrix;
     tqaaframe++;
 }
@@ -283,7 +283,7 @@ vec2 areaunderortho(const vec2 &p1, const vec2 &p2, float x)
     float a1 = x > p1.x ? y1*fmod(x, 1.0f)/2 : 0,
           a2 = x < p2.x ? y2*(1-fmod(x, 1.0f))/2 : 0;
     vec2 a(fabs(a1), fabs(a2));
-    if((a.x > a.y ? a1 : -a2) >= 0) swap(a.x, a.y);
+    if((a.x > a.y ? a1 : -a2) >= 0) std::swap(a.x, a.y);
     return a;
 }
 
@@ -371,25 +371,25 @@ float areaunderdiag(const vec2 &p1, const vec2 &p2, const vec2 &p)
                 if(d.y+d.x <= dp) return 0;
                 return 0.5f*(1-r)*(1-t);
             }
-            if(d.y+d.x > dp) return min(1-b, 1-t) + 0.5f*fabs(b-t);
+            if(d.y+d.x > dp) return std::min(1-b, 1-t) + 0.5f*fabs(b-t);
             return 0.5f*(1-b)*r;
         }
         if(d.x <= dp)
         {
             if(d.y+d.x <= dp) return 0.5f*(1-l)*t;
-            return min(1-l, 1-r) + 0.5f*fabs(r-l);
+            return std::min(1-l, 1-r) + 0.5f*fabs(r-l);
         }
         return 1 - 0.5f*l*b;
     }
     if(d.y <= dp)
     {
         if(d.x <= dp) return 0.5f*l*b;
-        if(d.y+d.x <= dp) return min(l, r) + 0.5f*fabs(r-l);
+        if(d.y+d.x <= dp) return std::min(l, r) + 0.5f*fabs(r-l);
         return 1 - 0.5f*(1-l)*t;
     }
     if(d.x <= dp)
     {
-        if(d.y+d.x <= dp) return min(b, t) + 0.5f*fabs(b-t);
+        if(d.y+d.x <= dp) return std::min(b, t) + 0.5f*fabs(b-t);
         return 1 - 0.5f*(1-b)*r;
     }
     if(d.y+d.x <= dp) return 1 - 0.5f*(1-t)*(1-r);
@@ -566,7 +566,7 @@ VAR(0, debugsmaa, 0, 0, 5);
 
 void viewsmaa()
 {
-    int w = min(hudw, hudh)*1.0f, h = (w*hudh)/hudw, tw = gw, th = gh;
+    int w = std::min(hudw, hudh)*1.0f, h = (w*hudh)/hudw, tw = gw, th = gh;
     SETSHADER(hudrect);
     gle::colorf(1, 1, 1);
     switch(debugsmaa)

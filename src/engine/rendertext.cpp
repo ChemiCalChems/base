@@ -51,14 +51,14 @@ void fontborder(float *bordermin, float *bordermax)
     if(!fontdef) return;
 
     fontdef->bordermin = *bordermin;
-    fontdef->bordermax = max(*bordermax, *bordermin+0.01f);
+    fontdef->bordermax = std::max(*bordermax, *bordermin+0.01f);
 }
 
 void fontoutline(float *outlinemin, float *outlinemax)
 {
     if(!fontdef) return;
 
-    fontdef->outlinemin = min(*outlinemin, *outlinemax-0.01f);
+    fontdef->outlinemin = std::min(*outlinemin, *outlinemax-0.01f);
     fontdef->outlinemax = *outlinemax;
 }
 
@@ -108,7 +108,7 @@ void fontchar(float *x, float *y, float *w, float *h, float *offsetx, float *off
 void fontskip(int *n)
 {
     if(!fontdef) return;
-    loopi(max(*n, 1))
+    loopi(std::max(*n, 1))
     {
         font::charinfo &c = fontdef->chars.add();
         c.x = c.y = c.w = c.h = c.offsetx = c.offsety = c.advance = c.tex = 0;
@@ -244,11 +244,11 @@ float text_fonth(const char *s)
 }
 ICOMMAND(0, fontheight, "s", (char *s), floatret(text_fonth(s)));
 
-#define TEXTTAB(x) (max((int((x)/FONTTAB)+1.0f)*FONTTAB, (x)+FONTW)-(x))
+#define TEXTTAB(x) (std::max((int((x)/FONTTAB)+1.0f)*FONTTAB, (x)+FONTW)-(x))
 
 void tabify(const char *str, int *numtabs)
 {
-    int tw = max(*numtabs, 0)*FONTTAB-1, tabs = 0;
+    int tw = std::max(*numtabs, 0)*FONTTAB-1, tabs = 0;
     for(float w = text_widthf(str); w <= tw; w += TEXTTAB(w)) ++tabs;
     int len = strlen(str);
     char *tstr = newstring(len + tabs);
@@ -464,7 +464,7 @@ static float icon_width(const char *name, float scale)
             if(end > start) \
             { \
                 string value; \
-                copystring(value, start, min(size_t(end - start + 1), sizeof(value))); \
+                copystring(value, start, std::min(size_t(end - start + 1), sizeof(value))); \
                 TEXTICON(value, q, s); \
             } \
             h += end-start; \
@@ -481,7 +481,7 @@ static float icon_width(const char *name, float scale)
             if(end > start) \
             { \
                 string value; \
-                copystring(value, start, min(size_t(end - start + 1), sizeof(value))); \
+                copystring(value, start, std::min(size_t(end - start + 1), sizeof(value))); \
                 TEXTKEY(value, q, s); \
             } \
             h += end-start; \
@@ -498,7 +498,7 @@ static float icon_width(const char *name, float scale)
             if(end > start) \
             { \
                 string value; \
-                copystring(value, start, min(size_t(end - start + 1), sizeof(value))); \
+                copystring(value, start, std::min(size_t(end - start + 1), sizeof(value))); \
                 TEXTFONT(value); \
             } \
             h += end-start; \
@@ -512,15 +512,15 @@ static float icon_width(const char *name, float scale)
 { \
     if(maxwidth > 0 && qx+cw > maxwidth) \
     { \
-        if(qp >= 0 && qi-qp <= max(textwrapmin, int(qi*textwraplimit))) \
+        if(qp >= 0 && qi-qp <= std::max(textwrapmin, int(qi*textwraplimit))) \
         { \
             wrappos = qp; \
-            qx = min(qw, maxwidth); \
+            qx = std::min(qw, maxwidth); \
         } \
         else \
         { \
-            wrappos = max(s ? qi : qi-1, 0); \
-            qx = min(qx, maxwidth); \
+            wrappos = std::max(s ? qi : qi-1, 0); \
+            qx = std::min(qx, maxwidth); \
         } \
         break; \
     } \

@@ -129,7 +129,7 @@ struct explosionrenderer : sharedlistrenderer
 
     void seedemitter(particleemitter &pe, const vec &o, const vec &d, int fade, float size, float gravity)
     {
-        pe.maxfade = max(pe.maxfade, fade);
+        pe.maxfade = std::max(pe.maxfade, fade);
         pe.extendbb(o, (size+1+pe.ent->attrs[1])*WOBBLE);
     }
 

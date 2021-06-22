@@ -441,7 +441,7 @@ namespace http
             httpreq *r = reqs[i];
             if(r->outputpos < r->output.length()) ENET_SOCKETSET_ADD(writeset, r->socket);
             else ENET_SOCKETSET_ADD(readset, r->socket);
-            maxsock = max(maxsock, r->socket);
+            maxsock = std::max(maxsock, r->socket);
         }
     }
 
@@ -499,7 +499,7 @@ namespace http
                 if(res > 0)
                 {
                     r->inputpos += res;
-                    r->input[min(r->inputpos, (int)sizeof(r->input)-1)] = '\0';
+                    r->input[std::min(r->inputpos, (int)sizeof(r->input)-1)] = '\0';
                     if(!processreq(r)) { purgereq(i--); continue; }
                     if(r->state == HTTP_S_RESPONSE) proceed(r);
                 }
@@ -520,7 +520,7 @@ namespace http
             httpclient *c = clients[i];
             if(c->state == HTTP_S_CONNECTING || c->outputpos < c->output.length()) ENET_SOCKETSET_ADD(writeset, c->socket);
             else ENET_SOCKETSET_ADD(readset, c->socket);
-            maxsock = max(maxsock, c->socket);
+            maxsock = std::max(maxsock, c->socket);
         }
     }
 
@@ -569,7 +569,7 @@ namespace http
                 if(res > 0)
                 {
                     c->inputpos += res;
-                    c->input[min(c->inputpos, (int)sizeof(c->input)-1)] = '\0';
+                    c->input[std::min(c->inputpos, (int)sizeof(c->input)-1)] = '\0';
                     if(!processclient(c)) { purgeclient(i--, HTTP_S_FAILED); continue; }
                 }
                 else { purgeclient(i--, HTTP_S_FAILED); continue; }

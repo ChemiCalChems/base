@@ -45,7 +45,7 @@ MODELTYPE(MDL_IQM, iqm);
 void mdlwind(float *wind)
 {
     checkmdl;
-    loadingmodel->wind = max(*wind, 0.0f);
+    loadingmodel->wind = std::max(*wind, 0.0f);
 }
 COMMAND(0, mdlwind, "f");
 
@@ -134,7 +134,7 @@ COMMAND(0, mdlgloss, "i");
 void mdlalphatest(float *cutoff)
 {
     checkmdl;
-    loadingmodel->setalphatest(max(0.0f, min(1.0f, *cutoff)));
+    loadingmodel->setalphatest(std::max(0.0f, std::min(1.0f, *cutoff)));
 }
 COMMAND(0, mdlalphatest, "f");
 
@@ -148,14 +148,14 @@ COMMAND(0, mdldither, "i");
 void mdlblend(float *blend)
 {
     checkmdl;
-    loadingmodel->setblend(max(0.0f, min(1.0f, *blend)));
+    loadingmodel->setblend(std::max(0.0f, std::min(1.0f, *blend)));
 }
 COMMAND(0, mdlblend, "f");
 
 void mdlblendmode(int *blendmode)
 {
     checkmdl;
-    loadingmodel->setblendmode(max((int)MDL_BLEND_TEST, min((int)MDL_BLEND_ALPHA, *blendmode)));
+    loadingmodel->setblendmode(std::max((int)MDL_BLEND_TEST, std::min((int)MDL_BLEND_ALPHA, *blendmode)));
 }
 COMMAND(0, mdlblendmode, "f");
 
@@ -362,7 +362,7 @@ void rdlimitdist(int *v1, int *v2, float *mindist, float *maxdist)
     d.vert[0] = *v1;
     d.vert[1] = *v2;
     d.mindist = *mindist;
-    d.maxdist = max(*maxdist, *mindist);
+    d.maxdist = std::max(*maxdist, *mindist);
 }
 COMMAND(0, rdlimitdist, "iiff");
 
@@ -843,10 +843,10 @@ void rendermodelbatches()
                 ivec bbmin(vec(bm.state.center).sub(bm.state.radius)), bbmax(vec(bm.state.center).add(bm.state.radius+1));
                 if(calcbbscissor(bbmin, bbmax, sx1, sy1, sx2, sy2))
                 {
-                    transmdlsx1 = min(transmdlsx1, sx1);
-                    transmdlsy1 = min(transmdlsy1, sy1);
-                    transmdlsx2 = max(transmdlsx2, sx2);
-                    transmdlsy2 = max(transmdlsy2, sy2);
+                    transmdlsx1 = std::min(transmdlsx1, sx1);
+                    transmdlsy1 = std::min(transmdlsy1, sy1);
+                    transmdlsx2 = std::max(transmdlsx2, sx2);
+                    transmdlsy2 = std::max(transmdlsy2, sy2);
                     masktiles(transmdltiles, sx1, sy1, sx2, sy2);
                 }
                 continue;
@@ -1006,14 +1006,14 @@ model *loadlodmodel(model *m, const vec &pos, float offset)
     float dist = camera1->o.dist(pos);
     if(dist > 0 && lodmodelfov && (!lodmodelfovdist || dist <= lodmodelfovdist))
     {
-        float fovmin = min(lodmodelfovmin, lodmodelfovmax),
-              fovmax = max(lodmodelfovmax, fovmin+1.f),
+        float fovmin = std::min(lodmodelfovmin, lodmodelfovmax),
+              fovmax = std::max(lodmodelfovmax, fovmin+1.f),
               fovnow = clamp(curfov, fovmin, fovmax);
         if(fovnow < fovmax)
         {
             float x = fmod(fabs((dist > 0 ? asin((pos.z-camera1->o.z)/dist)/RAD : 0) - camera1->pitch), 360),
                   y = fmod(fabs(-atan2(pos.x-camera1->o.x, pos.y-camera1->o.y)/RAD-camera1->yaw), 360);
-            if(min(x, 360-x) <= curfov && min(y, 360-y) <= fovy) dist *= fovnow/fovmax*lodmodelfovscale;
+            if(std::min(x, 360-x) <= curfov && std::min(y, 360-y) <= fovy) dist *= fovnow/fovmax*lodmodelfovscale;
         }
     }
     const char *mdl = m->lodmodel(dist, offset);
@@ -1070,7 +1070,7 @@ void rendermodel(const char *mdl, modelstate &state, dynent *d)
         {
             if(state.anim&ANIM_RAGDOLL && d->ragdoll->millis >= state.basetime)
             {
-                state.radius = max(state.radius, d->ragdoll->radius);
+                state.radius = std::max(state.radius, d->ragdoll->radius);
                 state.center = d->ragdoll->center;
                 goto hasboundbox;
             }
@@ -1198,7 +1198,7 @@ void setbbfrommodel(dynent *d, const char *mdl, float size)
     if(m->collide != COLLIDE_ELLIPSE) d->collidetype = COLLIDE_OBB;
     d->xradius  = radius.x + fabs(center.x);
     d->yradius  = radius.y + fabs(center.y);
-    d->radius   = d->collidetype==COLLIDE_OBB ? sqrtf(d->xradius*d->xradius + d->yradius*d->yradius) : max(d->xradius, d->yradius);
+    d->radius   = d->collidetype==COLLIDE_OBB ? sqrtf(d->xradius*d->xradius + d->yradius*d->yradius) : std::max(d->xradius, d->yradius);
     d->height   = d->zradius = (center.z-radius.z) + radius.z*2*m->height;
     d->aboveeye = radius.z*2*(1.0f-m->height);
     if (d->aboveeye + d->height <= 0.5f)

@@ -55,18 +55,18 @@ struct particleemitter
 
     void extendbb(const vec &o, float size = 0)
     {
-        bbmin.x = min(bbmin.x, o.x - size);
-        bbmin.y = min(bbmin.y, o.y - size);
-        bbmin.z = min(bbmin.z, o.z - size);
-        bbmax.x = max(bbmax.x, o.x + size);
-        bbmax.y = max(bbmax.y, o.y + size);
-        bbmax.z = max(bbmax.z, o.z + size);
+        bbmin.x = std::min(bbmin.x, o.x - size);
+        bbmin.y = std::min(bbmin.y, o.y - size);
+        bbmin.z = std::min(bbmin.z, o.z - size);
+        bbmax.x = std::max(bbmax.x, o.x + size);
+        bbmax.y = std::max(bbmax.y, o.y + size);
+        bbmax.z = std::max(bbmax.z, o.z + size);
     }
 
     void extendbb(float z, float size = 0)
     {
-        bbmin.z = min(bbmin.z, z - size);
-        bbmax.z = max(bbmax.z, z + size);
+        bbmin.z = std::min(bbmin.z, z - size);
+        bbmax.z = std::max(bbmax.z, z + size);
     }
 };
 
@@ -151,7 +151,7 @@ struct partrenderer
         else
         {
             ts = lastmillis-p->millis;
-            blend = max(255-((ts<<8)/p->fade), 0);
+            blend = std::max(255-((ts<<8)/p->fade), 0);
             float weight = p->gravity;
             if((type&PT_SHRINK || type&PT_GROW) && p->fade >= 50)
             {
@@ -568,7 +568,7 @@ static iconrenderer icons;
 template<int T>
 static inline void modifyblend(const vec &o, int &blend)
 {
-    blend = min(blend<<2, 255);
+    blend = std::min(blend<<2, 255);
 }
 
 template<>
@@ -750,7 +750,7 @@ struct varenderer : partrenderer
 
     void seedemitter(particleemitter &pe, const vec &o, const vec &d, int fade, float size, float gravity)
     {
-        pe.maxfade = max(pe.maxfade, fade);
+        pe.maxfade = std::max(pe.maxfade, fade);
         size *= SQRT2;
         pe.extendbb(o, size);
 
@@ -812,8 +812,8 @@ struct varenderer : partrenderer
                 float tx = 0.5f*((p->flags>>5)&1), ty = 0.5f*((p->flags>>6)&1);
                 SETTEXCOORDS(tx, tx + 0.5f, ty, ty + 0.5f,
                 {
-                    if(p->flags&0x01) swap(u1, u2);
-                    if(p->flags&0x02) swap(v1, v2);
+                    if(p->flags&0x01) std::swap(u1, u2);
+                    if(p->flags&0x02) std::swap(v1, v2);
                 });
 
             }
@@ -1224,7 +1224,7 @@ void initparticles()
     if(!particlenotextureshader) particlenotextureshader = lookupshaderbyname("particlenotexture");
     if(!particlesoftshader) particlesoftshader = lookupshaderbyname("particlesoft");
     if(!particletextshader) particletextshader = lookupshaderbyname("particletext");
-    loopi(sizeof(parts)/sizeof(parts[0])) parts[i]->init(parts[i]->type&PT_FEW ? min(fewparticles, maxparticles) : maxparticles);
+    loopi(sizeof(parts)/sizeof(parts[0])) parts[i]->init(parts[i]->type&PT_FEW ? std::min(fewparticles, maxparticles) : maxparticles);
     loopi(sizeof(parts)/sizeof(parts[0]))
     {
         loadprogress = float(i+1)/(sizeof(parts)/sizeof(parts[0]));
@@ -1364,7 +1364,7 @@ particle *newparticle(const vec &o, const vec &d, int fade, int type, int color,
 void create(int type, int color, int fade, const vec &p, float size, float blend, float gravity, int collide, physent *pl)
 {
     if(camera1->o.dist(p) > maxparticledistance) return;
-    float collidez = collide ? p.z - raycube(p, vec(0, 0, -1), collide >= 0 ? COLLIDERADIUS : max(p.z, 0.0f), RAY_CLIPMAT) + (collide >= 0 ? COLLIDEERROR : 0) : -1;
+    float collidez = collide ? p.z - raycube(p, vec(0, 0, -1), collide >= 0 ? COLLIDERADIUS : std::max(p.z, 0.0f), RAY_CLIPMAT) + (collide >= 0 ? COLLIDEERROR : 0) : -1;
     int fmin = 1;
     int fmax = fade*3;
     int f = fmin + rnd(fmax); // help deallocater by using fade distribution rather than random
@@ -1388,7 +1388,7 @@ void splash(int type, int color, float radius, int num, int fade, const vec &p, 
     int fmax = fade*3;
     loopi(num)
     {
-        vec tmp(rnd(max(int(ceilf(radius*2)),1))-radius, rnd(max(int(ceilf(radius*2)),1))-radius, rnd(max(int(ceilf(radius*2)),1))-radius);
+        vec tmp(rnd(std::max(int(ceilf(radius*2)),1))-radius, rnd(std::max(int(ceilf(radius*2)),1))-radius, rnd(std::max(int(ceilf(radius*2)),1))-radius);
         int f = (num < 10) ? (fmin + rnd(fmax)) : (fmax - (i*(fmax-fmin))/(num-1)); // help deallocater by using fade distribution rather than random
         newparticle(p, tmp, f, type, color, size, blend, gravity, collide)->val = collidez;
     }
@@ -1698,7 +1698,7 @@ static inline vec offsetvec(vec o, int dir, int dist)
         }
         else to = p;
 
-        if(inv) swap(from, to);
+        if(inv) std::swap(from, to);
 
         if(taper)
         {
@@ -1717,7 +1717,7 @@ static inline vec offsetvec(vec o, int dir, int dist)
             vec d = vec(from).sub(to).rescale(vel);
             particle *np = newparticle(from, d, rnd(fade*3)+1, type, color, size, blend, gravity, collide);
             if(np->collide)
-                np->val = from.z - raycube(from, vec(0, 0, -1), np->collide >= 0 ? COLLIDERADIUS : max(from.z, 0.0f), RAY_CLIPMAT) + (np->collide >= 0 ? COLLIDEERROR : 0);
+                np->val = from.z - raycube(from, vec(0, 0, -1), np->collide >= 0 ? COLLIDERADIUS : std::max(from.z, 0.0f), RAY_CLIPMAT) + (np->collide >= 0 ? COLLIDEERROR : 0);
         }
     }
 }
@@ -1732,13 +1732,13 @@ void regularflame(int type, const vec &p, float radius, float height, int color,
 {
     if(!canemitparticles()) return;
 
-    float s = size*min(radius, height);
-    vec v(0, 0, min(1.0f, height)*vel);
-    float collidez = collide ? p.z - raycube(p, vec(0, 0, -1), collide >= 0 ? COLLIDERADIUS : max(p.z, 0.0f), RAY_CLIPMAT) + (collide >= 0 ? COLLIDEERROR : 0) : -1;
+    float s = size*std::min(radius, height);
+    vec v(0, 0, std::min(1.0f, height)*vel);
+    float collidez = collide ? p.z - raycube(p, vec(0, 0, -1), collide >= 0 ? COLLIDERADIUS : std::max(p.z, 0.0f), RAY_CLIPMAT) + (collide >= 0 ? COLLIDEERROR : 0) : -1;
     loopi(density)
     {
         vec q = vec(p).add(vec(rndscale(radius*2.f)-radius, rndscale(radius*2.f)-radius, 0));
-        newparticle(q, v, rnd(max(int(fade*height), 1))+1, type, color, s, blend, gravity, collide)->val = collidez;
+        newparticle(q, v, rnd(std::max(int(fade*height), 1))+1, type, color, s, blend, gravity, collide)->val = collidez;
     }
 }
 
@@ -1777,7 +1777,7 @@ void makeparticle(const vec &o, attrvector &attr)
                   vel = attr[10] ? float(attr[10]) : 30.f;
             int fade = attr[4] > 0 ? attr[4] : 1000, gravity = attr[9] ? attr[9] : -10;
             regularflame(PART_FLAME, o, radius, height, partcolour(attr[3] ? attr[3] : 0xF05010, attr[5], attr[6]), 3, fade/2, size, blend, gravity/2, 0, vel);
-            regularflame(PART_SMOKE, vec(o).addz(2.f*min(radius, height)), radius, height, 0x101008, 1, fade, size, blend, gravity, 0, vel);
+            regularflame(PART_SMOKE, vec(o).addz(2.f*std::min(radius, height)), radius, height, 0x101008, 1, fade, size, blend, gravity, 0, vel);
             break;
         }
         case 1: // smoke vent - <dir>
@@ -1821,8 +1821,8 @@ void makeparticle(const vec &o, attrvector &attr)
                 colour = attr[0] > 7 ? partcolour(attr[3], attr[9], attr[10]) : partcolour(attr[3], attr[6], attr[7]);
             float size = attr[5] != 0 ? attr[5]/100.f : sizemap[attr[0]-4],
                   vel = attr[0] > 7 ? attr[8] : 1;
-            if(attr[1] >= 256) regularshape(type, max(1+attr[2], 1), colour, attr[1]-256, 5, fade, o, size, 1, gravity, stain, vel);
-            else newparticle(o, vec(offsetvec(attr[0] > 7 ? vec(0, 0, 0) : o, attr[1], max(1+attr[2], 0))).mul(vel), fade, type, colour, size, 1, gravity, stain);
+            if(attr[1] >= 256) regularshape(type, std::max(1+attr[2], 1), colour, attr[1]-256, 5, fade, o, size, 1, gravity, stain, vel);
+            else newparticle(o, vec(offsetvec(attr[0] > 7 ? vec(0, 0, 0) : o, attr[1], std::max(1+attr[2], 0))).mul(vel), fade, type, colour, size, 1, gravity, stain);
             break;
         }
         case 14: // flames <radius> <height> <rgb>
@@ -1872,7 +1872,7 @@ void seedparticles()
         particleemitter &pe = emitters[i];
         extentity &e = *pe.ent;
         seedemitter = &pe;
-        for(int millis = 0; millis < seedmillis; millis += min(emitmillis, seedmillis/10))
+        for(int millis = 0; millis < seedmillis; millis += std::min(emitmillis, seedmillis/10))
             if(entities::checkparticle(e))
                 makeparticle(e.o, e.attrs);
         seedemitter = NULL;
@@ -1917,7 +1917,7 @@ void updateparticles()
             emitted++;
             if(replayparticles && pe.maxfade > 5 && pe.lastcull > pe.lastemit)
             {
-                for(emitoffset = max(pe.lastemit + emitmillis - lastmillis, -pe.maxfade); emitoffset < 0; emitoffset += emitmillis)
+                for(emitoffset = std::max(pe.lastemit + emitmillis - lastmillis, -pe.maxfade); emitoffset < 0; emitoffset += emitmillis)
                 {
                     makeparticle(e.o, e.attrs);
                     replayed++;

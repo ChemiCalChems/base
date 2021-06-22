@@ -117,14 +117,14 @@ struct lightningrenderer : sharedlistrenderer
 
     void seedemitter(particleemitter &pe, const vec &o, const vec &d, int fade, float size, float gravity)
     {
-        pe.maxfade = max(pe.maxfade, fade);
+        pe.maxfade = std::max(pe.maxfade, fade);
         pe.extendbb(o, size);
         pe.extendbb(d, size);
     }
 
     void renderpart(sharedlistparticle *p, int blend, int ts, float size)
     {
-        blend = int(min(blend<<2, 255)*p->blend);
+        blend = int(std::min(blend<<2, 255)*p->blend);
         bvec4 midcol, endcol;
         if(type&PT_MOD) // multiply alpha into color
         {

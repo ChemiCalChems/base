@@ -466,7 +466,7 @@ namespace fogdome
         bvec color = !getfogdomecolour().iszero() ? getfogdomecolour() : fogcolour;
         if(!numverts || lastcolor != color || lastminalpha != getfogdomemin() || lastmaxalpha != getfogdomemax() || lastcapsize != capsize || lastclipz != getfogdomeclip())
         {
-            init(color, min(getfogdomemin(), getfogdomemax()), getfogdomemax(), capsize, getfogdomeclip());
+            init(color, std::min(getfogdomemin(), getfogdomemax()), getfogdomemax(), capsize, getfogdomeclip());
             lastcolor = color;
             lastminalpha = getfogdomemin();
             lastmaxalpha = getfogdomemax();
@@ -525,7 +525,7 @@ void fixatmo()
           ratio = (betar / (1 + atmoclarity) + betam) / (betar / 1.2f + betam);
     setfvar("atmohaze", atmohaze * (0.1f/0.03f));
     setfvar("atmobright", pow(atmobright / 4, 2) / ratio);
-    setfvar("atmodisksize", max(12 + 5 * (atmodisksize - 1), 0.0f));
+    setfvar("atmodisksize", std::max(12 + 5 * (atmodisksize - 1), 0.0f));
     setfvar("atmodiskcorona", 0.4f);
     setfvar("atmodensity", 0.99f / atmodensity);
     setfvar("atmoheight", atmoheight * ratio);
@@ -535,7 +535,7 @@ void fixatmo()
           ratioalt = (betaralt / (1 + atmoclarityalt) + betamalt) / (betaralt / 1.2f + betamalt);
     setfvar("atmohazealt", atmohazealt * (0.1f/0.03f));
     setfvar("atmobrightalt", pow(atmobrightalt / 4, 2) / ratioalt);
-    setfvar("atmodisksizealt", max(12 + 5 * (atmodisksizealt - 1), 0.0f));
+    setfvar("atmodisksizealt", std::max(12 + 5 * (atmodisksizealt - 1), 0.0f));
     setfvar("atmodiskcoronaalt", 0.4f);
     setfvar("atmodensityalt", 0.99f / atmodensityalt);
     setfvar("atmoheightalt", atmoheightalt * ratioalt);
@@ -567,7 +567,7 @@ static void drawatmosphere()
     // Henyey-Greenstein approximation, 1/(4pi) * (1 - g^2)/(1 + g^2 - 2gcos)]^1.5
     // Hoffman-Preetham variation uses (1-g)^2 instead of 1-g^2 which avoids excessive glare
     // clamp values near 0 angle to avoid spotlight artifact inside sundisk
-    float gm = max(0.95f - 0.2f*getatmohaze(), 0.65f), miescale = pow((1-gm)*(1-gm)/(4*M_PI), -2.0f/3.0f);
+    float gm = std::max(0.95f - 0.2f*getatmohaze(), 0.65f), miescale = pow((1-gm)*(1-gm)/(4*M_PI), -2.0f/3.0f);
     LOCALPARAMF(mieparams, miescale*(1 + gm*gm), miescale*-2*gm, 1 - (1 - cosf(0.5f*getatmodisksize()*(1 - getatmodiskcorona())*RAD)));
 
     static const vec lambda(680e-9f, 550e-9f, 450e-9f),
@@ -590,7 +590,7 @@ static void drawatmosphere()
     // assume sunlight color is gamma encoded, so decode to linear light, then apply extinction
     extern float hdrgamma;
     vec sunscale = vec(suncolor).mul(ldrscale).pow(hdrgamma).mul(getatmobright() * 16).mul(sunextinction);
-    float maxsunweight = max(max(sunweight.x, sunweight.y), sunweight.z);
+    float maxsunweight = std::max(std::max(sunweight.x, sunweight.y), sunweight.z);
     if(maxsunweight > 127) sunweight.mul(127/maxsunweight);
     sunweight.add(1e-4f);
     LOCALPARAM(sunweight, sunweight);
@@ -609,7 +609,7 @@ static void drawatmosphere()
     // convert corona offset into scale for mu^2, where sin = (1-corona) and thus mu^2 = 1 - (1-corona^2)
     float sundiskscale = sinf(0.5f*getatmodisksize()*RAD);
     float coronamu = 1 - (1-getatmodiskcorona())*(1-getatmodiskcorona());
-    if(sundiskscale > 0) LOCALPARAMF(sundiskparams, 1.0f/(sundiskscale*sundiskscale), 1.0f/max(coronamu, 1e-3f));
+    if(sundiskscale > 0) LOCALPARAMF(sundiskparams, 1.0f/(sundiskscale*sundiskscale), 1.0f/std::max(coronamu, 1e-3f));
     else LOCALPARAMF(sundiskparams, 0, 0);
 
     gle::defvertex();
@@ -692,7 +692,7 @@ void drawskybox(bool clear)
         if(ldrscale < 1 && (overbrightmin != 1 || (overbright > 1 && overbrightthreshold < 1)))
         {
             SETSHADER(skyboxoverbright);
-            LOCALPARAMF(overbrightparams, overbrightmin, max(overbright, overbrightmin), overbrightthreshold);
+            LOCALPARAMF(overbrightparams, overbrightmin, std::max(overbright, overbrightmin), overbrightthreshold);
         }
         else SETSHADER(skybox);
 

@@ -197,7 +197,7 @@ namespace bomber
                 int interval = lastmillis%500;
                 float rp = 1, gp = 1, bp = 1,
                       sp = interval >= 250 ? (500-interval)/250.f : interval/250.f,
-                      sq = max(sp, 0.5f), size = bomberreticlesize*min(w, h);
+                      sq = std::max(sp, 0.5f), size = bomberreticlesize*std::min(w, h);
                 hud::colourskew(rp, gp, bp, sp);
                 int sx = int(cx*w-size*sq), sy = int(cy*h-size*sq), ss = int(size*2*sq);
                 Texture *t = textureload(hud::indicatortex, 3);
@@ -504,10 +504,10 @@ namespace bomber
         if(f.owner)
         {
             if(!d->ai || f.owner != d) return;
-            int hp = max(d->gethealth(game::gamemode, game::mutators)/3, 1);
+            int hp = std::max(d->gethealth(game::gamemode, game::mutators)/3, 1);
             bool forever = m_ffa(game::gamemode, game::mutators) || d->health >= hp || findtarget(d) < 0;
             if(!carrytime && forever) return;
-            int takemillis = lastmillis-f.taketime, length = forever ? carrytime-550-bomberlockondelay : min(carrytime, 1000);
+            int takemillis = lastmillis-f.taketime, length = forever ? carrytime-550-bomberlockondelay : std::min(carrytime, 1000);
             if(takemillis >= length)
             {
                 if(d->action[AC_AFFINITY])

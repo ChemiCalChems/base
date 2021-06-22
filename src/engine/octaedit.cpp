@@ -195,7 +195,7 @@ int selinview()
     vec o(sel.o), s(sel.s);
     s.mul(sel.grid / 2.0f);
     o.add(s);
-    return isvisiblesphere(max(max(s.x, s.y), s.z), o);
+    return isvisiblesphere(std::max(std::max(s.x, s.y), s.z), o);
 }
 ICOMMAND(0, getselvfc, "", (), intret(selinview()));
 ICOMMAND(0, getselvisible, "", (),
@@ -250,7 +250,7 @@ COMMAND(0, selextend, "");
 ICOMMAND(0, selmoved, "", (), { if(noedit(true)) return; intret(sel.o != savedsel.o ? 1 : 0); });
 ICOMMAND(0, selsave, "", (), { if(noedit(true)) return; savedsel = sel; });
 ICOMMAND(0, selrestore, "", (), { if(noedit(true)) return; sel = savedsel; });
-ICOMMAND(0, selswap, "", (), { if(noedit(true)) return; swap(sel, savedsel); });
+ICOMMAND(0, selswap, "", (), { if(noedit(true)) return; std::swap(sel, savedsel); });
 
 void setorient(int n)
 {
@@ -341,9 +341,9 @@ void normalizelookupcube(const ivec &o)
 
 void updateselection()
 {
-    sel.o.x = min(lastcur.x, cur.x);
-    sel.o.y = min(lastcur.y, cur.y);
-    sel.o.z = min(lastcur.z, cur.z);
+    sel.o.x = std::min(lastcur.x, cur.x);
+    sel.o.y = std::min(lastcur.y, cur.y);
+    sel.o.z = std::min(lastcur.z, cur.z);
     sel.s.x = abs(lastcur.x-cur.x)/sel.grid+1;
     sel.s.y = abs(lastcur.y-cur.y)/sel.grid+1;
     sel.s.z = abs(lastcur.z-cur.z)/sel.grid+1;
@@ -474,7 +474,7 @@ void rendereditcursor()
             vec w = vec(cursordir).mul(wdist+0.05f).add(player->o);
             if(!insideworld(w))
             {
-                loopi(3) wdist = min(wdist, ((cursordir[i] > 0 ? worldsize : 0) - player->o[i]) / cursordir[i]);
+                loopi(3) wdist = std::min(wdist, ((cursordir[i] > 0 ? worldsize : 0) - player->o[i]) / cursordir[i]);
                 w = vec(cursordir).mul(wdist-0.05f).add(player->o);
                 if(!insideworld(w))
                 {
@@ -502,10 +502,10 @@ void rendereditcursor()
             if(dragging)
             {
                 updateselection();
-                sel.cx   = min(cor[R[d]], lastcor[R[d]]);
-                sel.cy   = min(cor[C[d]], lastcor[C[d]]);
-                sel.cxs  = max(cor[R[d]], lastcor[R[d]]);
-                sel.cys  = max(cor[C[d]], lastcor[C[d]]);
+                sel.cx   = std::min(cor[R[d]], lastcor[R[d]]);
+                sel.cy   = std::min(cor[C[d]], lastcor[C[d]]);
+                sel.cxs  = std::max(cor[R[d]], lastcor[R[d]]);
+                sel.cys  = std::max(cor[C[d]], lastcor[C[d]]);
 
                 if(!selectcorners)
                 {
@@ -629,7 +629,7 @@ void rendereditcursor()
         }
         gle::colorub(col.r, col.g, col.b);
         if(selboxgridrefwidth != 1) glLineWidth(selboxgridrefwidth);
-        boxs3D(vec(sel.o).sub(0.5f*min(gridsize*0.25f, 2.0f)), vec(min(gridsize*0.25f, 2.0f)), 1);
+        boxs3D(vec(sel.o).sub(0.5f*std::min(gridsize*0.25f, 2.0f)), vec(std::min(gridsize*0.25f, 2.0f)), 1);
         if(selboxgridrefwidth != 1) glLineWidth(1);
 
         vec co(sel.o.v), cs(sel.s.v);
@@ -830,7 +830,7 @@ void freeundo(undoblock *u)
 void pasteundoblock(block3 *b, uchar *g)
 {
     cube *s = b->c();
-    loopxyz(*b, 1<<min(int(*g++), worldscale-1), pastecube(*s++, c));
+    loopxyz(*b, 1<<std::min(int(*g++), worldscale-1), pastecube(*s++, c));
 }
 
 void pasteundo(undoblock *u)
@@ -1607,7 +1607,7 @@ void genprefabmesh(prefab &p)
     worldroot = newcubes();
     worldscale = 1;
     worldsize = 2;
-    while(worldsize < max(max(b.s.x, b.s.y), b.s.z)*b.grid)
+    while(worldsize < std::max(std::max(b.s.x, b.s.y), b.s.z)*b.grid)
     {
         worldscale++;
         worldsize *= 2;
@@ -1842,10 +1842,10 @@ namespace hmap
         if(*x<0 || *y<0 || *x>=MAXBRUSH || *y>=MAXBRUSH) return;
         brush[*x][*y] = clamp(*v, 0, 8);
         paintbrush = paintbrush || (brush[*x][*y] > 0);
-        brushmaxx = min(MAXBRUSH-1, max(brushmaxx, *x+1));
-        brushmaxy = min(MAXBRUSH-1, max(brushmaxy, *y+1));
-        brushminx = max(0,          min(brushminx, *x-1));
-        brushminy = max(0,          min(brushminy, *y-1));
+        brushmaxx = std::min(MAXBRUSH-1, std::max(brushmaxx, *x+1));
+        brushmaxy = std::min(MAXBRUSH-1, std::max(brushmaxy, *y+1));
+        brushminx = std::max(0,          std::min(brushminx, *x-1));
+        brushminy = std::max(0,          std::min(brushminy, *y-1));
     }
     COMMAND(0, brushvert, "iii");
 
@@ -2043,7 +2043,7 @@ namespace hmap
         {
             loopi(2) loopj(2)
             {
-                e[i][j] = min(8, map[x+i][y+j] - (mpz[x][y]+3-k)*8);
+                e[i][j] = std::min(8, map[x+i][y+j] - (mpz[x][y]+3-k)*8);
                 notempty |= e[i][j] > 0;
             }
             if(notempty)
@@ -2133,25 +2133,25 @@ namespace hmap
         gz = (cur[D[d]] >> gridpower);
         fs = dc ? 4 : 0;
         fg = dc ? gridsize : -gridsize;
-        mx = max(0, -gx); // ripple range
-        my = max(0, -gy);
-        nx = min(MAXBRUSH-1, hws-gx) - 1;
-        ny = min(MAXBRUSH-1, hws-gy) - 1;
+        mx = std::max(0, -gx); // ripple range
+        my = std::max(0, -gy);
+        nx = std::min(MAXBRUSH-1, hws-gx) - 1;
+        ny = std::min(MAXBRUSH-1, hws-gy) - 1;
         if(havesel)
         {   // selection range
-            bmx = mx = max(mx, (sel.o[R[d]]>>gridpower)-gx);
-            bmy = my = max(my, (sel.o[C[d]]>>gridpower)-gy);
-            bnx = nx = min(nx, (sel.s[R[d]]+(sel.o[R[d]]>>gridpower))-gx-1);
-            bny = ny = min(ny, (sel.s[C[d]]+(sel.o[C[d]]>>gridpower))-gy-1);
+            bmx = mx = std::max(mx, (sel.o[R[d]]>>gridpower)-gx);
+            bmy = my = std::max(my, (sel.o[C[d]]>>gridpower)-gy);
+            bnx = nx = std::min(nx, (sel.s[R[d]]+(sel.o[R[d]]>>gridpower))-gx-1);
+            bny = ny = std::min(ny, (sel.s[C[d]]+(sel.o[C[d]]>>gridpower))-gy-1);
         }
         if(havesel && mode<0) // -ve means smooth selection
             paintme = false;
         else
         {   // brush range
-            bmx = max(mx, brushminx);
-            bmy = max(my, brushminy);
-            bnx = min(nx, brushmaxx-1);
-            bny = min(ny, brushmaxy-1);
+            bmx = std::max(mx, brushminx);
+            bmy = std::max(my, brushminy);
+            bnx = std::min(nx, brushmaxx-1);
+            bny = std::min(ny, brushmaxy-1);
         }
         nz = worldsize-gridsize;
         mz = 0;
@@ -2586,7 +2586,7 @@ void vcolour(float *r, float *g, float *b)
     if(noedit()) return;
     VSlot ds;
     ds.changed = 1<<VSLOT_COLOR;
-    ds.colorscale = vec(max(*r, 0.0f), max(*g, 0.0f), max(*b, 0.0f));
+    ds.colorscale = vec(std::max(*r, 0.0f), std::max(*g, 0.0f), std::max(*b, 0.0f));
     mpeditvslot(usevdelta, ds, allfaces, sel, true);
 }
 COMMAND(0, vcolour, "fff");
@@ -2602,8 +2602,8 @@ void vpalette(int *p, int *x)
     if(noedit()) return;
     VSlot ds;
     ds.changed = 1<<VSLOT_PALETTE;
-    ds.palette = max(*p, 0);
-    ds.palindex = max(*x, 0);
+    ds.palette = std::max(*p, 0);
+    ds.palindex = std::max(*x, 0);
     mpeditvslot(usevdelta, ds, allfaces, sel, true);
 }
 COMMAND(0, vpalette, "ii");
@@ -3149,13 +3149,13 @@ static inline uint mflip(uint face) { return (face&0xFF0000FF) | ((face&0x00FF00
 
 void flipcube(cube &c, int d)
 {
-    swap(c.texture[d*2], c.texture[d*2+1]);
+    std::swap(c.texture[d*2], c.texture[d*2+1]);
     c.faces[D[d]] = dflip(c.faces[D[d]]);
     c.faces[C[d]] = cflip(c.faces[C[d]]);
     c.faces[R[d]] = rflip(c.faces[R[d]]);
     if(c.children)
     {
-        loopi(8) if(i&octadim(d)) swap(c.children[i], c.children[i-octadim(d)]);
+        loopi(8) if(i&octadim(d)) std::swap(c.children[i], c.children[i-octadim(d)]);
         loopi(8) flipcube(c.children[i], d);
     }
 }
@@ -3170,11 +3170,11 @@ void rotatecube(cube &c, int d) // rotates cube clockwise. see pics in cvs for h
     c.faces[D[d]] = cflip(mflip(c.faces[D[d]]));
     c.faces[C[d]] = dflip(mflip(c.faces[C[d]]));
     c.faces[R[d]] = rflip(mflip(c.faces[R[d]]));
-    swap(c.faces[R[d]], c.faces[C[d]]);
+    std::swap(c.faces[R[d]], c.faces[C[d]]);
 
-    swap(c.texture[2*R[d]], c.texture[2*C[d]+1]);
-    swap(c.texture[2*C[d]], c.texture[2*R[d]+1]);
-    swap(c.texture[2*C[d]], c.texture[2*C[d]+1]);
+    std::swap(c.texture[2*R[d]], c.texture[2*C[d]+1]);
+    std::swap(c.texture[2*C[d]], c.texture[2*R[d]+1]);
+    std::swap(c.texture[2*C[d]], c.texture[2*C[d]+1]);
 
     if(c.children)
     {
@@ -3206,7 +3206,7 @@ void mpflip(selinfo &sel, bool local)
         {
             cube &a = selcube(x, y, z);
             cube &b = selcube(x, y, zs-z-1);
-            swap(a, b);
+            std::swap(a, b);
         }
     }
     changed(sel);
@@ -3224,7 +3224,7 @@ void mprotate(int cw, selinfo &sel, bool local)
     int d = dimension(sel.orient);
     if(!dimcoord(sel.orient)) cw = -cw;
     int m = sel.s[C[d]] < sel.s[R[d]] ? C[d] : R[d];
-    int ss = sel.s[m] = max(sel.s[R[d]], sel.s[C[d]]);
+    int ss = sel.s[m] = std::max(sel.s[R[d]], sel.s[C[d]]);
     if(local) makeundo();
     loop(z,sel.s[D[d]]) loopi(cw>0 ? 1 : 3)
     {
@@ -3350,9 +3350,9 @@ COMMAND(0, editmat, "ssi");
         type##ret(curstat); \
     });
 EDITSTAT(wtr, int, wtris/1024);
-EDITSTAT(vtr, int, (vtris*100)/max(wtris, 1));
+EDITSTAT(vtr, int, (vtris*100)/std::max(wtris, 1));
 EDITSTAT(wvt, int, wverts/1024);
-EDITSTAT(vvt, int, (vverts*100)/max(wverts, 1));
+EDITSTAT(vvt, int, (vverts*100)/std::max(wverts, 1));
 EDITSTAT(evt, int, xtraverts/1024);
 EDITSTAT(eva, int, xtravertsva/1024);
 EDITSTAT(octa, int, allocnodes*8);

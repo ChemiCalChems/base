@@ -14,8 +14,8 @@ FVAR(IDF_PERSIST, halofade, FVAR_NONZERO, 0.25f, FVAR_MAX);
 
 void setuphalo(int w, int h)
 {
-    w = max(int(w*haloscale), 2);
-    h = max(int(h*haloscale), 2);
+    w = std::max(int(w*haloscale), 2);
+    h = std::max(int(h*haloscale), 2);
     if(w != halow || h != haloh)
     {
         cleanuphalo();
@@ -92,7 +92,7 @@ void renderhalo()
 void viewhalo()
 {
     if(!halotex) return;
-    int w = min(hudw, hudh)/(debughalo == 2 ? 2 : 3), h = (w*hudh)/hudw;
+    int w = std::min(hudw, hudh)/(debughalo == 2 ? 2 : 3), h = (w*hudh)/hudw;
     SETSHADER(hudrect);
     gle::colorf(1, 1, 1);
     glBindTexture(GL_TEXTURE_RECTANGLE, halotex);

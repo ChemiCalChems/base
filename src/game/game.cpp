@@ -479,17 +479,17 @@ namespace game
 
     int gettimeremain()
     {
-        return connected() ? max(timeremaining*1000-((gs_timeupdate(gamestate) ? lastmillis : totalmillis)-timelast), 0) : 0;
+        return connected() ? std::max(timeremaining*1000-((gs_timeupdate(gamestate) ? lastmillis : totalmillis)-timelast), 0) : 0;
     }
 
     int gettimeelapsed(bool force)
     {
-        return connected() && gs_timeupdate(gamestate) ? max(timeelapsed+(lastmillis-timelast), 0) : (force && maptime > 0 ? lastmillis-maptime : 0);
+        return connected() && gs_timeupdate(gamestate) ? std::max(timeelapsed+(lastmillis-timelast), 0) : (force && maptime > 0 ? lastmillis-maptime : 0);
     }
 
     int gettimesync()
     {
-        return connected() && gs_timeupdate(gamestate) ? max(lastmillis-timesync, 0) : 0;
+        return connected() && gs_timeupdate(gamestate) ? std::max(lastmillis-timesync, 0) : 0;
     }
 
     const char *gamestatename(int type)
@@ -693,7 +693,7 @@ namespace game
     void checkzoom()
     {
         if(zoomdefault > zoomlevels) zoomdefault = zoomlevels;
-        if(zoomlevel < 0) zoomlevel = zoomdefault >= 0 ? zoomdefault : max(zoomlevels-zoomoffset, 0);
+        if(zoomlevel < 0) zoomlevel = zoomdefault >= 0 ? zoomdefault : std::max(zoomlevels-zoomoffset, 0);
         if(zoomlevel > zoomlevels) zoomlevel = zoomlevels;
     }
 
@@ -710,7 +710,7 @@ namespace game
     {
         if(on != zooming)
         {
-            lastzoom = millis - max(W(focus->weapselect, cookzoom) - (millis - lastzoom), 0);
+            lastzoom = millis - std::max(W(focus->weapselect, cookzoom) - (millis - lastzoom), 0);
             if(zoomdefault >= 0 && on) zoomlevel = zoomdefault;
         }
         checkzoom();
@@ -778,7 +778,7 @@ namespace game
         float k = pow(0.7f, curtime/25.0f);
         swaydir.mul(k);
         vec inertia = vec(d->vel).add(d->falling);
-        float speedscale = max(inertia.magnitude(), speed);
+        float speedscale = std::max(inertia.magnitude(), speed);
         if(d->state == CS_ALIVE && speedscale > 0) swaydir.add(vec(inertia).mul((1-k)/(15*speedscale)));
         swaypush.mul(pow(0.5f, curtime/25.0f));
     }
@@ -1006,11 +1006,11 @@ namespace game
         else
         {
             if(m_edit(gamemode) && !len && deathfadeedit) len = deathfadeedit;
-            len = clamp(len, min(deathfademin, deathfademax), max(deathfademin, deathfademax));
+            len = clamp(len, std::min(deathfademin, deathfademax), std::max(deathfademin, deathfademax));
         }
         if(len > 0)
         {
-            int interval = min(len/4, ragdolleffect), over = max(len-interval, 1), millis = lastmillis-d->lastdeath;
+            int interval = std::min(len/4, ragdolleffect), over = std::max(len-interval, 1), millis = lastmillis-d->lastdeath;
             if(millis <= len) { if(millis >= over) return 1.f-((millis-over)/float(interval)); }
             else return 0;
         }
@@ -1030,9 +1030,9 @@ namespace game
         }
         else if(d->state == CS_ALIVE)
         {
-            if(d == focus && third) total *= min(camera1->o.dist(d->o)/(d != player1 ? followdist : thirdpersondist), 1.0f);
+            if(d == focus && third) total *= std::min(camera1->o.dist(d->o)/(d != player1 ? followdist : thirdpersondist), 1.0f);
             int prot = m_protect(gamemode, mutators), millis = d->protect(lastmillis, prot); // protect returns time left
-            if(millis > 0) total *= 1.f-min(float(millis)/float(prot), 1.0f);
+            if(millis > 0) total *= 1.f-std::min(float(millis)/float(prot), 1.0f);
         }
         else if(d->state == CS_EDITING) total *= playereditblend;
 
@@ -1152,15 +1152,15 @@ namespace game
                 }
                 if((W(d->weapselect, lightpersist)&1 || powering) && W(d->weapselect, lightradius) > 0)
                 {
-                    float thresh = max(amt, 0.25f), size = W(d->weapselect, lightradius)*thresh;
-                    int span = max(W2(d->weapselect, cooktime, physics::secondaryweap(d))/4, 500), interval = lastmillis%span, part = span/2;
+                    float thresh = std::max(amt, 0.25f), size = W(d->weapselect, lightradius)*thresh;
+                    int span = std::max(W2(d->weapselect, cooktime, physics::secondaryweap(d))/4, 500), interval = lastmillis%span, part = span/2;
                     if(interval) size += size*0.5f*(interval <= part ? interval/float(part) : (span-interval)/float(part));
                     adddynlight(d->muzzletag(d->weapselect), size, vec(col).mul(thresh), 0, 0);
                 }
             }
             if(d->burntime && d->burning(lastmillis, d->burntime))
             {
-                int millis = lastmillis-d->lastres[W_R_BURN], delay = max(d->burndelay, 1);
+                int millis = lastmillis-d->lastres[W_R_BURN], delay = std::max(d->burndelay, 1);
                 size_t seed = size_t(d) + (millis/50);
                 float pc = 1, amt = (millis%50)/50.0f, intensity = 0.75f+(detrnd(seed, 25)*(1-amt) + detrnd(seed + 1, 25)*amt)/100.f;
                 if(d->burntime-millis < delay) pc *= float(d->burntime-millis)/float(delay);
@@ -1174,7 +1174,7 @@ namespace game
             }
             if(d->shocktime && d->shocking(lastmillis, d->shocktime))
             {
-                int millis = lastmillis-d->lastres[W_R_SHOCK], delay = max(d->shockdelay, 1);
+                int millis = lastmillis-d->lastres[W_R_SHOCK], delay = std::max(d->shockdelay, 1);
                 size_t seed = size_t(d) + (millis/50);
                 float pc = 1, amt = (millis%50)/50.0f, intensity = 0.75f+(detrnd(seed, 25)*(1-amt) + detrnd(seed + 1, 25)*amt)/100.f;
                 if(d->shocktime-millis < delay) pc *= float(d->shocktime-millis)/float(delay);
@@ -1228,7 +1228,7 @@ namespace game
         bool moving = d->move || d->strafe, liquid = physics::liquidcheck(d), onfloor = d->physstate >= PHYS_SLOPE || d->onladder || d->impulse[IM_TYPE] == IM_T_PARKOUR;
         if(curfoot < 0 || (moving && (liquid || onfloor)))
         {
-            float mag = d->vel.magnitude(), m = min(footstepsoundmax, footstepsoundmin), n = max(footstepsoundmax, footstepsoundmin);
+            float mag = d->vel.magnitude(), m = std::min(footstepsoundmax, footstepsoundmin), n = std::max(footstepsoundmax, footstepsoundmin);
             if(n > m && mag > m)
             {
                 if(curfoot < 0) curfoot = d->lastfoot;
@@ -1598,7 +1598,7 @@ namespace game
             {
                 if(d == focus) hud::damage(damage, v->o, v, weap, flags);
                 vec p = d->headpos(-d->height/4);
-                int hp = max(d->gethealth(gamemode, mutators)/5, 1);
+                int hp = std::max(d->gethealth(gamemode, mutators)/5, 1);
                 if(!nogore && bloodscale > 0)
                     part_splash(PART_BLOOD, int(clamp(damage/hp, 1, 5)*bloodscale)*(bleeding || material ? 2 : 1), bloodfade, p, 0x229999, (rnd(bloodsize/2)+(bloodsize/2))/10.f, 1, 100, STAIN_BLOOD, int(d->radius), 10);
                 if(nogore != 2 && (bloodscale <= 0 || bloodsparks))
@@ -1626,7 +1626,7 @@ namespace game
                     if(m_dm_gladiator(gamemode, mutators))
                     {
                         float extra = flags&HIT(WAVE) || !hitdealt(flags) ? gladiatorextrawavestunscale : (d->health <= 0 ? gladiatorextradeadstunscale : gladiatorextrahitstunscale);
-                        amt *= d->gethealth(gamemode, mutators)/max(d->health, 1)*extra;
+                        amt *= d->gethealth(gamemode, mutators)/std::max(d->health, 1)*extra;
                     }
                     float s = d->shockstunscale*amt, g = d->shockstunfall*amt;
                     d->addstun(weap, lastmillis, d->shockstuntime, d->shockstun&W_N_STADD ? s : 0.f, d->shockstun&W_N_GRADD ? g : 0.f);
@@ -1643,7 +1643,7 @@ namespace game
                         if(m_dm_gladiator(gamemode, mutators))
                         {
                             float extra = flags&HIT(WAVE) || !hitdealt(flags) ? gladiatorextrawavestunscale : (d->health <= 0 ? gladiatorextradeadstunscale : gladiatorextrahitstunscale);
-                            amt *= d->gethealth(gamemode, mutators)/max(d->health, 1)*extra;
+                            amt *= d->gethealth(gamemode, mutators)/std::max(d->health, 1)*extra;
                         }
                         float s = WF(WK(flags), weap, stunscale, WS(flags))*amt, g = WF(WK(flags), weap, stunfall, WS(flags))*amt;
                         d->addstun(weap, lastmillis, int(scale*WF(WK(flags), weap, stuntime, WS(flags))), stun&W_N_STADD ? s : 0.f, stun&W_N_GRADD ? g : 0.f);
@@ -1675,10 +1675,10 @@ namespace game
                             if(m_dm_gladiator(gamemode, mutators))
                             {
                                 float extra = flags&HIT(WAVE) || !hitdealt(flags) ? gladiatorextrawavepushscale : (d->health <= 0 ? gladiatorextradeadpushscale : gladiatorextrahitpushscale);
-                                modify *= d->gethealth(gamemode, mutators)/max(d->health, 1)*extra;
+                                modify *= d->gethealth(gamemode, mutators)/std::max(d->health, 1)*extra;
                             }
                             d->vel.add(vec(dir).mul(hit*modify));
-                            if(doquake) d->quake = min(d->quake+max(int(hit), 1), quakelimit);
+                            if(doquake) d->quake = std::min(d->quake+std::max(int(hit), 1), quakelimit);
                         }
                         hit = WF(WK(flags), weap, hitvel, WS(flags))*amt;
                         if(hit != 0)
@@ -1687,10 +1687,10 @@ namespace game
                             if(m_dm_gladiator(gamemode, mutators))
                             {
                                 float extra = flags&HIT(WAVE) || !hitdealt(flags) ? gladiatorextrawavevelscale : (d->health <= 0 ? gladiatorextradeadvelscale : gladiatorextrahitvelscale);
-                                modify *= d->gethealth(gamemode, mutators)/max(d->health, 1)*extra;
+                                modify *= d->gethealth(gamemode, mutators)/std::max(d->health, 1)*extra;
                             }
                             d->vel.add(vec(vel).mul(hit*modify));
-                            if(doquake) d->quake = min(d->quake+max(int(hit), 1), quakelimit);
+                            if(doquake) d->quake = std::min(d->quake+std::max(int(hit), 1), quakelimit);
                         }
                     }
                 }
@@ -1998,7 +1998,7 @@ namespace game
 
         if(nogore != 2 && gibscale > 0 && !(flags&HIT(LOST)))
         {
-            int hp = max(d->gethealth(gamemode, mutators)/10, 1), gib = clamp(max(damage, hp)/(d->obliterated ? 10 : 20), 2, 10), amt = int((rnd(gib)+gib)*(1+gibscale));
+            int hp = std::max(d->gethealth(gamemode, mutators)/10, 1), gib = clamp(std::max(damage, hp)/(d->obliterated ? 10 : 20), 2, 10), amt = int((rnd(gib)+gib)*(1+gibscale));
             loopi(amt) projs::create(pos, pos, true, d, nogore ? PRJ_DEBRIS : PRJ_GIBS, -1, 0, rnd(gibfade)+gibfade, 0, rnd(250)+1, rnd(d->obliterated ? 80 : 40)+10);
         }
         if(m_team(gamemode, mutators) && d->team == v->team && d != v && v == player1 && isweap(weap) && WF(WK(flags), weap, damagepenalty, WS(flags)) != 0)
@@ -2017,7 +2017,7 @@ namespace game
         timeremaining = remain;
         timeelapsed = elapsed;
         timelast = gs_timeupdate(gamestate) ? lastmillis : totalmillis;
-        timesync = gs_timeupdate(gamestate) ? max(lastmillis-elapsed-(player1->ping/2), timesync) : 0;
+        timesync = gs_timeupdate(gamestate) ? std::max(lastmillis-elapsed-(player1->ping/2), timesync) : 0;
         if(gs_timeupdate(gamestate) != gs_timeupdate(oldstate)) entities::updaterails();
         if(gs_intermission(gamestate) && gs_playing(oldstate))
         {
@@ -2545,8 +2545,8 @@ namespace game
     {
         if(yaw < targyaw-180.0f) yaw += 360.0f;
         if(yaw > targyaw+180.0f) yaw -= 360.0f;
-        float offyaw = (rotate < 0 ? fabs(rotate) : (rotate > 0 ? min(float(fabs(targyaw-yaw)), rotate) : fabs(targyaw-yaw)))*yawspeed,
-              offpitch = (rotate < 0 ? fabs(rotate) : (rotate > 0 ? min(float(fabs(targpitch-pitch)), rotate) : fabs(targpitch-pitch)))*pitchspeed;
+        float offyaw = (rotate < 0 ? fabs(rotate) : (rotate > 0 ? std::min(float(fabs(targyaw-yaw)), rotate) : fabs(targyaw-yaw)))*yawspeed,
+              offpitch = (rotate < 0 ? fabs(rotate) : (rotate > 0 ? std::min(float(fabs(targpitch-pitch)), rotate) : fabs(targpitch-pitch)))*pitchspeed;
         if(targyaw > yaw)
         {
             yaw += offyaw;
@@ -2645,7 +2645,7 @@ namespace game
         if(dist <= 0) return c.o;
         dir.mul(1/dist);
         physics::movecamera(&c, dir, dist, 0.1f);
-        firstpersonspineoffset = max(dist-old.dist(c.o), 0.f);
+        firstpersonspineoffset = std::max(dist-old.dist(c.o), 0.f);
         return c.o;
     }
 
@@ -2799,8 +2799,8 @@ namespace game
                 default: break;
             }
         }
-        maxdist = min(maxdist, float(getfog()*2/3));
-        mindist = min(mindist, maxdist);
+        maxdist = std::min(maxdist, float(getfog()*2/3));
+        mindist = std::min(mindist, maxdist);
     }
 
     bool camvisible(cament *c, cament *v, vec &from, float &yaw, float &pitch, float maxdist, float mindist, int iter = 0)
@@ -3191,7 +3191,7 @@ namespace game
     float calcroll(gameent *d)
     {
         bool thirdperson = d != focus || thirdpersonview(true);
-        float r = thirdperson ? 0 : d->roll, wobble = float(rnd(quakewobble+1)-quakewobble/2)*(float(min(d->quake, quakelimit))/1000.f);
+        float r = thirdperson ? 0 : d->roll, wobble = float(rnd(quakewobble+1)-quakewobble/2)*(float(std::min(d->quake, quakelimit))/1000.f);
         switch(d->state)
         {
             case CS_SPECTATOR: case CS_WAITING: r = wobble*0.5f; break;
@@ -3509,12 +3509,12 @@ namespace game
             vec color = vec::fromcolor(W(d->weapselect, colour));
             if((d->weapstate[d->weapselect] == W_S_POWER || d->weapstate[d->weapselect] == W_S_ZOOM) && W2(d->weapselect, colourcook, secondary) != 0)
             {
-                float amt = clamp(float(lastmillis-d->weaptime[d->weapselect])/max(d->weapwait[d->weapselect], 1), 0.f, 1.f);
+                float amt = clamp(float(lastmillis-d->weaptime[d->weapselect])/std::max(d->weapwait[d->weapselect], 1), 0.f, 1.f);
                 color.mul(1-amt).add(vec(WPCOL(d, d->weapselect, colourcook, secondary)).mul(amt)).clamp(0.f, 1.f);
             }
             else if(d->weapselect >= W_OFFSET && d->weapselect < W_ITEM && (W2(d->weapselect, ammosub, false) || W2(d->weapselect, ammosub, true)))
             {
-                int ammo = d->weapammo[d->weapselect][W_A_CLIP], maxammo = max(W(d->weapselect, ammoclip), 1);
+                int ammo = d->weapammo[d->weapselect][W_A_CLIP], maxammo = std::max(W(d->weapselect, ammoclip), 1);
                 float scale = 1;
                 switch(d->weapstate[d->weapselect])
                 {
@@ -3523,7 +3523,7 @@ namespace game
                         int millis = lastmillis-d->weaptime[d->weapselect], check = d->weapwait[d->weapselect]/2;
                         scale = millis >= check ? float(millis-check)/check : 0.f;
                         if(d->weapload[d->weapselect][W_A_CLIP] > 0)
-                            scale = max(scale, float(ammo - d->weapload[d->weapselect][W_A_CLIP])/maxammo);
+                            scale = std::max(scale, float(ammo - d->weapload[d->weapselect][W_A_CLIP])/maxammo);
                         break;
                     }
                     default: scale = float(ammo)/maxammo; break;
@@ -3590,7 +3590,7 @@ namespace game
                 {
                     case W_S_SWITCH: case W_S_USE:
                     {
-                        int millis = lastmillis-d->weaptime[weap], off = min(d->weapwait[weap]/4, 250),
+                        int millis = lastmillis-d->weaptime[weap], off = std::min(d->weapwait[weap]/4, 250),
                             lastweap = d->getlastweap(m_weapon(d->actortype, gamemode, mutators));
                         if(!isweap(lastweap) || lastweap != weap)
                         {
@@ -3717,7 +3717,7 @@ namespace game
                 }
                 if(d->sliding(true) && firstpersonslidetime && firstpersonslideroll != 0)
                 {
-                    int dur = min(impulseslidelen/2, firstpersonslidetime), millis = lastmillis-d->slidetime();
+                    int dur = std::min(impulseslidelen/2, firstpersonslidetime), millis = lastmillis-d->slidetime();
                     float amt = 1;
                     if(millis > dur)
                     {
@@ -3742,7 +3742,7 @@ namespace game
                 mdl.o.sub(vec(mdl.yaw*RAD, 0.f).rotate_around_z(90*RAD).mul(firstpersonbodyside));
                 if(lastoffset)
                 {
-                    float zoffset = (max(d->zradius-d->height, 0.f)+(d->radius*0.5f))*firstpersonbodyzoffset;
+                    float zoffset = (std::max(d->zradius-d->height, 0.f)+(d->radius*0.5f))*firstpersonbodyzoffset;
                     if(!onfloor && (d->action[AC_SPECIAL] || d->impulse[IM_TYPE] == IM_T_POUND || d->sliding(true) || d->impulse[IM_TYPE] == IM_T_KICK || d->impulse[IM_TYPE] == IM_T_GRAB))
                     {
                         int lmillis = d->airtime(lastmillis);
@@ -3800,7 +3800,7 @@ namespace game
                 }
                 else if(d->physstate == PHYS_FALL && !d->onladder && d->airtime(lastmillis) >= 50)
                 {
-                    mdl.basetime2 = max(d->airmillis, d->impulsetime[IM_T_JUMP]);
+                    mdl.basetime2 = std::max(d->airmillis, d->impulsetime[IM_T_JUMP]);
                     if(d->action[AC_SPECIAL] || d->impulse[IM_TYPE] == IM_T_POUND)
                     {
                         mdl.anim |= ANIM_FLYKICK<<ANIM_SECONDARY;
@@ -3857,7 +3857,7 @@ namespace game
                 case ANIM_RIFLE: case ANIM_GRENADE: case ANIM_MINE: case ANIM_ROCKET:
                 {
                     mdl.anim = (mdl.anim>>ANIM_SECONDARY) | ((mdl.anim&((1<<ANIM_SECONDARY)-1))<<ANIM_SECONDARY);
-                    swap(mdl.basetime, mdl.basetime2);
+                    std::swap(mdl.basetime, mdl.basetime2);
                     break;
                 }
                 default: break;
@@ -3896,7 +3896,7 @@ namespace game
     {
         #define RESIDUAL(name, type, pulse) \
             if(d->name##time && d->name##ing(lastmillis, d->name##time)) \
-                get##name##effect(d, mdl, d->name##time, lastmillis-d->lastres[W_R_##type], max(d->name##delay, 1));
+                get##name##effect(d, mdl, d->name##time, lastmillis-d->lastres[W_R_##type], std::max(d->name##delay, 1));
         RESIDUALS
         #undef RESIDUAL
         if((!mdl.mixer || mdl.mixer == notexture) && d->state == CS_ALIVE && d->lastbuff)
@@ -3904,8 +3904,8 @@ namespace game
             float pc = 1;
             if(mixerbuffpulse > 0)
             {
-                int millis = lastmillis%mixerbuffpulse, part = max(mixerbuffpulse/2, 1);
-                pc *= clamp(millis <= part ? 1.f-(millis/float(part)) : (millis-part)/float(part), min(mixerbuffpulsemin, mixerbuffpulsemax), max(mixerbuffpulsemax, mixerbuffpulsemin));
+                int millis = lastmillis%mixerbuffpulse, part = std::max(mixerbuffpulse/2, 1);
+                pc *= clamp(millis <= part ? 1.f-(millis/float(part)) : (millis-part)/float(part), std::min(mixerbuffpulsemin, mixerbuffpulsemax), std::max(mixerbuffpulsemax, mixerbuffpulsemin));
             }
             vec4 mixercolor = vec4(vec(mixerbufftone >= 0 ? vec::fromcolor(getcolour(d, mixerbufftone)) : pulsecolour(d, PULSE_BUFF)).mul(mixerbuffintensity), pc*mixerbuffblend);
             vec2 mixerglow = vec2((mdl.mixercolor.r+mdl.mixercolor.g+mdl.mixercolor.b)/3.f*mixerbuffglowintensity, pc*mixerbuffglowblend);
@@ -3971,7 +3971,7 @@ namespace game
         if(d->state == CS_ALIVE && (d->hasparkour() || d->impulsetime[IM_T_JUMP] || d->sliding(true))) impulseeffect(d, 1);
         if(d->burntime && d->burning(lastmillis, d->burntime))
         {
-            int millis = lastmillis-d->lastres[W_R_BURN], delay = max(d->burndelay, 1);
+            int millis = lastmillis-d->lastres[W_R_BURN], delay = std::max(d->burndelay, 1);
             float pc = 1, intensity = 0.5f+(rnd(50)/100.f), fade = (d != focus ? 0.75f : 0.f)+(rnd(25)/100.f);
             if(d->burntime-millis < delay) pc *= float(d->burntime-millis)/float(delay);
             else pc *= 0.75f+(float(millis%delay)/float(delay*4));

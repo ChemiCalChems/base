@@ -30,7 +30,7 @@ static inline void mmcollisionbox(const entity &e, model *m, vec &center, vec &r
 
 static inline void decalboundbox(const entity &e, DecalSlot &s, vec &center, vec &radius)
 {
-    float size = max(float(e.attrs[4]), 1.0f);
+    float size = std::max(float(e.attrs[4]), 1.0f);
     center = vec(0, s.depth * size/2, 0);
     radius = vec(size/2, s.depth * size/2, size/2);
     rotatebb(center, radius, e.attrs[1], e.attrs[2], e.attrs[3]);
@@ -217,7 +217,7 @@ static bool modifyoctaent(int flags, int id, extentity &e)
     }
     else
     {
-        int leafsize = octaentsize, limit = max(r.x - o.x, max(r.y - o.y, r.z - o.z));
+        int leafsize = octaentsize, limit = std::max(r.x - o.x, std::max(r.y - o.y, r.z - o.z));
         while(leafsize < limit) leafsize *= 2;
         int diff = ~(leafsize-1) & ((o.x^r.x)|(o.y^r.y)|(o.z^r.z));
         if(diff && (limit > octaentsize/2 || diff < leafsize*2)) leafsize *= 2;
@@ -463,12 +463,12 @@ void pasteundoent(int idx, const entbase &ue, int *attrs, int numattrs)
     if(idx < 0 || idx >= MAXENTS) return;
     vector<extentity *> &ents = entities::getents();
     while(ents.length() < idx) ents.add(entities::newent())->type = ET_EMPTY;
-    numattrs = min(numattrs, MAXENTATTRS);
+    numattrs = std::min(numattrs, MAXENTATTRS);
     int efocus = -1, minattrs = entities::numattrs(ue.type);
     entedit(idx,
     {
         (entbase &)e = ue;
-        e.attrs.setsize(max(numattrs, minattrs), 0);
+        e.attrs.setsize(std::max(numattrs, minattrs), 0);
         loopk(numattrs) e.attrs[k] = *attrs++;
         for(int k = numattrs; k < minattrs; k++) e.attrs[k] = 0;
     });
@@ -503,7 +503,7 @@ void entrotate(int *cw)
     groupeditundo(
         e.o[dd] -= (e.o[dd]-mid)*2;
         e.o.sub(s);
-        swap(e.o[R[d]], e.o[C[d]]);
+        std::swap(e.o[R[d]], e.o[C[d]]);
         e.o.add(s);
     );
 }
@@ -948,7 +948,7 @@ void entpaste()
         extentity *e = newentity(true, o, c.type, c.attrs, idx, true, false);
         if(!e) continue;
         entadd(idx);
-        keepents = max(keepents, idx+1);
+        keepents = std::max(keepents, idx+1);
     }
     keepents = 0;
     int j = 0;
@@ -986,7 +986,7 @@ void entset(char *what, char *attr)
     groupedit({
         e.type = type;
         e.attrs.add(0, clamp(attrs.length(), entities::numattrs(e.type), MAXENTATTRS) - e.attrs.length());
-        loopk(min(attrs.length(), e.attrs.length())) e.attrs[k] = attrs[k];
+        loopk(std::min(attrs.length(), e.attrs.length())) e.attrs[k] = attrs[k];
     });
 }
 COMMAND(0, entset, "ss");
@@ -1148,7 +1148,7 @@ int findentity(int type, int index, vector<int> &attr)
             if(find) return i;
         }
     }
-    loopj(min(index, ents.length()))
+    loopj(std::min(index, ents.length()))
     {
         extentity &e = *ents[j];
         if(e.type==type)
@@ -1352,7 +1352,7 @@ void shrinkmap()
     conoutf("Shrunk map to size %d", worldscale);
 }
 
-ICOMMAND(0, newmap, "is", (int *i, char *n), if(emptymap(*i, false, n)) game::newmap(::max(*i, 0), n));
+ICOMMAND(0, newmap, "is", (int *i, char *n), if(emptymap(*i, false, n)) game::newmap(std::max(*i, 0), n));
 ICOMMAND(0, mapenlarge, "i", (int *n), if(enlargemap(*n!=0, false)) game::newmap(*n!=0 ? -2 : -1));
 COMMAND(0, shrinkmap, "");
 ICOMMAND(0, mapsize, "", (void),
@@ -1379,7 +1379,7 @@ void mpeditent(int i, const vec &o, int type, attrvector &attr, bool local)
         e.type = type;
         e.o = o;
         e.attrs.add(0, clamp(attr.length(), entities::numattrs(e.type), MAXENTATTRS) - e.attrs.length());
-        loopk(min(attr.length(), e.attrs.length())) e.attrs[k] = attr[k];
+        loopk(std::min(attr.length(), e.attrs.length())) e.attrs[k] = attr[k];
         addentityedit(i);
     }
     entities::editent(i, local);

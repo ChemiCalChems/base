@@ -1103,7 +1103,7 @@ void variantshader(int *type, char *name, int *row, char *vs, char *ps, int *max
     if(!s) return;
 
     defformatstring(varname, "<variant:%d,%d>%s", s->numvariants(*row), *row, name);
-    if(*maxvariants > 0) progress(min(s->variants.length() / float(*maxvariants), 1.0f), "Generating shader: %s", name);
+    if(*maxvariants > 0) progress(std::min(s->variants.length() / float(*maxvariants), 1.0f), "Generating shader: %s", name);
     vector<char> vsbuf, psbuf, vsbak, psbak;
     GENSHADER(s->defaultparams.length(), genuniformdefs(vsbuf, psbuf, vs, ps, s));
     GENSHADER(strstr(vs, "//:fog") || strstr(ps, "//:fog"), genfogshader(vsbuf, psbuf, vs, ps));
@@ -1299,7 +1299,7 @@ static int allocatepostfxtex(int scale)
     postfxtex &t = postfxtexs.add();
     t.scale = scale;
     glGenTextures(1, &t.id);
-    createtexture(t.id, max(postfxw>>scale, 1), max(postfxh>>scale, 1), NULL, 3, 1, GL_RGB, GL_TEXTURE_RECTANGLE);
+    createtexture(t.id, std::max(postfxw>>scale, 1), std::max(postfxh>>scale, 1), NULL, 3, 1, GL_RGB, GL_TEXTURE_RECTANGLE);
     return postfxtexs.length()-1;
 }
 
@@ -1364,8 +1364,8 @@ void renderpostfx(GLuint outfbo)
             glFramebufferTexture2D_(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, postfxtexs[tex].id, 0);
         }
 
-        int w = tex >= 0 ? max(postfxw>>postfxtexs[tex].scale, 1) : postfxw,
-            h = tex >= 0 ? max(postfxh>>postfxtexs[tex].scale, 1) : postfxh;
+        int w = tex >= 0 ? std::max(postfxw>>postfxtexs[tex].scale, 1) : postfxw,
+            h = tex >= 0 ? std::max(postfxh>>postfxtexs[tex].scale, 1) : postfxh;
         glViewport(0, 0, w, h);
         p.shader->set();
         LOCALPARAM(params, p.params);
@@ -1374,8 +1374,8 @@ void renderpostfx(GLuint outfbo)
         {
             if(!tmu)
             {
-                tw = max(postfxw>>postfxtexs[postfxbinds[j]].scale, 1);
-                th = max(postfxh>>postfxtexs[postfxbinds[j]].scale, 1);
+                tw = std::max(postfxw>>postfxtexs[postfxbinds[j]].scale, 1);
+                th = std::max(postfxh>>postfxtexs[postfxbinds[j]].scale, 1);
             }
             else glActiveTexture_(GL_TEXTURE0 + tmu);
             glBindTexture(GL_TEXTURE_RECTANGLE, postfxtexs[postfxbinds[j]].id);
@@ -1442,7 +1442,7 @@ ICOMMAND(0, addpostfx, "siisffff", (char *name, int *bind, int *scale, char *inp
     }
     inputmask &= (1<<NUMPOSTFXBINDS)-1;
     freemask &= (1<<NUMPOSTFXBINDS)-1;
-    addpostfx(name, clamp(*bind, 0, NUMPOSTFXBINDS-1), max(*scale, 0), inputmask, freemask, vec4(*x, *y, *z, *w));
+    addpostfx(name, clamp(*bind, 0, NUMPOSTFXBINDS-1), std::max(*scale, 0), inputmask, freemask, vec4(*x, *y, *z, *w));
 });
 
 ICOMMAND(0, setpostfx, "sffff", (char *name, float *x, float *y, float *z, float *w),

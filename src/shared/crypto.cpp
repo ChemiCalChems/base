@@ -151,7 +151,7 @@ namespace tiger
             loopk(3)
             {
                 uchar *c = &val.bytes[k*sizeof(chunk)];
-                loopl(sizeof(chunk)/2) swap(c[l], c[sizeof(chunk)-1-l]);
+                loopl(sizeof(chunk)/2) std::swap(c[l], c[sizeof(chunk)-1-l]);
             }
         }
     }
@@ -254,7 +254,7 @@ template<int BI_DIGITS> struct bigint
     template<int X_DIGITS, int Y_DIGITS> bigint &add(const bigint<X_DIGITS> &x, const bigint<Y_DIGITS> &y)
     {
         dbldigit carry = 0;
-        int maxlen = max(x.len, y.len), i;
+        int maxlen = std::max(x.len, y.len), i;
         for(i = 0; i < y.len || carry; i++)
         {
              carry += (i < x.len ? (dbldigit)x.digits[i] : 0) + (i < y.len ? (dbldigit)y.digits[i] : 0);
@@ -262,7 +262,7 @@ template<int BI_DIGITS> struct bigint
              carry >>= BI_DIGIT_BITS;
         }
         if(i < x.len && this != &x) memcpy(&digits[i], &x.digits[i], (x.len - i)*sizeof(digit));
-        len = max(i, maxlen);
+        len = std::max(i, maxlen);
         return *this;
     }
     template<int Y_DIGITS> bigint &add(const bigint<Y_DIGITS> &y) { return add(*this, y); }

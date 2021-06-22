@@ -115,7 +115,7 @@ static inline bool raycubeintersect(const clipplanes &p, const cube &c, const ve
     INTERSECTPLANES(entry = i, return false);
     INTERSECTBOX(bbentry = i, return false);
     if(exitdist < 0) return false;
-    dist = max(enterdist+0.1f, 0.0f);
+    dist = std::max(enterdist+0.1f, 0.0f);
     if(dist < maxdist)
     {
         if(bbentry>=0) { hitsurface = vec(0, 0, 0); hitsurface[bbentry] = ray[bbentry]>0 ? -1 : 1; }
@@ -216,10 +216,10 @@ static float disttooutsideent(const vec &o, const vec &ray, float radius, int mo
             { \
                 float d = ((invray[i]>0?0:worldsize)-c)*invray[i]; \
                 if(d<0) return (radius>0?radius:-1); \
-                disttoworld = max(disttoworld, 0.1f + d); \
+                disttoworld = std::max(disttoworld, 0.1f + d); \
             } \
             float e = ((invray[i]>0?worldsize:0)-c)*invray[i]; \
-            exitworld = min(exitworld, e); \
+            exitworld = std::min(exitworld, e); \
         } \
         if(disttoworld > exitworld) return (radius>0?radius:-1); \
         v.add(vec(ray).mul(disttoworld)); \
@@ -238,7 +238,7 @@ static float disttooutsideent(const vec &o, const vec &ray, float radius, int mo
                 if(edist < dent) \
                 { \
                     elvl = lshift; \
-                    dent = min(dent, edist); \
+                    dent = std::min(dent, edist); \
                 } \
             } \
             if(lc->children==NULL) break; \
@@ -318,14 +318,14 @@ float raycube(const vec &o, const vec &ray, float radius, int mode, int size, ex
             const clipplanes &p = getclipplanes(c, lo, lsize);
             float f = 0;
             if(raycubeintersect(p, c, v, ray, invray, dent-dist, f) && (dist+f>0 || !(mode&RAY_SKIPFIRST)) && (!(mode&RAY_CLIPMAT) || (c.material&MATF_CLIP)!=MAT_NOCLIP))
-                return min(dent, dist+f);
+                return std::min(dent, dist+f);
         }
 
         FINDCLOSEST(closest = 0, closest = 1, closest = 2);
 
-        if(radius>0 && dist>=radius) return min(dent, dist);
+        if(radius>0 && dist>=radius) return std::min(dent, dist);
 
-        UPOCTREE(return min(dent, radius>0 ? radius : dist));
+        UPOCTREE(return std::min(dent, radius>0 ? radius : dist));
     }
 }
 
@@ -519,8 +519,8 @@ const vector<physent *> &checkdynentcache(int x, int y)
 }
 
 #define loopdynentcachebb(curx, cury, x1, y1, x2, y2) \
-    for(int curx = max(int(x1), 0)>>dynentsize, endx = min(int(x2), hdr.worldsize-1)>>dynentsize; curx <= endx; curx++) \
-    for(int cury = max(int(y1), 0)>>dynentsize, endy = min(int(y2), hdr.worldsize-1)>>dynentsize; cury <= endy; cury++)
+    for(int curx = std::max(int(x1), 0)>>dynentsize, endx = std::min(int(x2), hdr.worldsize-1)>>dynentsize; curx <= endx; curx++) \
+    for(int cury = std::max(int(y1), 0)>>dynentsize, endy = std::min(int(y2), hdr.worldsize-1)>>dynentsize; cury <= endy; cury++)
 
 #define loopdynentcache(curx, cury, o, radius) \
     loopdynentcachebb(curx, cury, o.x-radius, o.y-radius, o.x+radius, o.y+radius)
@@ -773,7 +773,7 @@ bool mmcollide(physent *d, const vec &dir, float cutoff, octaentities &oc) // co
         if(!mcol) continue;
 
         vec center, radius;
-        float rejectradius = m->collisionbox(center, radius), scale = e.attrs[5] ? max(e.attrs[5]/100.0f, 1e-3f) : 1;
+        float rejectradius = m->collisionbox(center, radius), scale = e.attrs[5] ? std::max(e.attrs[5]/100.0f, 1e-3f) : 1;
         if(d->o.reject(e.o, d->radius + rejectradius*scale)) continue;
 
         int yaw = e.attrs[1], pitch = e.attrs[2], roll = e.attrs[3];
@@ -1126,8 +1126,8 @@ bool collide(physent *d, const vec &dir, float cutoff, bool playercol, bool insi
 float pltracecollide(physent *d, const vec &from, const vec &ray, float maxdist, float guard)
 {
     vec to = vec(ray).mul(maxdist).add(from);
-    float x1 = floor(min(from.x, to.x)), y1 = floor(min(from.y, to.y)),
-          x2 = ceil(max(from.x, to.x)), y2 = ceil(max(from.y, to.y));
+    float x1 = floor(std::min(from.x, to.x)), y1 = floor(std::min(from.y, to.y)),
+          x2 = ceil(std::max(from.x, to.x)), y2 = ceil(std::max(from.y, to.y));
     float bestdist = 1e16f;
     int bestzones = CLZ_NONE;
     loopdynentcachebb(x, y, x1, y1, x2, y2)
@@ -1157,7 +1157,7 @@ float tracecollide(physent *d, const vec &o, const vec &ray, float maxdist, int 
     collidewall = hitsurface;
     if(playercol)
     {
-        float pldist = pltracecollide(d, o, ray, min(dist, maxdist), guard);
+        float pldist = pltracecollide(d, o, ray, std::min(dist, maxdist), guard);
         if(collideplayer && pldist >= 0 && pldist < dist)
         {
             dist = pldist;
@@ -1205,7 +1205,7 @@ bool getsight(const vec &o, float yaw, float pitch, const vec &q, vec &v, float 
     {
         float x = fmod(fabs((dist > 0 ? asin((q.z-o.z)/dist)/RAD : 0) - pitch), 360);
         float y = fmod(fabs(-atan2(q.x-o.x, q.y-o.y)/RAD-yaw), 360);
-        if(min(x, 360-x) <= fovx && min(y, 360-y) <= fovy) return raycubelos(o, q, v);
+        if(std::min(x, 360-x) <= fovx && std::min(y, 360-y) <= fovy) return raycubelos(o, q, v);
     }
     return false;
 }

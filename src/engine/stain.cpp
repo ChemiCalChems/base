@@ -67,7 +67,7 @@ struct stainbuffer
     void clear()
     {
         startvert = endvert = lastvert = 0;
-        availverts = max(maxverts - 3, 0);
+        availverts = std::max(maxverts - 3, 0);
         dirty = true;
     }
 
@@ -602,7 +602,7 @@ struct stainrenderer
                    m.o[r] + m.rsize >= bbmin[r] && m.o[r] <= bbmax[r])
                 {
                     static cube dummy;
-                    gentris(dummy, m.orient, m.o, max(m.csize, m.rsize), &m);
+                    gentris(dummy, m.orient, m.o, std::max(m.csize, m.rsize), &m);
                 }
                 if(i+1 >= matsurfs) break;
                 materialsurface &n = matbuf[i+1];

@@ -4,7 +4,7 @@ struct PackNode
     ushort x, y, w, h;
     int available;
 
-    PackNode(ushort x, ushort y, ushort w, ushort h) : child1(0), child2(0), x(x), y(y), w(w), h(h), available(min(w, h)) {}
+    PackNode(ushort x, ushort y, ushort w, ushort h) : child1(0), child2(0), x(x), y(y), w(w), h(h), available(std::min(w, h)) {}
 
     void discardchildren()
     {
@@ -21,7 +21,7 @@ struct PackNode
     void reset()
     {
         discardchildren();
-        available = min(w, h);
+        available = std::min(w, h);
     }
 
     bool resize(int nw, int nh)
@@ -30,7 +30,7 @@ struct PackNode
         discardchildren();
         w = nw;
         h = nh;
-        available = min(w, h);
+        available = std::min(w, h);
         return true;
     }
 

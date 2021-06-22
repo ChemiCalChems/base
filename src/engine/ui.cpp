@@ -64,10 +64,10 @@ namespace UI
 
         void intersect(const ClipArea &c)
         {
-            x1 = max(x1, c.x1);
-            y1 = max(y1, c.y1);
-            x2 = max(x1, min(x2, c.x2));
-            y2 = max(y1, min(y2, c.y2));
+            x1 = std::max(x1, c.x1);
+            y1 = std::max(y1, c.y1);
+            x2 = std::max(x1, std::min(x2, c.x2));
+            y2 = std::max(y1, std::min(y2, c.y2));
 
         }
 
@@ -416,8 +416,8 @@ namespace UI
             {
                 o->x = o->y = 0;
                 o->layout();
-                w = max(w, o->x + o->w);
-                h = max(h, o->y + o->h);
+                w = std::max(w, o->x + o->w);
+                h = std::max(h, o->y + o->h);
             });
         }
 
@@ -867,7 +867,7 @@ namespace UI
         void adjustlayout()
         {
             float aspect = float(hudw)/hudh;
-            ph = max(max(h, w/aspect), 1.0f);
+            ph = std::max(std::max(h, w/aspect), 1.0f);
             pw = aspect*ph;
             Object::adjustlayout(0, 0, pw, ph);
         }
@@ -1241,16 +1241,16 @@ namespace UI
                 o->y = 0;
                 o->layout();
                 subw += o->w;
-                h = max(h, o->y + o->h);
+                h = std::max(h, o->y + o->h);
             });
-            w = subw + space*max(children.length() - 1, 0);
+            w = subw + space*std::max(children.length() - 1, 0);
         }
 
         void adjustchildren()
         {
             if(children.empty()) return;
 
-            float offset = 0, sx = 0, cspace = (w - subw) / max(children.length() - 1, 1), cstep = (w - subw) / children.length();
+            float offset = 0, sx = 0, cspace = (w - subw) / std::max(children.length() - 1, 1), cstep = (w - subw) / children.length();
             for(int i = 0; i < children.length(); i++)
             {
                 Object *o = children[i];
@@ -1292,16 +1292,16 @@ namespace UI
                 o->y = subh;
                 o->layout();
                 subh += o->h;
-                w = max(w, o->x + o->w);
+                w = std::max(w, o->x + o->w);
             });
-            h = subh + space*max(children.length() - 1, 0);
+            h = subh + space*std::max(children.length() - 1, 0);
         }
 
         void adjustchildren()
         {
             if(children.empty()) return;
 
-            float offset = 0, sy = 0, rspace = (h - subh) / max(children.length() - 1, 1), rstep = (h - subh) / children.length();
+            float offset = 0, sy = 0, rspace = (h - subh) / std::max(children.length() - 1, 1), rstep = (h - subh) / children.length();
             loopchildren(o,
             {
                 o->y = offset;
@@ -1370,8 +1370,8 @@ namespace UI
             subw = subh = 0;
             loopv(widths) subw += widths[i];
             loopv(heights) subh += heights[i];
-            w = subw + spacew*max(widths.length() - 1, 0);
-            h = subh + spaceh*max(heights.length() - 1, 0);
+            w = subw + spacew*std::max(widths.length() - 1, 0);
+            h = subh + spaceh*std::max(heights.length() - 1, 0);
         }
 
         void adjustchildren()
@@ -1380,9 +1380,9 @@ namespace UI
 
             int row = 0, column = 0;
             float offsety = 0, sy = 0, offsetx = 0, sx = 0,
-                  cspace = (w - subw) / max(widths.length() - 1, 1),
+                  cspace = (w - subw) / std::max(widths.length() - 1, 1),
                   cstep = (w - subw) / widths.length(),
-                  rspace = (h - subh) / max(heights.length() - 1, 1),
+                  rspace = (h - subh) / std::max(heights.length() - 1, 1),
                   rstep = (h - subh) / heights.length();
             loopchildren(o,
             {
@@ -1516,14 +1516,14 @@ namespace UI
                     Object *c = o->children[j];
                     if(c->w > widths[j]) widths[j] = c->w;
                 }
-                w = max(w, o->w);
+                w = std::max(w, o->w);
                 subh += o->h;
             });
 
             subw = 0;
             loopv(widths) subw += widths[i];
-            w = max(w, subw + spacew*max(widths.length() - 1, 0));
-            h = subh + spaceh*max(children.length() - 1, 0);
+            w = std::max(w, subw + spacew*std::max(widths.length() - 1, 0));
+            h = subh + spaceh*std::max(children.length() - 1, 0);
         }
 
         void adjustchildren()
@@ -1531,9 +1531,9 @@ namespace UI
             if(children.empty()) return;
 
             float offsety = 0, sy = 0,
-                  cspace = (w - subw) / max(widths.length() - 1, 1),
+                  cspace = (w - subw) / std::max(widths.length() - 1, 1),
                   cstep = (w - subw) / widths.length(),
-                  rspace = (h - subh) / max(children.length() - 1, 1),
+                  rspace = (h - subh) / std::max(children.length() - 1, 1),
                   rstep = (h - subh) / children.length();
             loopchildren(o,
             {
@@ -1592,8 +1592,8 @@ namespace UI
                 o->x = left;
                 o->y = top;
                 o->layout();
-                w = max(w, o->x + o->w);
-                h = max(h, o->y + o->h);
+                w = std::max(w, o->x + o->w);
+                h = std::max(h, o->y + o->h);
             });
             w += right;
             h += bottom;
@@ -1718,7 +1718,7 @@ namespace UI
         void rotatecolors(float amt, int colstart = 0, int colcount = 0)
         {
             if(amt == 0) return;
-            int cols = clamp(colcount ? colcount : colors.length()-colstart, min(colstart, colors.length()-1), colors.length());
+            int cols = clamp(colcount ? colcount : colors.length()-colstart, std::min(colstart, colors.length()-1), colors.length());
             if(cols <= 1) return;
             int pieces = 0;
             float progress = clamp(fabs(amt), 0.f, 1.f), part = 1.f/cols;
@@ -1800,8 +1800,8 @@ namespace UI
         {
             Object::layout();
 
-            w = max(w, minw);
-            h = max(h, minh);
+            w = std::max(w, minw);
+            h = std::max(h, minh);
         }
 
         float getcoord(int num, int axis)
@@ -1827,8 +1827,8 @@ namespace UI
     UICMDT(Filler, fill, coord, "iff", (int *pos, float *x, float *y),
     {
         if(*pos < 0 || *pos >= Filler::FC_MAX) return;
-        o->coords[*pos][0] = min(*x, 1.f);
-        o->coords[*pos][1] = min(*y, 1.f);
+        o->coords[*pos][0] = std::min(*x, 1.f);
+        o->coords[*pos][1] = std::min(*y, 1.f);
     });
 
     struct Target : Filler
@@ -2128,7 +2128,7 @@ namespace UI
 
         bool drawmapped(float sx, float sy, vec2 coordmap[FC_MAX], vec2 tcoordmap[FC_MAX], int colstart = 0, int colcount = 0, bool forced = false, bool shading = false)
         {
-            int cols = clamp(colcount ? colcount : colors.length()-colstart, min(colstart, colors.length()-1), colors.length());
+            int cols = clamp(colcount ? colcount : colors.length()-colstart, std::min(colstart, colors.length()-1), colors.length());
             if(!shading && outline)
             {
                 changedraw(CHANGE_SHADER);
@@ -2211,7 +2211,7 @@ namespace UI
         {
             if(tex == notexture) { Object::draw(sx, sy); return; }
 
-            float gs = fabs(shadowsize), gw = max(w-(shadowsize != 0 ? float(gs) : 0.f), 0.f), gh = max(h-(shadowsize != 0 ? float(gs) : 0.f), 0.f);
+            float gs = fabs(shadowsize), gw = std::max(w-(shadowsize != 0 ? float(gs) : 0.f), 0.f), gh = std::max(h-(shadowsize != 0 ? float(gs) : 0.f), 0.f);
             loopk(shadowsize != 0 ? 2 : 1)
             {
                 bool shading = shadowsize != 0 && !k;
@@ -2285,7 +2285,7 @@ namespace UI
         {
             if(tex == notexture) { Object::draw(sx, sy); return; }
 
-            float gs = fabs(shadowsize), gw = max(w-(shadowsize != 0 ? float(gs) : 0.f), 0.f), gh = max(h-(shadowsize != 0 ? float(gs) : 0.f), 0.f);
+            float gs = fabs(shadowsize), gw = std::max(w-(shadowsize != 0 ? float(gs) : 0.f), 0.f), gh = std::max(h-(shadowsize != 0 ? float(gs) : 0.f), 0.f);
             loopk(shadowsize != 0 ? 2 : 1)
             {
                 bool shading = shadowsize != 0 && !k;
@@ -2368,7 +2368,7 @@ namespace UI
         {
             if(tex == notexture) { Object::draw(sx, sy); return; }
 
-            float gs = fabs(shadowsize), gw = max(w-(shadowsize != 0 ? float(gs) : 0.f), 0.f), gh = max(h-(shadowsize != 0 ? float(gs) : 0.f), 0.f);
+            float gs = fabs(shadowsize), gw = std::max(w-(shadowsize != 0 ? float(gs) : 0.f), 0.f), gh = std::max(h-(shadowsize != 0 ? float(gs) : 0.f), 0.f);
             loopk(shadowsize != 0 ? 2 : 1)
             {
                 bool shading = shadowsize != 0 && !k;
@@ -2386,8 +2386,8 @@ namespace UI
                 }
                 bindtex(GL_QUADS, shading ? -1 : 0);
 
-                float splitw = (minw ? min(minw, gw) : gw) / 2,
-                    splith = (minh ? min(minh, gh) : gh) / 2,
+                float splitw = (minw ? std::min(minw, gw) : gw) / 2,
+                    splith = (minh ? std::min(minh, gh) : gh) / 2,
                     vy = gy, ty = 0;
                 loopi(3)
                 {
@@ -2463,7 +2463,7 @@ namespace UI
         {
             if(tex == notexture) { Object::draw(sx, sy); return; }
 
-            float gs = fabs(shadowsize), gw = max(w-(shadowsize != 0 ? float(gs) : 0.f), 0.f), gh = max(h-(shadowsize != 0 ? float(gs) : 0.f), 0.f);
+            float gs = fabs(shadowsize), gw = std::max(w-(shadowsize != 0 ? float(gs) : 0.f), 0.f), gh = std::max(h-(shadowsize != 0 ? float(gs) : 0.f), 0.f);
             loopk(shadowsize != 0 ? 2 : 1)
             {
                 bool shading = shadowsize != 0 && !k;
@@ -2636,7 +2636,7 @@ namespace UI
         {
             if(tex == notexture) { Object::draw(sx, sy); return; }
 
-            float gs = fabs(shadowsize), gw = max(w-(shadowsize != 0 ? float(gs) : 0.f), 0.f), gh = max(h-(shadowsize != 0 ? float(gs) : 0.f), 0.f);
+            float gs = fabs(shadowsize), gw = std::max(w-(shadowsize != 0 ? float(gs) : 0.f), 0.f), gh = std::max(h-(shadowsize != 0 ? float(gs) : 0.f), 0.f);
             loopk(shadowsize != 0 ? 2 : 1)
             {
                 bool shading = shadowsize != 0 && !k;
@@ -2657,10 +2657,10 @@ namespace UI
                 {
                     for(float dy = 0; dy < gh; dy += tileh)
                     {
-                        float dh = min(tileh, gh - dy);
+                        float dh = std::min(tileh, gh - dy);
                         for(float dx = 0; dx < gw; dx += tilew)
                         {
-                            float dw = min(tilew, gw - dx);
+                            float dw = std::min(tilew, gw - dx);
                             quads(gx + dx, gy + dy, dw, dh, 0, 0, dw / tilew, dh / tileh);
                         }
                     }
@@ -2773,7 +2773,7 @@ namespace UI
         bool target(float cx, float cy)
         {
             if(type == OUTLINED) return false;
-            float r = radius <= 0 ? min(w, h)/2 : radius;
+            float r = radius <= 0 ? std::min(w, h)/2 : radius;
             return vec2(cx, cy).sub(r).squaredlen() <= r*r;
         }
 
@@ -2784,7 +2784,7 @@ namespace UI
             changedraw(CHANGE_SHADER | CHANGE_COLOR | CHANGE_BLEND);
             if(type==MODULATE) modblend(); else resetblend();
 
-            float r = radius <= 0 ? min(w, h)/2 : radius;
+            float r = radius <= 0 ? std::min(w, h)/2 : radius;
             colors[0].init();
             vec2 center(sx + r, sy + r);
             if(type == OUTLINED)
@@ -2901,7 +2901,7 @@ namespace UI
                         continue;
                     }
                     float ww = o->w;
-                    if(o->isfill()) ww = max(ww, ((Filler *)o)->minw);
+                    if(o->isfill()) ww = std::max(ww, ((Filler *)o)->minw);
                     if(ww > 0)
                     {
                         wlen *= (ww-wp)/k;
@@ -2939,7 +2939,7 @@ namespace UI
                         continue;
                     }
                     float ls = o->w;
-                    if(o->isfill()) ls = max(ls, ((Filler *)o)->minw);
+                    if(o->isfill()) ls = std::max(ls, ((Filler *)o)->minw);
                     if(ls > 0)
                     {
                         float lo = (ls-lp)*lm;
@@ -2950,8 +2950,8 @@ namespace UI
                 }
             }
             if(growth != 1) th *= growth > 0 ? growth : 0-growth;
-            w = max(w, tw*k*min(rescale, 1.f));
-            h = max(h, th*k);
+            w = std::max(w, tw*k*std::min(rescale, 1.f));
+            h = std::max(h, th*k);
         }
     };
 
@@ -3156,10 +3156,10 @@ namespace UI
             Object::layout();
             virtw = w;
             virth = h;
-            if(sizew) w = min(w, sizew);
-            if(sizeh) h = min(h, sizeh);
-            offsetx = min(offsetx, hlimit());
-            offsety = min(offsety, vlimit());
+            if(sizew) w = std::min(w, sizew);
+            if(sizeh) h = std::min(h, sizeh);
+            offsetx = std::min(offsetx, hlimit());
+            offsety = std::min(offsety, vlimit());
         }
 
         void adjustchildren()
@@ -3190,12 +3190,12 @@ namespace UI
             else Object::draw(sx, sy);
         }
 
-        float hlimit() const { return max(virtw - w, 0.0f); }
-        float vlimit() const { return max(virth - h, 0.0f); }
-        float hoffset() const { return offsetx / max(virtw, w); }
-        float voffset() const { return offsety / max(virth, h); }
-        float hscale() const { return w / max(virtw, w); }
-        float vscale() const { return h / max(virth, h); }
+        float hlimit() const { return std::max(virtw - w, 0.0f); }
+        float vlimit() const { return std::max(virth - h, 0.0f); }
+        float hoffset() const { return offsetx / std::max(virtw, w); }
+        float voffset() const { return offsety / std::max(virth, h); }
+        float hscale() const { return w / std::max(virtw, w); }
+        float vscale() const { return h / std::max(virth, h); }
 
         void addhscroll(float hscroll) { sethscroll(offsetx + hscroll); }
         void addvscroll(float vscroll) { setvscroll(offsety + vscroll); }
@@ -3356,7 +3356,7 @@ namespace UI
             ScrollButton *button = (ScrollButton *)find(ScrollButton::typestr(), false);
             if(!button) return;
             float bw = w*scroller->hscale();
-            button->w = max(button->w, bw);
+            button->w = std::max(button->w, bw);
             float bscale = scroller->hscale() < 1 ? (w - button->w) / (1 - scroller->hscale()) : 1;
             button->x = scroller->hoffset()*bscale;
             button->adjust &= ~ALIGN_HMASK;
@@ -3401,7 +3401,7 @@ namespace UI
             ScrollButton *button = (ScrollButton *)find(ScrollButton::typestr(), false);
             if(!button) return;
             float bh = h*scroller->vscale();
-            button->h = max(button->h, bh);
+            button->h = std::max(button->h, bh);
             float bscale = scroller->vscale() < 1 ? (h - button->h) / (1 - scroller->vscale()) : 1;
             button->y = scroller->voffset()*bscale;
             button->adjust &= ~ALIGN_VMASK;
@@ -3524,7 +3524,7 @@ namespace UI
             double newval = val + dir*vstep;
             newval += vstep * (newval < 0 ? -0.5 : 0.5);
             newval -= fmod(newval, vstep);
-            newval = clamp(newval, min(vmin, vmax), max(vmin, vmax));
+            newval = clamp(newval, std::min(vmin, vmax), std::max(vmin, vmax));
             if(val != newval) changeval(newval);
         }
 
@@ -3686,7 +3686,7 @@ namespace UI
             edit->maxy = height <= 0 ? 1 : -1;
             edit->pixelwidth = abs(length)*FONTMW;
             if(edit->linewrap && edit->maxy == 1) edit->updateheight();
-            else edit->pixelheight = FONTH*max(height, 1);
+            else edit->pixelheight = FONTH*std::max(height, 1);
             scale = scale_;
             if(keyfilter_ && *keyfilter_) SETSTR(keyfilter, keyfilter_);
             else DELETEA(keyfilter);
@@ -3740,8 +3740,8 @@ namespace UI
             Object::layout();
 
             float k = drawscale();
-            w = max(w, (edit->pixelwidth + FONTW)*k);
-            h = max(h, edit->pixelheight*k);
+            w = std::max(w, (edit->pixelwidth + FONTW)*k);
+            h = std::max(h, edit->pixelheight*k);
         }
 
         virtual void resetmark(float cx, float cy)
@@ -3762,7 +3762,7 @@ namespace UI
             if(isfocus())
             {
                 float k = drawscale();
-                bool dragged = max(fabs(cx - offsetx), fabs(cy - offsety)) > (FONTH/8.0f)*k;
+                bool dragged = std::max(fabs(cx - offsetx), fabs(cy - offsety)) > (FONTH/8.0f)*k;
                 edit->hit(int(floor(cx/k - FONTW/2)), int(floor(cy/k)), dragged);
             }
         }
@@ -3817,7 +3817,7 @@ namespace UI
             if(!keyfilter) edit->input(str, len);
             else while(len > 0)
             {
-                int accept = min(len, (int)strspn(str, keyfilter));
+                int accept = std::min(len, (int)strspn(str, keyfilter));
                 if(accept > 0) edit->input(str, accept);
                 str += accept + 1;
                 len -= accept + 1;
@@ -4081,7 +4081,7 @@ namespace UI
             model *m = loadmodel(name);
             if(m)
             {
-                //loopi(min(colors.length(), int(MAXMDLMATERIALS))) mdl.material[i] = bvec(colors[i].r, colors[i].g, colors[i].b);
+                //loopi(std::min(colors.length(), int(MAXMDLMATERIALS))) mdl.material[i] = bvec(colors[i].r, colors[i].g, colors[i].b);
                 vec center, radius;
                 m->boundbox(center, radius);
                 if(yaw >= 0) mdl.yaw = yaw;
@@ -4253,11 +4253,11 @@ namespace UI
             if(vslot.rotation)
             {
                 const texrotation &r = texrotations[vslot.rotation];
-                if(r.swapxy) { swap(xoff, yoff); loopk(4) swap(tc[k].x, tc[k].y); }
+                if(r.swapxy) { std::swap(xoff, yoff); loopk(4) std::swap(tc[k].x, tc[k].y); }
                 if(r.flipx) { xoff *= -1; loopk(4) tc[k].x *= -1; }
                 if(r.flipy) { yoff *= -1; loopk(4) tc[k].y *= -1; }
             }
-            float xt = min(1.0f, t->xs/float(t->ys)), yt = min(1.0f, t->ys/float(t->xs));
+            float xt = std::min(1.0f, t->xs/float(t->ys)), yt = std::min(1.0f, t->ys/float(t->xs));
             loopk(4) { tc[k].x = tc[k].x/xt - float(xoff)/t->xs; tc[k].y = tc[k].y/yt - float(yoff)/t->ys; }
             glBindTexture(GL_TEXTURE_2D, t->id);
             vec colorscale = vslot.getcolorscale();
@@ -4361,7 +4361,7 @@ namespace UI
             {
                 vec pos = vec(camera1->o).sub(minimapcenter).mul(minimapscale).add(0.5f), dir(camera1->yaw*RAD, 0.f);
                 int limit = hud::radarlimit();
-                float scale = min(dist > 0 ? dist : float(worldsize), limit > 0 ? limit : float(worldsize)),
+                float scale = std::min(dist > 0 ? dist : float(worldsize), limit > 0 ? limit : float(worldsize)),
                       qw = w*0.5f*border, qh = h*0.5f*border, rw = w*0.5f-qw, rh = h*0.5f-qh;
                 colors[1].init();
                 gle::defvertex(2);
@@ -4491,8 +4491,8 @@ namespace UI
             if(r)
             {
                 float bw = w*0.5f, bh = h*0.5f, rw = r->w*0.5f, rh = r->h*0.5f,
-                      rx = sx+(blipx*(rw-(rw*r->border))*clamp(dist/max(r->dist, 1.f), r->offset, 1.f)),
-                      ry = sy+(blipy*(rh-(rh*r->border))*clamp(dist/max(r->dist, 1.f), r->offset, 1.f));
+                      rx = sx+(blipx*(rw-(rw*r->border))*clamp(dist/std::max(r->dist, 1.f), r->offset, 1.f)),
+                      ry = sy+(blipy*(rh-(rh*r->border))*clamp(dist/std::max(r->dist, 1.f), r->offset, 1.f));
 
                 vec2 anrm(0, 0);
                 switch(blipadjust&ALIGN_HMASK)

@@ -43,7 +43,7 @@ namespace hud
             laststats = totalmillis-(totalmillis%statrate);
         }
         int nextstats[NUMSTATS] = {
-            wtris/1024, vtris*100/max(wtris, 1), wverts/1024, vverts*100/max(wverts, 1), xtraverts/1024, xtravertsva/1024,
+            wtris/1024, vtris*100/std::max(wtris, 1), wverts/1024, vverts*100/std::max(wverts, 1), xtraverts/1024, xtravertsva/1024,
             allocnodes*8, allocva, glde, gbatches, getnumqueries(),
             curfps, bestfpsdiff, worstfpsdiff, entities::ents.length(), entgroup.length(), ai::waypoints.length(), getnumviewcells(),
             int(vec(game::focus->vel).add(game::focus->falling).magnitude()),
@@ -631,8 +631,8 @@ namespace hud
 
     void drawquad(float x, float y, float w, float h, float tx1, float ty1, float tx2, float ty2, bool flipx, bool flipy)
     {
-        if(flipx) swap(tx1, tx2);
-        if(flipy) swap(ty1, ty2);
+        if(flipx) std::swap(tx1, tx2);
+        if(flipy) std::swap(ty1, ty2);
         gle::defvertex(2);
         gle::deftexcoord0();
         gle::begin(GL_TRIANGLE_STRIP);
@@ -982,7 +982,7 @@ namespace hud
             switch(i)
             {
                 case 0:
-                    val = min(1.f, game::focus->health/float(max(game::focus->gethealth(game::gamemode, game::mutators), 1)));
+                    val = std::min(1.f, game::focus->health/float(std::max(game::focus->gethealth(game::gamemode, game::mutators), 1)));
                     if(circlebarhealthtone) skewcolour(c.r, c.g, c.b, circlebarhealthtone);
                     break;
                 case 1:
@@ -1067,10 +1067,10 @@ namespace hud
                         dhloc &l = damagelocs[i];
                         gameent *e = game::getclient(l.clientnum);
                         if(!e || l.dir.iszero()) { damagelocs.remove(i--); continue; }
-                        int millis = totalmillis-l.outtime, delay = min(20, l.damage)*50;
+                        int millis = totalmillis-l.outtime, delay = std::min(20, l.damage)*50;
                         if(millis >= delay) { if(millis >= onscreendamagetime+onscreendamagefade) damagelocs.remove(i--); continue; }
                         if(!onscreendamageself && e == game::focus) continue;
-                        float dam = l.damage/float(max(game::focus->gethealth(game::gamemode, game::mutators), 1)),
+                        float dam = l.damage/float(std::max(game::focus->gethealth(game::gamemode, game::mutators), 1)),
                               amt = millis/float(delay);
                         total += dam;
                         val += dam*(1-amt);
@@ -1279,7 +1279,7 @@ namespace hud
                 Texture *t = textureload(icontex(game::focus->icons[i].type, game::focus->icons[i].value));
                 if(t && t != notexture)
                 {
-                    int olen = min(game::focus->icons[i].length/5, 1000), ilen = olen/2, colour = colourwhite;
+                    int olen = std::min(game::focus->icons[i].length/5, 1000), ilen = olen/2, colour = colourwhite;
                     float skew = millis < ilen ? millis/float(ilen) : (millis > game::focus->icons[i].fade-olen ? (game::focus->icons[i].fade-millis)/float(olen) : 1.f),
                           fade = blend*eventblend*skew;
                     int size = int(FONTH*skew), width = int((t->w/float(t->h))*size), rsize = game::focus->icons[i].type < eventicon::SORTED ? int(size*2/3) : int(size);
@@ -1300,7 +1300,7 @@ namespace hud
         pophudmatrix();
     }
 
-    float radarlimit(float dist) { return dist >= 0 && radardistlimit > 0 ? clamp(dist, 0.f, radardistlimit) : max(dist, 0.f); }
+    float radarlimit(float dist) { return dist >= 0 && radardistlimit > 0 ? clamp(dist, 0.f, radardistlimit) : std::max(dist, 0.f); }
     ICOMMAND(0, getradarlimit, "f", (float *n), floatret(radarlimit(*n)));
 
     bool radarlimited(float dist) { return radardistlimit > 0 && dist > radardistlimit; }
@@ -1437,17 +1437,17 @@ namespace hud
         SETSHADER(huddamage);
         if(showdamage)
         {
-            int hp = max(1, game::focus->gethealth(game::gamemode, game::mutators));
-            float pc = game::focus->state == CS_DEAD ? damageblenddead : (game::focus->state == CS_ALIVE ? min(damageresidue, hp)/float(hp)*damageblend : 0.f);
+            int hp = std::max(1, game::focus->gethealth(game::gamemode, game::mutators));
+            float pc = game::focus->state == CS_DEAD ? damageblenddead : (game::focus->state == CS_ALIVE ? std::min(damageresidue, hp)/float(hp)*damageblend : 0.f);
             if(pc > 0) drawdamage(damagetex, damagecolour.tocolor(), pc*blend, damagespeed1, damagespeed2, damagedistort);
         }
         #define RESIDUAL(name, type, pulse) \
             if(showdamage##name && game::focus->name##ing(lastmillis, game::focus->name##time)) \
             { \
-                int interval = lastmillis-game::focus->lastres[W_R_##type], delay = max(game::focus->name##delay, 1); \
+                int interval = lastmillis-game::focus->lastres[W_R_##type], delay = std::max(game::focus->name##delay, 1); \
                 float pc = interval >= game::focus->name##time-500 ? 1.f+(interval-(game::focus->name##time-500))/500.f : (interval%delay)/float(delay/2); \
                 if(pc > 1.f) pc = 2.f-pc; \
-                if(interval < game::focus->name##time-(delay/2)) pc = min(pc+0.5f, 1.f); \
+                if(interval < game::focus->name##time-(delay/2)) pc = std::min(pc+0.5f, 1.f); \
                 if(pc > 0) drawdamage(damage##name##tex, game::pulsecolour(game::focus, PULSE_##pulse), pc*blend*damage##name##blend, damage##name##speed1, damage##name##speed2, 0.f, damage##name##bright); \
             }
         RESIDUALSF
@@ -1674,17 +1674,17 @@ namespace hud
             gameent *e = game::getclient(l.clientnum);
             if(!e || l.dir.iszero()) { damagelocs.remove(i--); continue; }
             int millis = totalmillis-l.outtime;
-            if(millis >= onscreendamagetime+onscreendamagefade) { if(millis >= min(20, l.damage)*50) damagelocs.remove(i--); continue; }
+            if(millis >= onscreendamagetime+onscreendamagefade) { if(millis >= std::min(20, l.damage)*50) damagelocs.remove(i--); continue; }
             if(game::focus->state == CS_SPECTATOR || game::focus->state == CS_EDITING) continue;
             if(!onscreendamageself && e == game::focus) continue;
             float amt = millis >= onscreendamagetime ? 1.f-(float(millis-onscreendamagetime)/float(onscreendamagefade)) : float(millis)/float(onscreendamagetime),
-                range = clamp(max(l.damage, onscreendamagemin)/float(max(onscreendamagemax-onscreendamagemin, 1)), onscreendamagemin/100.f, 1.f),
-                fade = clamp(onscreendamageblend*blend, min(onscreendamageblend*onscreendamagemin/100.f, 1.f), onscreendamageblend)*amt,
-                size = clamp(range*onscreendamagesize, min(onscreendamagesize*onscreendamagemin/100.f, 1.f), onscreendamagesize)*amt;
+                range = clamp(std::max(l.damage, onscreendamagemin)/float(std::max(onscreendamagemax-onscreendamagemin, 1)), onscreendamagemin/100.f, 1.f),
+                fade = clamp(onscreendamageblend*blend, std::min(onscreendamageblend*onscreendamagemin/100.f, 1.f), onscreendamageblend)*amt,
+                size = clamp(range*onscreendamagesize, std::min(onscreendamagesize*onscreendamagemin/100.f, 1.f), onscreendamagesize)*amt;
             vec dir = l.dir, colour = l.colour < 0 ? game::pulsecolour(game::focus, INVPULSE(l.colour)) : vec::fromcolor(l.colour);
             if(e == game::focus) l.dir = vec(e->yaw*RAD, 0.f).neg();
             dir.rotate_around_z(-camera1->yaw*RAD).normalize();
-            float yaw = -atan2(dir.x, dir.y)/RAD, x = sinf(RAD*yaw), y = -cosf(RAD*yaw), sz = max(w, h)/2,
+            float yaw = -atan2(dir.x, dir.y)/RAD, x = sinf(RAD*yaw), y = -cosf(RAD*yaw), sz = std::max(w, h)/2,
                   ts = sz*onscreendamagescale, tp = ts*size, tq = tp*onscreendamageblipsize, tr = ts*onscreendamageoffset, lx = (tr*x)+w/2, ly = (tr*y)+h/2;
             gle::color(colour, fade);
             Texture *t = textureload(hurttex, 3);
@@ -1725,7 +1725,7 @@ namespace hud
             vec colour = vec(1, 1, 1);
             if(compassfade && (compassmillis > 0 || totalmillis-abs(compassmillis) <= compassfade))
             {
-                float a = min(float(totalmillis-abs(compassmillis))/float(compassfade), 1.f)*compassfadeamt;
+                float a = std::min(float(totalmillis-abs(compassmillis))/float(compassfade), 1.f)*compassfadeamt;
                 if(compassmillis > 0) a = 1.f-a;
                 else a += (1.f-compassfadeamt);
                 loopi(3) if(a < colour[i]) colour[i] *= a;

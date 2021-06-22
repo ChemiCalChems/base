@@ -209,7 +209,7 @@ void setvfcP(const vec &bbmin, const vec &bbmax)
     vfcP[3] = plane(vec4(pw).mul(bbmax.y).sub(py)).normalize(); // top plane
     vfcP[4] = plane(vec4(pw).add(pz)).normalize(); // near/far planes
 
-    vfcDfog = min(calcfogcull(), float(farplane));
+    vfcDfog = std::min(calcfogcull(), float(farplane));
     calcvfcD();
 }
 
@@ -567,7 +567,7 @@ void getmapmodelstate(extentity &e, entmodelstate &mdl)
     mdl.pitch = e.attrs[2];
     mdl.roll = e.attrs[3];
     mdl.color = vec4(1, 1, 1, e.attrs[4] > 0 && e.attrs[4] < 100 ? e.attrs[4]/100.f : 1);
-    mdl.size = e.attrs[5] ? max(e.attrs[5]/100.f, 1e-3f) : 1.f;
+    mdl.size = e.attrs[5] ? std::max(e.attrs[5]/100.f, 1e-3f) : 1.f;
     if(e.attrs[8] || e.attrs[9])
     {
         vec color = game::getpalette(e.attrs[8], e.attrs[9]);
@@ -1655,7 +1655,7 @@ static void changetexgen(renderstate &cur, int orient, Slot &slot, VSlot &vslot)
             float xs = r.flipx ? -tex->xs : tex->xs,
                   ys = r.flipy ? -tex->ys : tex->ys;
             vec2 scroll(vslot.scroll);
-            if(r.swapxy) swap(scroll.x, scroll.y);
+            if(r.swapxy) std::swap(scroll.x, scroll.y);
             scroll.x *= cur.texgenmillis*tex->xs/xs;
             scroll.y *= cur.texgenmillis*tex->ys/ys;
             if(cur.texgenscroll != scroll)
@@ -1907,7 +1907,7 @@ void rendergeom()
                     va->occluded = OCCLUDE_PARENT;
                     continue;
                 }
-                va->occluded = va->query && va->query->owner == va && checkquery(va->query) ? min(va->occluded+1, int(OCCLUDE_BB)) : OCCLUDE_NOTHING;
+                va->occluded = va->query && va->query->owner == va && checkquery(va->query) ? std::min(va->occluded+1, int(OCCLUDE_BB)) : OCCLUDE_NOTHING;
                 va->query = newquery(va);
                 if(!va->query || !va->occluded)
                     va->occluded = pvsoccluded(va->geommin, va->geommax) ? OCCLUDE_GEOM : OCCLUDE_NOTHING;
@@ -2136,26 +2136,26 @@ int findalphavas()
         if(!calcbbscissor(va->alphamin, va->alphamax, sx1, sy1, sx2, sy2)) continue;
         alphavas.add(va);
         masktiles(alphatiles, sx1, sy1, sx2, sy2);
-        alphafrontsx1 = min(alphafrontsx1, sx1);
-        alphafrontsy1 = min(alphafrontsy1, sy1);
-        alphafrontsx2 = max(alphafrontsx2, sx2);
-        alphafrontsy2 = max(alphafrontsy2, sy2);
+        alphafrontsx1 = std::min(alphafrontsx1, sx1);
+        alphafrontsy1 = std::min(alphafrontsy1, sy1);
+        alphafrontsx2 = std::max(alphafrontsx2, sx2);
+        alphafrontsy2 = std::max(alphafrontsy2, sy2);
         if(va->alphabacktris)
         {
             alphabackvas++;
-            alphabacksx1 = min(alphabacksx1, sx1);
-            alphabacksy1 = min(alphabacksy1, sy1);
-            alphabacksx2 = max(alphabacksx2, sx2);
-            alphabacksy2 = max(alphabacksy2, sy2);
+            alphabacksx1 = std::min(alphabacksx1, sx1);
+            alphabacksy1 = std::min(alphabacksy1, sy1);
+            alphabacksx2 = std::max(alphabacksx2, sx2);
+            alphabacksy2 = std::max(alphabacksy2, sy2);
         }
         if(va->refracttris)
         {
             if(!calcbbscissor(va->refractmin, va->refractmax, sx1, sy1, sx2, sy2)) continue;
             alpharefractvas++;
-            alpharefractsx1 = min(alpharefractsx1, sx1);
-            alpharefractsy1 = min(alpharefractsy1, sy1);
-            alpharefractsx2 = max(alpharefractsx2, sx2);
-            alpharefractsy2 = max(alpharefractsy2, sy2);
+            alpharefractsx1 = std::min(alpharefractsx1, sx1);
+            alpharefractsy1 = std::min(alpharefractsy1, sy1);
+            alpharefractsx2 = std::max(alpharefractsx2, sx2);
+            alpharefractsy2 = std::max(alpharefractsy2, sy2);
         }
     }
     return (alpharefractvas ? 4 : 0) | (alphavas.length() ? 2 : 0) | (alphabackvas ? 1 : 0);
@@ -2796,12 +2796,12 @@ static inline void addshadowmeshtri(shadowmesh &m, int sides, shadowdrawinfo dra
     if(!sidemask) return;
     if(shadowverts.verts.length() + 3 >= USHRT_MAX) flushshadowmeshdraws(m, sides, draws);
     int i0 = shadowverts.add(v0), i1 = shadowverts.add(v1), i2 = shadowverts.add(v2);
-    ushort minvert = min(i0, min(i1, i2)), maxvert = max(i0, max(i1, i2));
+    ushort minvert = std::min(i0, std::min(i1, i2)), maxvert = std::max(i0, std::max(i1, i2));
     loopk(sides) if(sidemask&(1<<k))
     {
         shadowdrawinfo &d = draws[k];
-        d.minvert = min(d.minvert, minvert);
-        d.maxvert = max(d.maxvert, maxvert);
+        d.minvert = std::min(d.minvert, minvert);
+        d.maxvert = std::max(d.maxvert, maxvert);
         shadowtris[k].add(i0);
         shadowtris[k].add(i1);
         shadowtris[k].add(i2);

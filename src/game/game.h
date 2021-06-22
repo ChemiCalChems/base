@@ -680,7 +680,7 @@ struct clientstate
         }
         hp = hp*(m_hard(gamemode, mutators) ? G(healthscalehard) : G(healthscale));
         if(full) hp = hp*(m_vampire(gamemode, mutators) ? G(maxhealthvampire) : G(maxhealth));
-        return max(hp, 1);
+        return std::max(hp, 1);
     }
 
     bool setvanity(const char *v)
@@ -915,13 +915,13 @@ struct clientstate
     void useitem(int id, int type, int attr, int ammoamt, int sweap, int millis, int delay)
     {
         if(type != WEAPON || !isweap(attr)) return;
-        int prevclip = max(weapammo[attr][W_A_CLIP], 0), prevstore = max(weapammo[attr][W_A_STORE], 0);
+        int prevclip = std::max(weapammo[attr][W_A_CLIP], 0), prevstore = std::max(weapammo[attr][W_A_STORE], 0);
         weapswitch(attr, millis, delay, W_S_USE);
         weapammo[attr][W_A_CLIP] = W(attr, ammostore) <= 0 || !hasweap(attr, sweap) ? clamp(prevclip+ammoamt, 0, W(attr, ammoclip)) : prevclip;
-        int diffclip = max(weapammo[attr][W_A_CLIP], 0)-prevclip, store = ammoamt-diffclip;
+        int diffclip = std::max(weapammo[attr][W_A_CLIP], 0)-prevclip, store = ammoamt-diffclip;
         weapammo[attr][W_A_STORE] = W(attr, ammostore) > 0 ? clamp(weapammo[attr][W_A_STORE]+store, 0, W(attr, ammostore)) : 0;
         weapload[attr][W_A_CLIP] = diffclip;
-        weapload[attr][W_A_STORE] = max(weapammo[attr][W_A_STORE], 0)-prevstore;
+        weapload[attr][W_A_STORE] = std::max(weapammo[attr][W_A_STORE], 0)-prevstore;
         weapent[attr] = id;
     }
 
@@ -970,18 +970,18 @@ struct clientstate
     float scoretime(bool update = true)
     {
         if(update) updatetimeplayed();
-        return totalpoints/float(max(timeplayed, 1));
+        return totalpoints/float(std::max(timeplayed, 1));
     }
 
     float kdratio(bool total = true)
     {
-        if(total) return totalfrags >= totaldeaths ? (totalfrags/float(max(totaldeaths, 1))) : -(totaldeaths/float(max(totalfrags, 1)));
-        return frags >= deaths ? (frags/float(max(deaths, 1))) : -(deaths/float(max(frags, 1)));
+        if(total) return totalfrags >= totaldeaths ? (totalfrags/float(std::max(totaldeaths, 1))) : -(totaldeaths/float(std::max(totalfrags, 1)));
+        return frags >= deaths ? (frags/float(std::max(deaths, 1))) : -(deaths/float(std::max(frags, 1)));
     }
 
     float combinedkdratio()
     {
-        return ((totalfrags / float(max(totaldeaths, 1))) + (frags / float(max(deaths, 1)))) / ((frags || deaths) ? 2.0f : 1.0f);
+        return ((totalfrags / float(std::max(totaldeaths, 1))) + (frags / float(std::max(deaths, 1)))) / ((frags || deaths) ? 2.0f : 1.0f);
     }
 
     float balancescore(float none = 0.0f)
@@ -1079,7 +1079,7 @@ struct clientstate
 
     int respawnwait(int millis, int delay)
     {
-        return lastdeath ? max(0, delay-(millis-lastdeath)) : 0;
+        return lastdeath ? std::max(0, delay-(millis-lastdeath)) : 0;
     }
 
     int protect(int millis, int delay)
@@ -1301,8 +1301,8 @@ struct gameent : dynent, clientstate
         s.weap = weap;
         s.millis = s.last = millis;
         s.delay = delay;
-        float yaw1 = min(yawmin, yawmax), yaw2 = max(yawmin, yawmax), yawv = yaw1,
-              pitch1 = min(pitchmin, pitchmax), pitch2 = max(pitchmin, pitchmax), pitchv = pitch1;
+        float yaw1 = std::min(yawmin, yawmax), yaw2 = std::max(yawmin, yawmax), yawv = yaw1,
+              pitch1 = std::min(pitchmin, pitchmax), pitch2 = std::max(pitchmin, pitchmax), pitchv = pitch1;
         if(yaw2 > yaw1) yawv += (yaw2-yaw1)*(rnd(10000)+1)/10000.f;
         if(pitch2 > pitch1) pitchv += (pitch2-pitch1)*(rnd(10000)+1)/10000.f;
         if(dir)
@@ -1358,7 +1358,7 @@ struct gameent : dynent, clientstate
 
         if(m_resize(gamemode, mutators))
         {
-            float minscale = 1, amtscale = m_insta(gamemode, mutators) ? 1+(spree*G(instaresizeamt)) : max(health, 1)/float(max(gethealth(gamemode, mutators), 1));
+            float minscale = 1, amtscale = m_insta(gamemode, mutators) ? 1+(spree*G(instaresizeamt)) : std::max(health, 1)/float(std::max(gethealth(gamemode, mutators), 1));
             if(m_resize(gamemode, mutators))
             {
                 minscale = G(minresizescale);
@@ -1370,7 +1370,7 @@ struct gameent : dynent, clientstate
         if(scale != curscale)
         {
             if(cur && state == CS_ALIVE)
-                curscale = scale > curscale ? min(curscale+cur/2000.f, scale) : max(curscale-cur/2000.f, scale);
+                curscale = scale > curscale ? std::min(curscale+cur/2000.f, scale) : std::max(curscale-cur/2000.f, scale);
             else curscale = scale;
         }
 
@@ -1464,11 +1464,11 @@ struct gameent : dynent, clientstate
             }
         }
 
-        #define MODPHYS(a,b,c) a = max(a, b(0));
+        #define MODPHYS(a,b,c) a = std::max(a, b(0));
         MODPHYSL;
         #undef MODPHYS
 
-        radius = max(xradius, yradius);
+        radius = std::max(xradius, yradius);
         aboveeye = curscale;
 
         #undef MODPHYSL
@@ -1581,7 +1581,7 @@ struct gameent : dynent, clientstate
 
     float headsize()
     {
-        return max(xradius*0.45f, yradius*0.45f);
+        return std::max(xradius*0.45f, yradius*0.45f);
     }
 
     vec &headtag()
@@ -1876,7 +1876,7 @@ struct gameent : dynent, clientstate
                     }
                     default: break;
                 }
-                icons[i].length = max(icons[i].fade, fade);
+                icons[i].length = std::max(icons[i].fade, fade);
                 icons[i].fade = millis-icons[i].millis+fade;
                 icons[i].value = value;
                 return;

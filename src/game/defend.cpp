@@ -6,7 +6,7 @@ namespace defend
     bool insideaffinity(defendstate::flag &b, gameent *d, bool lasthad = false)
     {
         bool hasflag = st.insideaffinity(b, d->feetpos());
-        if(lasthad && b.hasflag != hasflag) { b.hasflag = hasflag; b.lasthad = lastmillis-max(1000-(lastmillis-b.lasthad), 0); }
+        if(lasthad && b.hasflag != hasflag) { b.hasflag = hasflag; b.lasthad = lastmillis-std::max(1000-(lastmillis-b.lasthad), 0); }
         return hasflag;
     }
 
