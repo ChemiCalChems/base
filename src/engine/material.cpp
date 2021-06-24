@@ -288,7 +288,7 @@ static int mergemat(materialsurface *m, int sz, materialsurface &n)
 
 static int mergemats(materialsurface *m, int sz)
 {
-    quicksort(m, sz, mergematcmp);
+    std::sort(m, m + sz, mergematcmp);
 
     int nsz = 0;
     loopi(sz) nsz = mergemat(m, nsz, m[i]);
@@ -309,7 +309,7 @@ VARF(0, optmats, 0, 1, 1, allchanged());
 
 int optimizematsurfs(materialsurface *matbuf, int matsurfs)
 {
-    quicksort(matbuf, matsurfs, optmatcmp);
+    std::sort(matbuf, matbuf + matsurfs, optmatcmp);
     if(!optmats) return matsurfs;
     materialsurface *cur = matbuf, *end = matbuf+matsurfs;
     while(cur < end)

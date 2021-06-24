@@ -225,7 +225,7 @@ namespace client
         demoheader hdr;
         string file;
 
-        static int compare(demoinfo &a, demoinfo &b)
+        static int compare(const demoinfo &a, const demoinfo &b)
         {
             return strcmp(a.file, b.file);
         }

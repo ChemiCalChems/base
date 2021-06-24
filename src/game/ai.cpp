@@ -471,7 +471,7 @@ namespace ai
         targcache() : d(NULL), dominated(false), visible(false), dist(0) {}
         ~targcache() {}
 
-        static bool tcsort(targcache &a,  targcache &b)
+        static bool tcsort(const targcache &a, const targcache &b)
         {
             if(a.dominated && !b.dominated) return true;
             if(!a.dominated && b.dominated) return false;

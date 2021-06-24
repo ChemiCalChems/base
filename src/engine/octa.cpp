@@ -1307,7 +1307,7 @@ static int mergeface(int orient, facebounds *m, int sz, facebounds &n)
 
 int mergefaces(int orient, facebounds *m, int sz)
 {
-    quicksort(m, sz, mergefacecmp);
+    std::sort(m, m + sz, mergefacecmp);
 
     int nsz = 0;
     loopi(sz) nsz = mergeface(orient, m, nsz, m[i]);

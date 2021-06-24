@@ -1612,9 +1612,9 @@ struct mapcinfo
         samegame = false;
     }
 
-    static int compare(mapcinfo &a, mapcinfo &b)
+    static int compare(const mapcinfo &a, const mapcinfo &b)
     {
-        return strcmp(a.title, b.title);
+        return strcmp(a.title, b.title) < 0;
     }
 };
 vector<mapcinfo> mapcinfos;
@@ -1907,7 +1907,7 @@ struct sortmapc
     sortmapc() { name[0] = title[0] = 0; }
     sortmapc(const char *_name) { copystring(name, _name); title[0] = 0; }
 
-    static bool compare(sortmapc &a, sortmapc &b)
+    static bool compare(const sortmapc &a, const sortmapc &b)
     {
         loopi(strlen(a.title))
         {

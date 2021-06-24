@@ -431,7 +431,7 @@ namespace fogdome
             int capverts = 0;
             loopi(numverts) if(!verts[i].pos.z) cap[capverts++] = i;
             verts[numverts++] = vert(vec(0.0f, 0.0f, -capsize), color, maxalpha);
-            quicksort(cap, capverts, sortcap);
+            std::sort(cap, cap + capverts, sortcap);
             loopi(capverts)
             {
                 int n = capverts-1-i;
