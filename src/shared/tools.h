@@ -3,6 +3,8 @@
 #ifndef _TOOLS_H
 #define _TOOLS_H
 
+#include <vector>
+
 #ifdef NULL
 #undef NULL
 #endif
@@ -660,105 +662,104 @@ static inline bool htcmp(GLuint x, GLuint y)
 
 template <class T> struct vector
 {
+    /* 
     static const int MINSIZE = 8;
 
     T *buf;
     int alen, ulen;
+    */
 
-    vector() : buf(NULL), alen(0), ulen(0)
+    std::vector<T> _v;
+
+    vector() : _v{} {}
+
+    vector(const vector &v)
     {
+        this->_v = v._v;
     }
-
-    vector(const vector &v) : buf(NULL), alen(0), ulen(0)
-    {
-        *this = v;
-    }
-
-    ~vector() { shrink(0); if(buf) delete[] (uchar *)buf; }
 
     vector<T> &operator=(const vector<T> &v)
     {
-        shrink(0);
-        if(v.length() > alen) growbuf(v.length());
-        loopv(v) add(v[i]);
+        this->_v = v._v;
         return *this;
     }
 
     T &add(const T &x)
     {
-        if(ulen==alen) growbuf(ulen+1);
-        new (&buf[ulen]) T(x);
-        return buf[ulen++];
+        _v.push_back(x);
+        return _v.back();
     }
 
     T &add()
     {
-        if(ulen==alen) growbuf(ulen+1);
-        new (&buf[ulen]) T;
-        return buf[ulen++];
+        _v.push_back(T{});
+        return _v.back();
     }
 
-    void add(const T &x, int n)
+    void add(const T &x, size_t n)
     {
-        if(n <= 0) return;
-        growbuf(ulen+n);
-        loopi(n) new (&buf[ulen++]) T(x);
+        for (size_t i=0; i<n; i++) _v.push_back(x);
     }
 
     T &dup()
     {
-        if(ulen==alen) growbuf(ulen+1);
-        new (&buf[ulen]) T(buf[ulen-1]);
-        return buf[ulen++];
+        _v.push_back(_v.back()); 
+        return _v.back();
     }
 
+    
     void move(vector<T> &v)
     {
-        if(!ulen)
-        {
-            std::swap(buf, v.buf);
-            std::swap(ulen, v.ulen);
-            std::swap(alen, v.alen);
-        }
-        else
-        {
-            growbuf(ulen+v.ulen);
-            if(v.ulen) memcpy(&buf[ulen], (void  *)v.buf, v.ulen*sizeof(T));
-            ulen += v.ulen;
-            v.ulen = 0;
-        }
+        _v = std::move(v._v);
+    }
+    
+    bool inrange(size_t i) const { return i<_v.size(); }
+
+    T &pop() { _v.pop_back(); return _v.back();}
+    T &last() { return _v.back(); }
+//    T &first() { return _v.front(); }
+    void drop() { _v.erase(_v.end() - 1); }
+    bool empty() const { return _v.empty(); }
+
+    int capacity() const { return _v.capacity(); }
+    int length() const { return _v.size(); }
+    T &operator[](int i) { return _v.at(i); }
+    const T &operator[](int i) const { return _v.at(i); }
+
+    T *disown() { 
+        auto buffer = new T[_v.size()];
+        std::copy(_v.begin(), _v.end(), buffer);
+        this->_v = std::vector<T>{};
+        return buffer;
     }
 
-    bool inrange(size_t i) const { return i<size_t(ulen); }
-    bool inrange(int i) const { return i>=0 && i<ulen; }
+    void shrink(const int i) { setsize(i); }
+    void setsize(const int i) { 
+        _v.clear();
+    }
 
-    T &pop() { return buf[--ulen]; }
-    T &last() { return buf[ulen-1]; }
-    T &first() { return buf[0]; }
-    void drop() { ulen--; buf[ulen].~T(); }
-    bool empty() const { return ulen==0; }
+    void deletecontents(int n = 0) { 
+        for (auto it = _v.begin() + n; it != _v.end(); it++) {
+            delete *it;
+        }
+        _v.erase(_v.begin() + n, _v.end());
+    }
+    
+    void deletearrays(int n = 0) { 
+        for (auto it = _v.begin() + n; it != _v.end(); it++) {
+            delete *it;
+        }
+        _v.erase(_v.begin() + n, _v.end());
+    }
 
-    int capacity() const { return alen; }
-    int length() const { return ulen; }
-    T &operator[](int i) { ASSERT(i>=0 && i<ulen); return buf[i]; }
-    const T &operator[](int i) const { ASSERT(i >= 0 && i<ulen); return buf[i]; }
-
-    T *disown() { T *r = buf; buf = NULL; alen = ulen = 0; return r; }
-
-    void shrink(int i) { ASSERT(i<=ulen); if(isclass<T>::no) ulen = i; else while(ulen>i) drop(); }
-    void setsize(int i) { ASSERT(i<=ulen); ulen = i; }
-
-    void deletecontents(int n = 0) { while(ulen > n) delete pop(); }
-    void deletearrays(int n = 0) { while(ulen > n) delete[] pop(); }
-
-    T *getbuf() { return buf; }
-    const T *getbuf() const { return buf; }
-    bool inbuf(const T *e) const { return e >= buf && e < &buf[ulen]; }
+    T *getbuf() { return _v.data(); }
+    const T *getbuf() const { return _v.data(); }
+    bool inbuf(const T *e) const { return e >= _v.begin() && e < _v.end(); }
 
     template<class F>
     void sort(F fun, int i = 0, int n = -1)
     {
-        std::sort(&buf[i], buf + (n < 0 ? ulen-i : n), fun);
+        std::sort(_v.begin() + i, n < 0 ? _v.end() : _v.begin() + n + i, fun);
     }
 
     void sort() { sort(sortless()); }
@@ -766,28 +767,18 @@ template <class T> struct vector
 
     void growbuf(int sz)
     {
-        int olen = alen;
-        if(alen <= 0) alen = std::max(MINSIZE, sz);
-        else while(alen < sz) alen += alen/2;
-        if(alen <= olen) return;
-        uchar *newbuf = new uchar[alen*sizeof(T)];
-        if(olen > 0)
-        {
-            if(ulen > 0) memcpy(newbuf, (void *)buf, ulen*sizeof(T));
-            delete[] (uchar *)buf;
-        }
-        buf = (T *)newbuf;
+        _v.reserve(sz);
     }
 
     databuf<T> reserve(int sz)
     {
-        if(alen-ulen < sz) growbuf(ulen+sz);
-        return databuf<T>(&buf[ulen], sz);
+        _v.reserve(_v.size() + sz);
+        return databuf<T>(&_v[_v.size()], sz);
     }
 
     void advance(int sz)
     {
-        ulen += sz;
+        _v.insert(_v.end(), &_v[_v.size()], &_v[_v.size()+sz]);
     }
 
     void addbuf(const databuf<T> &p)
@@ -802,134 +793,114 @@ template <class T> struct vector
         return buf;
     }
 
-    void put(const T &v) { add(v); }
+    void put(const T &v) { _v.push_back(v); }
 
     void put(const T *v, int n)
     {
-        databuf<T> buf = reserve(n);
-        buf.put(v, n);
-        addbuf(buf);
+        _v.insert(_v.end(), v, v + n);
     }
 
     void remove(int i, int n)
     {
-        for(int p = i+n; p<ulen; p++) buf[p-n] = buf[p];
-        ulen -= n;
+        _v.erase(_v.begin() + i, _v.begin() + i + n);
     }
 
     T remove(int i)
     {
-        T e = buf[i];
-        for(int p = i+1; p<ulen; p++) buf[p-1] = buf[p];
-        ulen--;
-        return e;
+        T result = _v.at(i);
+        _v.erase(_v.begin() + i);
+        return result;
     }
 
     T removeunordered(int i)
     {
-        T e = buf[i];
-        ulen--;
-        if(ulen>0) buf[i] = buf[ulen];
-        return e;
+        return remove(i);
     }
 
     template<class U>
     int find(const U &o)
     {
-        loopi(ulen) if(buf[i]==o) return i;
-        return -1;
+        auto it = std::find(_v.begin(), _v.end(), o);
+        return it != _v.end() ? std::distance(_v.begin(), it) : -1;
     }
 
     void addunique(const T &o)
     {
-        if(find(o) < 0) add(o);
+        if(std::find(_v.begin(), _v.end(), o) == _v.end()) _v.push_back(o);
     }
-
+    
     void removeobj(const T &o)
     {
-        loopi(ulen) if(buf[i] == o)
-        {
-            int dst = i;
-            for(int j = i+1; j < ulen; j++) if(!(buf[j] == o)) buf[dst++] = buf[j];
-            setsize(dst);
-            break;
-        }
+        _v.erase(std::remove(_v.begin(), _v.end(), o));
     }
 
-    void replacewithlast(const T &o)
-    {
-        if(!ulen) return;
-        loopi(ulen-1) if(buf[i]==o)
-        {
-            buf[i] = buf[ulen-1];
-            break;
-        }
-        ulen--;
-    }
+    //void replacewithlast(const T &o)
+    //{
+    //    if(!ulen) return;
+    //    loopi(ulen-1) if(buf[i]==o)
+    //    {
+    //        buf[i] = buf[ulen-1];
+    //        break;
+    //    }
+    //    ulen--;
+    //}
 
     T &insert(int i, const T &e)
     {
-        add(T());
-        for(int p = ulen-1; p>i; p--) buf[p] = buf[p-1];
-        buf[i] = e;
-        return buf[i];
+        return std::ref(*_v.insert(_v.begin() + i, e));
     }
 
     T *insert(int i, const T *e, int n)
     {
-        if(alen-ulen < n) growbuf(ulen+n);
-        loopj(n) add(T());
-        for(int p = ulen-1; p>=i+n; p--) buf[p] = buf[p-n];
-        loopj(n) buf[i+j] = e[j];
-        return &buf[i];
+        return &*_v.insert(_v.begin() + i, e, e + n);
     }
 
     void reverse()
     {
-        loopi(ulen/2) std::swap(buf[i], buf[ulen-1-i]);
+        std::reverse(_v.begin(), _v.end());
     }
-
+    
     static int heapparent(int i) { return (i - 1) >> 1; }
     static int heapchild(int i) { return (i << 1) + 1; }
 
     void buildheap()
     {
-        for(int i = ulen/2; i >= 0; i--) downheap(i);
+        std::make_heap(_v.begin(), _v.end()); 
     }
 
     int upheap(int i)
     {
-        float score = heapscore(buf[i]);
+        float score = heapscore(_v[i]);
         while(i > 0)
         {
             int pi = heapparent(i);
-            if(score >= heapscore(buf[pi])) break;
-            std::swap(buf[i], buf[pi]);
+            if(score >= heapscore(_v[pi])) break;
+            std::swap(_v.at(i), _v.at(pi));
             i = pi;
         }
         return i;
     }
 
-    T &addheap(const T &x)
+    void addheap(const T &x)
     {
-        add(x);
-        return buf[upheap(ulen-1)];
+        _v.push_back(x);
+        std::push_heap(_v.begin(), _v.end());
     }
 
     int downheap(int i)
     {
-        float score = heapscore(buf[i]);
+        float score = heapscore(_v[i]);
         for(;;)
         {
             int ci = heapchild(i);
-            if(ci >= ulen) break;
-            float cscore = heapscore(buf[ci]);
+            if(ci >= length()) break;
+            float cscore = heapscore(_v.at(ci));
             if(score > cscore)
             {
-               if(ci+1 < ulen && heapscore(buf[ci+1]) < cscore) { std::swap(buf[ci+1], buf[i]); i = ci+1; }
-               else { std::swap(buf[ci], buf[i]); i = ci; }
+               if(ci+1 < length() && heapscore(_v[ci+1]) < cscore) { std::swap(_v[ci+1], _v[i]); i = ci+1; }
+               else { std::swap(_v[ci], _v[i]); i = ci; }
             }
-            else if(ci+1 < ulen && heapscore(buf[ci+1]) < score) { std::swap(buf[ci+1], buf[i]); i = ci+1; }
+            else if(ci+1 < _v.size() && heapscore(_v[ci+1]) < score) { std::swap(_v[ci+1], _v[i]); i = ci+1; }
             else break;
         }
         return i;
@@ -937,39 +908,35 @@ template <class T> struct vector
 
     T removeheap()
     {
-        T e = removeunordered(0);
-        if(ulen) downheap(0);
-        return e;
+        std::pop_heap(_v.begin(), _v.end());
+        return _v.back();
     }
 
     template<class K>
     int htfind(const K &key)
     {
-        loopi(ulen) if(htcmp(key, buf[i])) return i;
+        for (size_t i = 0; i < _v.size(); i++) if(htcmp(key, _v.at(i))) return i;
         return -1;
     }
 
-    #define UNIQUE(overwrite, cleanup) \
-        for(int i = 1; i < ulen; i++) if(htcmp(buf[i-1], buf[i])) \
-        { \
-            int n = i; \
-            while(++i < ulen) if(!htcmp(buf[n-1], buf[i])) { overwrite; n++; } \
-            cleanup; \
-            break; \
-        }
     void unique() // contents must be initially sorted
     {
-        UNIQUE(buf[n] = buf[i], setsize(n));
+        _v.erase(std::unique(_v.begin(), _v.end()), _v.end()); 
     }
     void uniquedeletecontents()
     {
-        UNIQUE(std::swap(buf[n], buf[i]), deletecontents(n));
+        for (auto it = std::unique(_v.begin(), _v.end()); it != _v.end(); it++) {
+            delete *it;
+        }
+        unique();
     }
     void uniquedeletearrays()
     {
-        UNIQUE(std::swap(buf[n], buf[i]), deletearrays(n));
+        for (auto it = std::unique(_v.begin(), _v.end()); it != _v.end(); it++) {
+            delete [] *it;
+        }
+        unique();
     }
-    #undef UNIQUE
 };
 
 template <class T> struct smallvector

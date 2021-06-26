@@ -62,7 +62,7 @@ endif()
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 # set compile options
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -fsigned-char -ffast-math -Wno-invalid-offsetof -std=c++20")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -fsigned-char -ffast-math -std=c++20")
 
 # Use pkg-config to configure dependencies later
 find_package(PkgConfig REQUIRED)
