@@ -177,6 +177,8 @@ namespace fx
         void (*calcmodifiers)(instance &inst, fxproperty &prop, void *value);
 
         fxproperty() : rand(NULL), lerp(NULL), calcmodifiers(NULL) {}
+        fxproperty(const fxproperty&); 
+        fxproperty& operator=(const fxproperty&);
         virtual ~fxproperty();
 
         const fxpropertydef *getdef() const { return (fxpropertydef *)def; }
@@ -190,13 +192,43 @@ namespace fx
 
     struct fxdef
     {
-        const char *name;
+        std::string name;
         int type;
         fxproperty props[FX_TOTAL_PROPS];
         vector<int> children;
         slot *endfx, *sound;
 
-        const char *getname() const { return name ? name : ""; }
+        fxdef() : endfx(NULL), sound(NULL) {}
+        
+        fxdef(const fxdef& o) {
+            name = o.name;
+            type = o.type;
+        
+            for (size_t i = 0; i < FX_TOTAL_PROPS; i++) {
+                props[i] = o.props[i];
+            }
+
+            children = o.children;
+            endfx = o.endfx;
+            sound = o.sound;
+        }
+
+        fxdef& operator=(const fxdef& o) {
+            name = o.name;
+            type = o.type;
+        
+            for (size_t i = 0; i < FX_TOTAL_PROPS; i++) {
+                props[i] = o.props[i];
+            }
+
+            children = o.children;
+            endfx = o.endfx;
+            sound = o.sound;
+            
+            return *this;
+        }
+
+        const std::string& getname() const { return name; }
         fxproperty *getextprops() { return &props[FX_STD_PROPS]; }
     };
 

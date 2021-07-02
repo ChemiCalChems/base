@@ -46,7 +46,9 @@ struct property
     void reset();
     size_t size();
 
-    void operator=(int value) { ival = value; }
+    void operator=(int value) { 
+        ival = value; 
+    }
     void operator=(float value) { fval = value; }
     void operator=(const bvec &value) { ival = value.tohexcolor(); }
     void operator=(const ivec &value)
@@ -68,7 +70,10 @@ struct property
         else data = NULL;
     }
 
-    void operator=(const property &prop) { set(prop); }
+    property& operator=(const property &prop) { 
+        set(prop); 
+        return *this;
+    }
 
     property() : data(NULL), type(PROP_NOTYPE), def(NULL) {}
     property(int value)         : data(NULL), type(PROP_INT),    def(NULL) { *this = value; }
@@ -77,6 +82,11 @@ struct property
     property(const ivec &value) : data(NULL), type(PROP_IVEC),   def(NULL) { *this = value; }
     property(const vec &value)  : data(NULL), type(PROP_FVEC),   def(NULL) { *this = value; }
     property(const char *value) : data(NULL), type(PROP_STRING), def(NULL) { *this = value; }
+
+    property(const property& o) { 
+        *this = o;
+    }
+    
     virtual ~property() { clear(); }
 };
 

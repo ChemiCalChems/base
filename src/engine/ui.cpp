@@ -321,6 +321,44 @@ namespace UI
         vector<Object *> children;
 
         Object() : ox(0), oy(0), overridepos(false), adjust(0), state(0), childstate(0) {}
+        Object(const Object& o) {
+            parent = o.parent;
+            x = o.x;
+            y = o.y;
+            w = o.w;
+            h = o.h;
+            ox = o.ox;
+            oy = o.oy;
+            adjust = o.adjust;
+            state = o.state;
+            childstate = o.childstate;
+            for (auto ochild : o.children._v) {
+                auto child = new Object;
+                *child = *ochild;
+                children._v.push_back(child);
+            }
+        }
+
+        Object operator=(const Object& o) {
+            parent = o.parent;
+            x = o.x;
+            y = o.y;
+            w = o.w;
+            h = o.h;
+            ox = o.ox;
+            oy = o.oy;
+            adjust = o.adjust;
+            state = o.state;
+            childstate = o.childstate;
+            children._v.clear();
+            for (auto ochild : o.children._v) {
+                auto child = new Object;
+                *child = *ochild;
+                children._v.push_back(child);
+            }
+            return *this;
+        }
+        
         virtual ~Object()
         {
             clearchildren();
@@ -729,8 +767,10 @@ namespace UI
                 buildparent = this;
                 buildchild = 0;
                 executeret(contents);
-                while(children.length() > buildchild)
-                    delete children.pop();
+                while(children.length() > buildchild) {
+                    auto c = children.pop();
+                    /*if(c)*/ delete c;
+                }
                 buildparent = oldparent;
                 buildchild = oldchild;
             }
@@ -765,7 +805,7 @@ namespace UI
 
     struct Window : Object
     {
-        char *name;
+        std::string name;
         uint *contents, *onshow, *onhide;
         bool exclusive, closing;
         int allowinput, windowflags;
@@ -773,7 +813,7 @@ namespace UI
         vec2 sscale, soffset;
 
         Window(const char *name, const char *contents, const char *onshow, const char *onhide, int windowflags_) :
-            name(newstring(name)),
+            name(name),
             contents(compilecode(contents)),
             onshow(onshow && onshow[0] ? compilecode(onshow) : NULL),
             onhide(onhide && onhide[0] ? compilecode(onhide) : NULL),
@@ -783,9 +823,29 @@ namespace UI
         {
             windowflags = clamp(windowflags_, 0, int(WINDOW_ALL));
         }
+
+        Window(const Window& o) {
+            name = o.name;
+            contents = new uint;
+            onshow = new uint;
+            onhide = new uint;
+            *contents = *o.contents;
+            *onshow = *o.onshow;
+            *onhide = *o.onhide;
+            exclusive = o.exclusive;
+            closing = o.closing;
+            allowinput = o.allowinput;
+            windowflags = o.windowflags;
+            px = o.px;
+            py = o.py;
+            pw = o.pw;
+            ph = o.ph;
+            sscale = o.sscale;
+            soffset = o.soffset;
+        }
+
         ~Window()
         {
-            delete[] name;
             freecode(contents);
             freecode(onshow);
             freecode(onhide);
@@ -793,7 +853,7 @@ namespace UI
 
         static const char *typestr() { return "#Window"; }
         const char *gettype() const { return typestr(); }
-        const char *getname() const { return name; }
+        const char *getname() const { return name.c_str(); }
 
         void build();
 
@@ -919,7 +979,7 @@ namespace UI
         }
         return NULL;
     }
-    ICOMMAND(0, uirootname, "", (), { Window *o = uirootwindow(buildparent); result(o ? o->name : ""); });
+    ICOMMAND(0, uirootname, "", (), { Window *o = uirootwindow(buildparent); result(o ? o->name.c_str() : ""); });
 
     #define UIWINCMDC(func, types, argtypes, body) \
         ICOMMAND(0, ui##func##root, types, argtypes, \
@@ -1073,7 +1133,7 @@ namespace UI
         {
             loopwindowsrev(w,
             {
-                if((w->allowinput || w->windowflags&WINDOW_PASS) && !(w->state&STATE_HIDDEN)) { return w->name; }
+                if((w->allowinput || w->windowflags&WINDOW_PASS) && !(w->state&STATE_HIDDEN)) { return w->name.c_str(); }
             });
             return NULL;
         }
@@ -1213,7 +1273,7 @@ namespace UI
     ICOMMAND(0, holdui, "sD", (char *name, int *down), holdui(name, *down!=0));
     ICOMMAND(0, pressui, "sD", (char *name, int *down), pressui(name, *down!=0));
     ICOMMAND(0, uivisible, "s", (char *name), intret(uivisible(name) ? 1 : 0));
-    ICOMMAND(0, uiname, "", (), { if(window) result(window->name); });
+    ICOMMAND(0, uiname, "", (), { if(window) result(window->name.c_str()); });
     ICOMMAND(0, uiclosing, "s", (char *name), intret(uiclosing(name) ? 1 : 0));
     ICOMMAND(0, uisetclose, "si", (char *name, int *n), uisetclose(name, *n != 0));
 
@@ -1414,7 +1474,7 @@ namespace UI
     {
         int columns;
 
-        TableHeader() : columns(-1) {}
+        TableHeader() : Object(), columns(-1) {}
 
         static const char *typestr() { return "#TableHeader"; }
         const char *gettype() const { return typestr(); }
@@ -2965,62 +3025,61 @@ namespace UI
 
     struct TextString : Text
     {
-        char *str;
+        std::string str;
 
-        TextString() : str(NULL) {}
-        ~TextString() { delete[] str; }
+        TextString() : str() {}
 
         void setup(const char *str_, float scale_ = 1, const Color &color_ = Color(colourwhite), float wrap_ = 0, float limit_ = 0, int align_ = 0, int pos_ = -1, float growth_ = 1)
         {
             Text::setup(scale_, color_, wrap_, limit_, align_, pos_, growth_);
 
-            SETSTR(str, str_);
+            str = str_; 
         }
 
         static const char *typestr() { return "#TextString"; }
         const char *gettype() const { return typestr(); }
 
-        const char *getstr() const { return str; }
+        const char *getstr() const { return str.c_str(); }
     };
 
     struct TextInt : Text
     {
         int val;
-        char str[20];
+        std::string str;
 
-        TextInt() : val(0) { str[0] = '0'; str[1] = '\0'; }
+        TextInt() : val(0) { str = "0"; }
 
         void setup(int val_, float scale_ = 1, const Color &color_ = Color(colourwhite), float wrap_ = 0, float limit_ = 0, int align_ = 0, int pos_ = -1, float growth_ = 1)
         {
             Text::setup(scale_, color_, wrap_, limit_, align_, pos_, growth_);
 
-            if(val != val_) { val = val_; intformat(str, val, sizeof(str)); }
+            if(val != val_) { val = val_; str = std::to_string(val); }
         }
 
         static const char *typestr() { return "#TextInt"; }
         const char *gettype() const { return typestr(); }
 
-        const char *getstr() const { return str; }
+        const char *getstr() const { return str.c_str(); }
     };
 
     struct TextFloat : Text
     {
         float val;
-        char str[20];
+        std::string str;
 
-        TextFloat() : val(0) { memcpy(str, "0.0", 4); }
+        TextFloat() : val(0) { str = "0.0"; }
 
         void setup(float val_, float scale_ = 1, const Color &color_ = Color(colourwhite), float wrap_ = 0, float limit_ = 0, int align_ = 0, int pos_ = -1, float growth_ = 1)
         {
             Text::setup(scale_, color_, wrap_, limit_, align_, pos_, growth_);
 
-            if(val != val_) { val = val_; floatformat(str, val, sizeof(str)); }
+            if(val != val_) { val = val_; std::to_string(val); }
         }
 
         static const char *typestr() { return "#TextFloat"; }
         const char *gettype() const { return typestr(); }
 
-        const char *getstr() const { return str; }
+        const char *getstr() const { return str.c_str(); }
     };
 
     static inline void buildtext(tagval &t, float scale, float scalemod, const Color &color, uint *children)
@@ -3061,34 +3120,33 @@ namespace UI
 
     struct Font : Object
     {
-        char *str;
+        std::string str;
 
-        Font() : str(NULL) {}
-        ~Font() { delete[] str; }
+        Font() {}
 
         void setup(const char *str_)
         {
             Object::setup();
-            SETSTR(str, str_);
+            str = str_;
         }
 
         void layout()
         {
-            pushfont(str);
+            pushfont(str.c_str());
             Object::layout();
             popfont();
         }
 
         void draw(float sx, float sy)
         {
-            pushfont(str);
+            pushfont(str.c_str());
             Object::draw(sx, sy);
             popfont();
         }
 
         void buildchildren(uint *contents)
         {
-            pushfont(str);
+            pushfont(str.c_str());
             Object::buildchildren(contents);
             popfont();
         }
@@ -3096,7 +3154,7 @@ namespace UI
         #define DOSTATE(flags, func) \
             void func##children(float cx, float cy, int mask, bool inside, int setflags) \
             { \
-                pushfont(str); \
+                pushfont(str.c_str()); \
                 Object::func##children(cx, cy, mask, inside, setflags); \
                 popfont(); \
             }
@@ -3105,7 +3163,7 @@ namespace UI
 
         bool rawkey(int code, bool isdown)
         {
-            pushfont(str);
+            pushfont(str.c_str());
             bool result = Object::rawkey(code, isdown);
             popfont();
             return result;
@@ -3113,7 +3171,7 @@ namespace UI
 
         bool key(int code, bool isdown)
         {
-            pushfont(str);
+            pushfont(str.c_str());
             bool result = Object::key(code, isdown);
             popfont();
             return result;
@@ -4026,18 +4084,17 @@ namespace UI
 
     struct ModelPreview : Preview
     {
-        char *name;
+        std::string name;
         modelstate mdl;
 
-        ModelPreview() : name(NULL) { resetoffset(); }
-        ~ModelPreview() { delete[] name; }
+        ModelPreview() { resetoffset(); }
 
         void setup(const char *name_, const char *animspec, float scale_, float blend_, float minw_, float minh_, float yaw_ = -1, float pitch_ = -15, float roll_ = 0, float fov_ = 20, const vec &skycol_ = vec(0.1f, 0.1f, 0.1f), const vec &suncol_ = vec(0.6f, 0.6f, 0.6f), const vec &sundir_ = vec(0, -1, 2), const vec &excol_ = vec(0.f, 0.f, 0.f), const vec &exdir_ = vec(0, 0, 0))
         {
             mdl.reset();
 
             Preview::setup(minw_, minh_, yaw_, pitch_, roll_, fov_, skycol_, suncol_, sundir_, excol_, exdir_);
-            SETSTR(name, name_);
+            name = name_;
 
             setanim(animspec);
             mdl.size = scale_;
@@ -4078,7 +4135,7 @@ namespace UI
             int sx1, sy1, sx2, sy2;
             window->calcscissor(sx, sy, sx+w, sy+h, sx1, sy1, sx2, sy2, false);
             modelpreview::start(sx1, sy1, sx2-sx1, sy2-sy1, pitch+offsetpitch, roll, fov, false, clipstack.length() > 0);
-            model *m = loadmodel(name);
+            model *m = loadmodel(name.c_str());
             if(m)
             {
                 //loopi(std::min(colors.length(), int(MAXMDLMATERIALS))) mdl.material[i] = bvec(colors[i].r, colors[i].g, colors[i].b);
@@ -4087,7 +4144,7 @@ namespace UI
                 if(yaw >= 0) mdl.yaw = yaw;
                 mdl.o = calcmodelpreviewpos(radius, mdl.yaw).sub(center);
                 mdl.yaw += offsetyaw;
-                rendermodel(name, mdl);
+                rendermodel(name.c_str(), mdl);
             }
             if(clipstack.length()) clipstack.last().scissor();
             modelpreview::end(skycol, suncol, sundir, excol, exdir);
@@ -4099,7 +4156,7 @@ namespace UI
     ICOMMAND(0, uimodelpreview, "ssffffe", (char *model, char *animspec, float *scale, float *blend, float *minw, float *minh, uint *children),
         BUILD(ModelPreview, o, o->setup(model, animspec, *scale, *blend, *minw*uiscale, *minh*uiscale), children));
 
-    UICMDT(ModelPreview, modelpreview, file, "s", (const char *s), SETSTR(o->name, s));
+    UICMDT(ModelPreview, modelpreview, file, "s", (const char *s), o->name = s);
     UICMDT(ModelPreview, modelpreview, anim, "s", (const char *s), o->setanim(s));
     UICMDT(ModelPreview, modelpreview, scale, "f", (float *n), o->mdl.size = *n);
     UICMDT(ModelPreview, modelpreview, skycol, "i", (int *c), o->skycol = vec::fromcolor(*c));
@@ -4127,17 +4184,16 @@ namespace UI
     struct PlayerPreview : Preview
     {
         float scale, blend;
-        char *actions;
+        std::string actions;
 
-        PlayerPreview() : actions(NULL) { resetoffset(); }
-        ~PlayerPreview() { delete[] actions; }
+        PlayerPreview() { resetoffset(); }
 
         void setup(float scale_, float blend_, float minw_, float minh_, const char *actions_, float yaw_ = -1, float pitch_ = -15, float roll_ = 0, float fov_ = 20, const vec &skycol_ = vec(0.1f, 0.1f, 0.1f), const vec &suncol_ = vec(0.6f, 0.6f, 0.6f), const vec &sundir_ = vec(0, -1, 2), const vec &excol_ = vec(0.f, 0.f, 0.f), const vec &exdir_ = vec(0, 0, 0))
         {
             Preview::setup(minw_, minh_, yaw_, pitch_, roll_,fov_, skycol_, suncol_, sundir_, excol_, exdir_);
             scale = scale_;
             blend = blend_;
-            SETSTR(actions, actions_);
+            actions = actions_;
         }
 
         static const char *typestr() { return "#PlayerPreview"; }
@@ -4153,7 +4209,7 @@ namespace UI
             window->calcscissor(sx, sy, sx+w, sy+h, sx1, sy1, sx2, sy2, false);
             modelpreview::start(sx1, sy1, sx2-sx1, sy2-sy1, pitch+offsetpitch, roll, fov, false, clipstack.length() > 0);
             colors[0].a = uchar(colors[0].a*blend);
-            game::renderplayerpreview(scale, colors[0].tocolor4(), actions, yaw, offsetyaw);
+            game::renderplayerpreview(scale, colors[0].tocolor4(), actions.c_str(), yaw, offsetyaw);
             if(clipstack.length()) clipstack.last().scissor();
             modelpreview::end(skycol, suncol, sundir, excol, exdir);
 
@@ -4166,16 +4222,15 @@ namespace UI
 
     struct PrefabPreview : Preview
     {
-        char *name;
+        std::string name;
         float blend;
 
-        PrefabPreview() : name(NULL) { resetoffset(); }
-        ~PrefabPreview() { delete[] name; }
+        PrefabPreview() { resetoffset(); }
 
         void setup(const char *name_, const Color &color_, float blend, float minw_, float minh_, float yaw_ = -1, float pitch_ = -15, float roll_ = 0, float fov_ = 20, const vec &skycol_ = vec(0.1f, 0.1f, 0.1f), const vec &suncol_ = vec(0.6f, 0.6f, 0.6f), const vec &sundir_ = vec(0, -1, 2), const vec &excol_ = vec(0.f, 0.f, 0.f), const vec &exdir_ = vec(0, 0, 0))
         {
             Preview::setup(minw_, minh_, yaw_, pitch_, roll_, fov_, skycol_, suncol_, sundir_, excol_, exdir_, color_);
-            SETSTR(name, name_);
+            name = name_;
         }
 
         static const char *typestr() { return "#PrefabPreview"; }
@@ -4192,7 +4247,7 @@ namespace UI
             int sx1, sy1, sx2, sy2;
             window->calcscissor(sx, sy, sx+w, sy+h, sx1, sy1, sx2, sy2, false);
             modelpreview::start(sx1, sy1, sx2-sx1, sy2-sy1, pitch, roll, fov, false, clipstack.length() > 0);
-            previewprefab(name, colors[0].tocolor(), blend*(colors[0].a/255.f), yaw, offsetyaw);
+            previewprefab(name.c_str(), colors[0].tocolor(), blend*(colors[0].a/255.f), yaw, offsetyaw);
             if(clipstack.length()) clipstack.last().scissor();
             modelpreview::end(skycol, suncol, sundir, excol, exdir);
         }

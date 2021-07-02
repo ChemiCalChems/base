@@ -205,7 +205,8 @@ struct physent : baseent                        // can be affected by physics
     uchar type;                                 // one of ENT_* above
     uchar collidetype;                          // one of COLLIDE_* above
 
-    physent() : deltapos(0, 0, 0), newpos(0, 0, 0),
+    physent() : baseent(), 
+        deltapos(0, 0, 0), newpos(0, 0, 0),
         speed(100), jumpspeed(100), impulsespeed(100), weight(100),
         radius(3.75f), height(17.5f), aboveeye(1.25f),
         xradius(3.75f), yradius(3.75f), zradius(17.5f), zmargin(0),
@@ -340,6 +341,40 @@ struct dynent : physent                         // animated characters, or chara
     {
         reset();
     }
+    /*
+    dynent(const dynent& o) : physent(o) {
+        ragdoll = new ragdolldata;
+        query = new occlude query;
+
+        for (size_t i = 0; i<MAXANIMPARTS; i++) {
+            animinterp[i] = o.animinterp[i];
+        }
+        *ragdoll = *o.ragdoll;
+        *query = *o.query;
+        lastrendered = o.lastrendered;
+        used = o.used;
+    }
+
+    dynent& operator=(const dynent& o) {
+        physent::operator=(o);
+
+        if(ragdoll) delete ragdoll;
+        if(query) delete query;
+
+        ragdoll = new ragdolldata;
+        query = new occludequery;
+
+        for (size_t i = 0; i<MAXANIMPARTS; i++) {
+            animinterp[i] = o.animinterp[i];
+        }
+        *ragdoll = *o.ragdoll;
+        *query = *o.query;
+        lastrendered = o.lastrendered;
+        used = o.used;
+
+        return *this;
+    }
+    */
 
     ~dynent()
     {

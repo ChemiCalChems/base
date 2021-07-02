@@ -667,7 +667,6 @@ struct clientstate
         randweap.shrink(0);
         resetresidual();
     }
-    ~clientstate() {}
 
     int gethealth(int gamemode, int mutators, bool full = false)
     {
@@ -1231,7 +1230,7 @@ struct gameent : dynent, clientstate
     float deltayaw, deltapitch, newyaw, newpitch, stunscale, stungravity, turnyaw, turnroll;
     bool action[AC_MAX], conopen, k_up, k_down, k_left, k_right, obliterated, headless;
     vec tag[TAG_MAX];
-    string hostip, name, handle, steamid, info, obit;
+    std::string hostip, name, handle, steamid, info, obit;
     vector<gameent *> dominating, dominated;
     vector<eventicon> icons;
     vector<stunevent> stuns;
@@ -1245,11 +1244,174 @@ struct gameent : dynent, clientstate
     {
         state = CS_DEAD;
         type = ENT_PLAYER;
-        copystring(hostip, "0.0.0.0");
-        name[0] = handle[0] = steamid[0] = info[0] = obit[0] = '\0';
+        hostip = "0.0.0.0";
         removesounds();
         respawn(-1, 0, 0);
     }
+
+    gameent(const gameent& o) : dynent(o), clientstate(o) {
+        edit = new editinfo;
+        ai = new ai::aiinfo;
+        weaponfx = new fx::emitter;
+
+        *edit = *o.edit;
+        *ai = *o.ai;
+        *weaponfx = *o.weaponfx;
+
+        team = o.team;
+        clientnum = o.clientnum;
+        privilege = o.privilege;
+        projid = o.projid;
+        lastnode = o.lastnode;
+        checkpoint = o.checkpoint;
+        cplast = o.cplast;
+        respawned = o.respawned;
+        suicided = o.suicided;
+        lastupdate = o.lastupdate;
+        lastpredict = o.lastpredict;
+        plag = o.plag;
+        ping = o.ping;
+        lastflag = o.lastflag;
+        totaldamage = o.totaldamage;
+        smoothmillis = o.smoothmillis;
+        turnside = o.turnside;
+        turnmillis = o.turnmillis;
+        aschan = o.aschan;
+        cschan = o.cschan;
+        vschan = o.vschan;
+        pschan = o.pschan;
+        lasthit = o.lasthit;
+        lastteamhit = o.lastteamhit;
+        lastkill = o.lastkill;
+        lastattacker = o.lastattacker;
+        lastpoints = o.lastpoints;
+        quake = o.quake;
+        wasfiring = o.wasfiring;
+        lastfoot = o.lastfoot;
+        lastimpulsecollect = o.lastimpulsecollect;
+        deltayaw = o.deltayaw;
+        deltapitch = o.deltapitch;
+        newyaw = o.newyaw;
+        newpitch = o.newpitch;
+        stunscale = o.stunscale;
+        stungravity = o.stungravity;
+        turnyaw = o.turnyaw;
+        turnroll = o.turnroll;
+        conopen = o.conopen;
+        k_up = o.k_up;
+        k_down = o.k_down;
+        k_left = o.k_left;
+        k_right = o.k_right;
+        obliterated = o.obliterated;
+        headless = o.headless;
+        hostip = o.hostip;
+        name = o.name;
+        handle = o.handle;
+        steamid = o.steamid;
+        info = o.info;
+        obit = o.obit;
+
+        for (size_t i = 0; i < AC_MAX; i++) actiontime[i] = o.actiontime[i];
+        for (size_t i = 0; i < IM_MAX; i++) impulse[i] = o.impulse[i];
+        for (size_t i = 0; i < IM_T_MAX; i++) impulsetime[i] = o.impulsetime[i];
+        for (size_t i = 0; i < WS_CHANS; i++) wschan[i] = o.wschan[i];
+        for (size_t i = 0; i < 2; i++) sschan[i] = o.sschan[i];
+        for (size_t i = 0; i < AC_MAX; i++) action[i] = o.action[i];
+        for (size_t i = 0; i < TAG_MAX; i++) tag[i] = o.tag[i];
+
+        dominating._v = o.dominating._v;
+        dominated._v = o.dominated._v;
+        icons._v = o.icons._v;
+        stuns._v = o.stuns._v;
+        jitters._v = o.jitters._v;
+        vitems._v = o.vitems._v;
+    }
+    
+    gameent& operator=(const gameent& o) {
+        dynent::operator=(o);
+        clientstate::operator=(o);
+
+        if(edit) delete edit;
+        if(ai) delete ai;
+        if(weaponfx) delete weaponfx;
+        edit = new editinfo;
+        ai = new ai::aiinfo;
+        weaponfx = new fx::emitter;
+
+        *edit = *o.edit;
+        *ai = *o.ai;
+        *weaponfx = *o.weaponfx;
+
+        team = o.team;
+        clientnum = o.clientnum;
+        privilege = o.privilege;
+        projid = o.projid;
+        lastnode = o.lastnode;
+        checkpoint = o.checkpoint;
+        cplast = o.cplast;
+        respawned = o.respawned;
+        suicided = o.suicided;
+        lastupdate = o.lastupdate;
+        lastpredict = o.lastpredict;
+        plag = o.plag;
+        ping = o.ping;
+        lastflag = o.lastflag;
+        totaldamage = o.totaldamage;
+        smoothmillis = o.smoothmillis;
+        turnside = o.turnside;
+        turnmillis = o.turnmillis;
+        aschan = o.aschan;
+        cschan = o.cschan;
+        vschan = o.vschan;
+        pschan = o.pschan;
+        lasthit = o.lasthit;
+        lastteamhit = o.lastteamhit;
+        lastkill = o.lastkill;
+        lastattacker = o.lastattacker;
+        lastpoints = o.lastpoints;
+        quake = o.quake;
+        wasfiring = o.wasfiring;
+        lastfoot = o.lastfoot;
+        lastimpulsecollect = o.lastimpulsecollect;
+        deltayaw = o.deltayaw;
+        deltapitch = o.deltapitch;
+        newyaw = o.newyaw;
+        newpitch = o.newpitch;
+        stunscale = o.stunscale;
+        stungravity = o.stungravity;
+        turnyaw = o.turnyaw;
+        turnroll = o.turnroll;
+        conopen = o.conopen;
+        k_up = o.k_up;
+        k_down = o.k_down;
+        k_left = o.k_left;
+        k_right = o.k_right;
+        obliterated = o.obliterated;
+        headless = o.headless;
+        hostip = o.hostip;
+        name = o.name;
+        handle = o.handle;
+        steamid = o.steamid;
+        info = o.info;
+        obit = o.obit;
+
+        for (size_t i = 0; i < AC_MAX; i++) actiontime[i] = o.actiontime[i];
+        for (size_t i = 0; i < IM_MAX; i++) impulse[i] = o.impulse[i];
+        for (size_t i = 0; i < IM_T_MAX; i++) impulsetime[i] = o.impulsetime[i];
+        for (size_t i = 0; i < WS_CHANS; i++) wschan[i] = o.wschan[i];
+        for (size_t i = 0; i < 2; i++) sschan[i] = o.sschan[i];
+        for (size_t i = 0; i < AC_MAX; i++) action[i] = o.action[i];
+        for (size_t i = 0; i < TAG_MAX; i++) tag[i] = o.tag[i];
+
+        dominating._v = o.dominating._v;
+        dominated._v = o.dominated._v;
+        icons._v = o.icons._v;
+        stuns._v = o.stuns._v;
+        jitters._v = o.jitters._v;
+        vitems._v = o.vitems._v;
+        return *this;
+    }
+
     ~gameent()
     {
         removefx();
@@ -1525,7 +1687,7 @@ struct gameent : dynent, clientstate
         lasthit = lastkill = quake = turnside = turnmillis = lastimpulsecollect = 0;
         lastteamhit = lastflag = respawned = suicided = lastnode = lastfoot = wasfiring = -1;
         turnyaw = turnroll = 0;
-        obit[0] = '\0';
+        obit.clear();
         obliterated = headless = false;
         icons.shrink(0);
         stuns.shrink(0);
@@ -1892,10 +2054,10 @@ struct gameent : dynent, clientstate
         else icons.insert(pos, e);
     }
 
-    void setname(const char *n)
+    void setname(std::string n)
     {
-        if(n && *n) copystring(name, n, MAXNAMELEN+1);
-        else name[0] = '\0';
+        if(!n.empty()) name = n;
+        else name.clear();
     }
 
     bool setvanity(const char *v)
@@ -2296,7 +2458,7 @@ namespace game
     extern gameent *getclient(int cn);
     extern gameent *intersectclosest(vec &from, vec &to, gameent *at);
     extern void clientdisconnected(int cn, int reason = DISC_NONE);
-    extern const char *colourname(gameent *d, char *name = NULL, bool icon = true, bool dupname = true, int colour = 3);
+    extern const char *colourname(gameent *d, std::string name = {}, bool icon = true, bool dupname = true, int colour = 3);
     extern const char *colourteam(int team, const char *icon = "");
     extern int findcolour(gameent *d, bool tone = true, bool mix = false, float level = 1);
     extern int getcolour(gameent *d, int type = 0, float level = 1.f);

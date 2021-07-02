@@ -549,20 +549,20 @@ namespace game
         else if(vanities.inrange(id)) switch(value)
         {
             case 0: intret(vanities[id].type); break;
-            case 1: result(vanities[id].ref); break;
-            case 2: result(vanities[id].name); break;
-            case 3: result(vanities[id].tag); break;
+            case 1: result(vanities[id].ref.c_str()); break;
+            case 2: result(vanities[id].name.c_str()); break;
+            case 3: result(vanities[id].tag.c_str()); break;
             case 4: intret(vanities[id].cond); break;
             case 5: intret(vanities[id].style); break;
-            case 6: result(vanities[id].model); break;
+            case 6: result(vanities[id].model.c_str()); break;
             default: break;
         }
     }
     ICOMMAND(0, getvanity, "bb", (int *t, int *v), vanityinfo(*t, *v));
 
-    int vanityfind(const char *name)
+    int vanityfind(const std::string& name)
     {
-        loopv(vanities) if(!strcmp(vanities[i].ref, name)) return i;
+        loopv(vanities) if(vanities[i].ref == name) return i;
         return -1;
     }
     ICOMMAND(0, findvanity, "s", (char *s), intret(vanityfind(s)));
@@ -581,7 +581,7 @@ namespace game
                     if(!vanitylist[i] || !*vanitylist[i]) continue;
                     loopvk(vanities)
                     {
-                        if(strcmp(vanities[k].ref, vanitylist[i])) continue;
+                        if(strcmp(vanities[k].ref.c_str(), vanitylist[i])) continue;
                         d->vitems.add(k);
                         if(vanities[k].type || head >= 0) continue;
                         head = k;
@@ -621,25 +621,25 @@ namespace game
         if(vanities.inrange(n))
         {
             // No need for advanced checks if there is no style.
-            if(vanities[n].style == 0) file = proj ? vanities[n].proj : vanities[n].model;
+            if(vanities[n].style == 0) file = proj ? vanities[n].proj.c_str() : vanities[n].model.c_str();
             else
             {
                 // Unique ID for this vanity setup.
-                defformatstring(id, "%s", vanities[n].model);
+                defformatstring(id, "%s", vanities[n].model.c_str());
                 if(vanities[n].style&VANITYSTYLE_MODEL) concformatstring(id, "/%s", vanitymodel(d));
                 if(vanities[n].style&VANITYSTYLE_HEAD && vanities.inrange(head))
                 {
-                    concformatstring(id, "/%s", vanities[head].ref);
+                    concformatstring(id, "/%s", vanities[head].ref.c_str());
                     if(vanities[head].style&VANITYSTYLE_MODEL) concformatstring(id, "/%s", vanitymodel(d));
                 }
                 if(vanities[n].style&VANITYSTYLE_PRIV) concformatstring(id, "/%s", server::privnamex(d->privilege, d->actortype, true));
                 if(proj) concatstring(id, "/proj");
 
                 // Check if we've already found the file.
-                loopv(vanities[n].files) if(!strcmp(vanities[n].files[i], id)) file = vanities[n].files[i];
+                loopv(vanities[n].files) if(!strcmp(vanities[n].files[i].c_str(), id)) file = vanities[n].files[i].c_str();
 
                 // If not already found, build file name from each style.
-                if(!file) file = vanities[n].files.add(newstring(id));
+                if(!file) file = (vanities[n].files.add(id)).c_str();
             }
         }
         return file;
@@ -973,7 +973,7 @@ namespace game
 
     bool needname(gameent *d)
     {
-        if(!d || *d->name) return false; // || client::waiting()) return false;
+        if(!d || !d->name.empty()) return false; // || client::waiting()) return false;
         return true;
     }
     ICOMMAND(0, needname, "b", (int *cn), intret(needname(*cn >= 0 ? getclient(*cn) : player1) ? 1 : 0));
@@ -1738,46 +1738,47 @@ namespace game
             isme = true;
             break;
         }
-        formatstring(d->obit, "%s ", colourname(d));
+        d->obit += colourname(d);
+        d->obit += " ";
         if(d != v && v->lastattacker == d->clientnum) v->lastattacker = -1;
         d->lastattacker = v->clientnum;
         if(d == v)
         {
-            concatstring(d->obit, "\fs");
-            if(!obitverbose) concatstring(d->obit, obitdied);
-            else if(flags&HIT(SPAWN)) concatstring(d->obit, obitspawn);
-            else if(flags&HIT(TOUCH)) concatstring(d->obit, *obittouch ? obittouch : obitsplat);
-            else if(flags&HIT(CRUSH)) concatstring(d->obit, *obitcrush ? obitcrush : obitsquish);
-            else if(flags&HIT(SPEC)) concatstring(d->obit, obitspectator);
-            else if(flags&HIT(MATERIAL) && curmat&MAT_WATER) concatstring(d->obit, getobitwater(material, obitdrowned));
-            else if(flags&HIT(MATERIAL) && curmat&MAT_LAVA) concatstring(d->obit, getobitlava(material, obitmelted));
-            else if(flags&HIT(MATERIAL) && (material&MATF_FLAGS)&MAT_HURT) concatstring(d->obit, *obithurt ? obithurt : obithurtmat);
-            else if(flags&HIT(MATERIAL)) concatstring(d->obit, *obitdeath ? obitdeath : obitdeathmat);
-            else if(flags&HIT(LOST)) concatstring(d->obit, *obitfall ? obitfall : obitlost);
-            else if(flags && isweap(weap) && !burning && !bleeding && !shocking) concatstring(d->obit, WF(WK(flags), weap, obitsuicide, WS(flags)));
-            else if(flags&HIT(BURN) || burning) concatstring(d->obit, obitburnself);
-            else if(flags&HIT(BLEED) || bleeding) concatstring(d->obit, obitbleedself);
-            else if(flags&HIT(SHOCK) || shocking) concatstring(d->obit, obitshockself);
-            else if(d->obliterated) concatstring(d->obit, obitobliterated);
-            else if(d->headless) concatstring(d->obit, obitheadless);
-            else concatstring(d->obit, obitsuicide);
-            concatstring(d->obit, "\fS");
+            d->obit += "\fs";
+            if(!obitverbose) d->obit += obitdied;
+            else if(flags&HIT(SPAWN)) d->obit += obitspawn;
+            else if(flags&HIT(TOUCH)) d->obit += *obittouch ? obittouch : obitsplat;
+            else if(flags&HIT(CRUSH)) d->obit += *obitcrush ? obitcrush : obitsquish;
+            else if(flags&HIT(SPEC)) d->obit += obitspectator;
+            else if(flags&HIT(MATERIAL) && curmat&MAT_WATER) d->obit += getobitwater(material, obitdrowned);
+            else if(flags&HIT(MATERIAL) && curmat&MAT_LAVA) d->obit += getobitlava(material, obitmelted);
+            else if(flags&HIT(MATERIAL) && (material&MATF_FLAGS)&MAT_HURT) d->obit += *obithurt ? obithurt : obithurtmat;
+            else if(flags&HIT(MATERIAL)) d->obit += *obitdeath ? obitdeath : obitdeathmat;
+            else if(flags&HIT(LOST)) d->obit += *obitfall ? obitfall : obitlost;
+            else if(flags && isweap(weap) && !burning && !bleeding && !shocking) d->obit += WF(WK(flags), weap, obitsuicide, WS(flags));
+            else if(flags&HIT(BURN) || burning) d->obit += obitburnself;
+            else if(flags&HIT(BLEED) || bleeding) d->obit += obitbleedself;
+            else if(flags&HIT(SHOCK) || shocking) d->obit += obitshockself;
+            else if(d->obliterated) d->obit += obitobliterated;
+            else if(d->headless) d->obit += obitheadless;
+            else d->obit += obitsuicide;
+            d->obit += "\fS";
         }
         else
         {
-            concatstring(d->obit, "was \fs");
-            if(!obitverbose) concatstring(d->obit, obitfragged);
-            else if(burning) concatstring(d->obit, obitburn);
-            else if(bleeding) concatstring(d->obit, obitbleed);
-            else if(shocking) concatstring(d->obit, obitshock);
+            d->obit += "was \fs";
+            if(!obitverbose) d->obit += obitfragged;
+            else if(burning) d->obit += obitburn;
+            else if(bleeding) d->obit += obitbleed;
+            else if(shocking) d->obit += obitshock;
             else if(isweap(weap))
             {
-                if(d->obliterated) concatstring(d->obit, WF(WK(flags), weap, obitobliterated, WS(flags)));
-                else if(d->headless) concatstring(d->obit, WF(WK(flags), weap, obitheadless, WS(flags)));
-                else concatstring(d->obit, WF(WK(flags), weap, obituary, WS(flags)));
+                if(d->obliterated) d->obit += WF(WK(flags), weap, obitobliterated, WS(flags));
+                else if(d->headless) d->obit += WF(WK(flags), weap, obitheadless, WS(flags));
+                else d->obit += WF(WK(flags), weap, obituary, WS(flags));
             }
-            else concatstring(d->obit, obitkilled);
-            concatstring(d->obit, "\fS by");
+            else d->obit += obitkilled;
+            d->obit += "\fS by";
             bool override = false;
             if(d->headless)
             {
@@ -1786,13 +1787,13 @@ namespace game
             }
             if(v->actortype >= A_ENEMY)
             {
-                concatstring(d->obit, " a ");
-                concatstring(d->obit, colourname(v));
+                d->obit += " a ";
+                d->obit += colourname(v);
             }
             else if(m_team(gamemode, mutators) && d->team == v->team)
             {
-                concatstring(d->obit, " \fs\fzawteam-mate\fS ");
-                concatstring(d->obit, colourname(v));
+                d->obit += " \fs\fzawteam-mate\fS ";
+                d->obit += colourname(v);
                 if(v == focus)
                 {
                     anc = S_ALARM;
@@ -1803,7 +1804,7 @@ namespace game
             {
                 if(style&FRAG_REVENGE)
                 {
-                    concatstring(d->obit, " \fs\fzoyvengeful\fS");
+                    d->obit += " \fs\fzoyvengeful\fS";
                     v->addicon(eventicon::REVENGE, totalmillis, eventiconfade); // revenge
                     v->dominating.removeobj(d);
                     d->dominated.removeobj(v);
@@ -1815,7 +1816,7 @@ namespace game
                 }
                 else if(style&FRAG_DOMINATE)
                 {
-                    concatstring(d->obit, " \fs\fzoydominating\fS");
+                    d->obit += " \fs\fzoydominating\fS";
                     v->addicon(eventicon::DOMINATE, totalmillis, eventiconfade); // dominating
                     if(v->dominated.find(d) < 0) v->dominated.add(d);
                     if(d->dominating.find(v) < 0) d->dominating.add(v);
@@ -1825,48 +1826,48 @@ namespace game
                         override = true;
                     }
                 }
-                concatstring(d->obit, " ");
-                concatstring(d->obit, colourname(v));
+                d->obit += " ";
+                d->obit += colourname(v);
 
                 if(style&FRAG_BREAKER)
                 {
-                    concatstring(d->obit, " \fs\fzpwspree-breaking\fS");
+                    d->obit += " \fs\fzpwspree-breaking\fS";
                     v->addicon(eventicon::BREAKER, totalmillis, eventiconfade);
                     if(!override && allowanc) anc = S_V_BREAKER;
                 }
 
                 if(style&FRAG_MKILL1)
                 {
-                    if(style&FRAG_BREAKER) concatstring(d->obit, " and");
-                    concatstring(d->obit, " \fs\fzcwdouble-killing\fS");
+                    if(style&FRAG_BREAKER) d->obit += " and";
+                    d->obit += " \fs\fzcwdouble-killing\fS";
                     v->addicon(eventicon::MULTIKILL, totalmillis, eventiconfade, 0);
                     if(!override && allowanc) anc = S_V_MULTI;
                 }
                 else if(style&FRAG_MKILL2)
                 {
-                    if(style&FRAG_BREAKER) concatstring(d->obit, " and");
-                    concatstring(d->obit, " \fs\fzcwtriple-killing\fS");
+                    if(style&FRAG_BREAKER) d->obit += " and";
+                    d->obit += " \fs\fzcwtriple-killing\fS";
                     v->addicon(eventicon::MULTIKILL, totalmillis, eventiconfade, 1);
                     if(!override && allowanc) anc = S_V_MULTI2;
                 }
                 else if(style&FRAG_MKILL3)
                 {
-                    if(style&FRAG_BREAKER) concatstring(d->obit, " and");
-                    concatstring(d->obit, " \fs\fzcwmulti-killing\fS");
+                    if(style&FRAG_BREAKER) d->obit += " and";
+                    d->obit += " \fs\fzcwmulti-killing\fS";
                     v->addicon(eventicon::MULTIKILL, totalmillis, eventiconfade, 2);
                     if(!override && allowanc) anc = S_V_MULTI3;
                 }
             }
             else
             {
-                concatstring(d->obit, " ");
-                concatstring(d->obit, colourname(v));
+                d->obit += " ";
+                d->obit += colourname(v);
             }
             if(obitstyles)
             {
                 if(style&FRAG_FIRSTBLOOD)
                 {
-                    concatstring(d->obit, " for \fs\fzrwfirst blood\fS");
+                    d->obit += " for \fs\fzrwfirst blood\fS";
                     v->addicon(eventicon::FIRSTBLOOD, totalmillis, eventiconfade, 0);
                     if(allowanc)
                     {
@@ -1877,7 +1878,7 @@ namespace game
 
                 if(style&FRAG_SPREE1)
                 {
-                    concatstring(d->obit, " in total \fs\fzywcarnage\fS");
+                    d->obit += " in total \fs\fzywcarnage\fS";
                     v->addicon(eventicon::SPREE, totalmillis, eventiconfade, 0);
                     if(!override && allowanc)
                     {
@@ -1887,7 +1888,7 @@ namespace game
                 }
                 else if(style&FRAG_SPREE2)
                 {
-                    concatstring(d->obit, " on a \fs\fzywslaughter\fS");
+                    d->obit += " on a \fs\fzywslaughter\fS";
                     v->addicon(eventicon::SPREE, totalmillis, eventiconfade, 1);
                     if(!override && allowanc)
                     {
@@ -1897,7 +1898,7 @@ namespace game
                 }
                 else if(style&FRAG_SPREE3)
                 {
-                    concatstring(d->obit, " on a \fs\fzywmassacre\fS");
+                    d->obit += " on a \fs\fzywmassacre\fS";
                     v->addicon(eventicon::SPREE, totalmillis, eventiconfade, 2);
                     if(!override && allowanc)
                     {
@@ -1907,7 +1908,7 @@ namespace game
                 }
                 else if(style&FRAG_SPREE4)
                 {
-                    concatstring(d->obit, " in a \fs\fzyibloodbath\fS");
+                    d->obit += " in a \fs\fzyibloodbath\fS";
                     v->addicon(eventicon::SPREE, totalmillis, eventiconfade, 3);
                     if(!override && allowanc)
                     {
@@ -1922,33 +1923,33 @@ namespace game
             if(showobitdists >= (d != player1 ? 2 : 1))
             {
                 defformatstring(obitx, " \fs\fo@\fy%.2f\fom\fS", v->o.dist(d->o)/8.f);
-                concatstring(d->obit, obitx);
+                d->obit += obitx;
             }
             if(showobithpleft >= (d != player1 ? 2 : 1))
             {
                 string obitx;
                 if(damageinteger) formatstring(obitx, " (\fs\fc%d\fS)", int(ceilf(v->health/damagedivisor)));
                 else formatstring(obitx, " (\fs\fc%.1f\fS)", v->health/damagedivisor);
-                concatstring(d->obit, obitx);
+                d->obit += obitx;
             }
         }
         if(!log.empty())
         {
-            if(obitverbose || obitstyles) concatstring(d->obit, rnd(2) ? ", assisted by" : ", helped by");
-            else concatstring(d->obit, " +");
+            if(obitverbose || obitstyles) d->obit += rnd(2) ? ", assisted by" : ", helped by";
+            else d->obit += " +";
             loopv(log) if(log[i])
             {
                 if(obitverbose || obitstyles)
-                    concatstring(d->obit, log.length() > 1 && i == log.length()-1 ? " and " : (i ? ", " : " "));
-                else concatstring(d->obit, log.length() > 1 && i == log.length()-1 ? " + " : (i ? " + " : " "));
-                if(log[i]->actortype >= A_ENEMY) concatstring(d->obit, "a ");
-                concatstring(d->obit, colourname(log[i]));
+                    d->obit += log.length() > 1 && i == log.length()-1 ? " and " : (i ? ", " : " ");
+                else d->obit += log.length() > 1 && i == log.length()-1 ? " + " : (i ? " + " : " ");
+                if(log[i]->actortype >= A_ENEMY) d->obit += "a ";
+                d->obit += colourname(log[i]);
                 if(showobithpleft >= (d != player1 ? 2 : 1))
                 {
                     string obitx;
                     if(damageinteger) formatstring(obitx, " (\fs\fc%d\fS)", int(ceilf(log[i]->health/damagedivisor)));
                     else formatstring(obitx, " (\fs\fc%.1f\fS)", log[i]->health/damagedivisor);
-                    concatstring(d->obit, obitx);
+                    d->obit += obitx;
                 }
             }
         }
@@ -1956,7 +1957,7 @@ namespace game
         {
             if(v->state == CS_ALIVE && d->actortype < A_ENEMY)
             {
-                copystring(v->obit, d->obit);
+                v->obit = d->obit;
                 v->lastkill = totalmillis ? totalmillis : 1;
             }
         }
@@ -2072,7 +2073,7 @@ namespace game
             stringz(formattedreason);
             stringz(ipaddr);
             if(reason >= 0) formatstring(formattedreason, " (%s)", disc_reasons[reason]);
-            if(client::showpresencehostinfo && client::haspriv(player1, G(iphostlock))) formatstring(ipaddr, " (%s)", d->hostip);
+            if(client::showpresencehostinfo && client::haspriv(player1, G(iphostlock))) formatstring(ipaddr, " (%s)", d->hostip.c_str());
             if(d->actortype == A_PLAYER)
             {
                 int amt = client::otherclients(); // not including self to disclude this player
@@ -2202,11 +2203,11 @@ namespace game
         return focus;
     }
 
-    bool duplicatename(gameent *d, char *name = NULL)
+    bool duplicatename(gameent *d, std::string name = {})
     {
-        if(!name) name = d->name;
-        if(!client::demoplayback && d != player1 && !strcmp(name, player1->name)) return true;
-        loopv(players) if(players[i] && d != players[i] && !strcmp(name, players[i]->name)) return true;
+        if(name.empty()) name = d->name;
+        if(!client::demoplayback && d != player1 && name == player1->name) return true;
+        loopv(players) if(players[i] && d != players[i] && name == players[i]->name) return true;
         return false;
     }
 
@@ -2271,9 +2272,9 @@ namespace game
         return 0;
     }
 
-    const char *colourname(gameent *d, char *name, bool icon, bool dupname, int colour)
+    const char *colourname(gameent *d, std::string name, bool icon, bool dupname, int colour)
     {
-        if(!name) name = d->name;
+        if(name.empty()) name = d->name;
         static string colored;
         string colortmp;
         colored[0] = '\0';
@@ -2293,7 +2294,7 @@ namespace game
             formatstring(colortmp, "\f[%d]", TEAM(d->team, colour));
             concatstring(colored, colortmp);
         }
-        concatstring(colored, name);
+        concatstring(colored, name.c_str());
         if(!name[0] || (d->actortype < A_ENEMY && dupname && duplicatename(d, name)))
         {
             formatstring(colortmp, "%s[%d]", name[0] ? " " : "", d->clientnum);
@@ -3696,7 +3697,7 @@ namespace game
                     const char *file = vanityfname(d, d->vitems[k], head);
                     if(file)
                     {
-                        mdlattach[ai++] = modelattach(vanities[d->vitems[k]].tag, file);
+                        mdlattach[ai++] = modelattach(vanities[d->vitems[k]].tag.c_str(), file);
                         found[vanities[d->vitems[k]].type]++;
                         if(++count >= VANITYMAX) break;
                     }

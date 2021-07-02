@@ -513,7 +513,7 @@ namespace client
         else if(d->vitems.inrange(n)) switch(v)
         {
             case 0: intret(d->vitems[n]); break;
-            case 1: if(vanities.inrange(d->vitems[n])) result(vanities[d->vitems[n]].ref); break;
+            case 1: if(vanities.inrange(d->vitems[n])) result(vanities[d->vitems[n]].ref.c_str()); break;
             default: break;
         }
     }
@@ -521,7 +521,7 @@ namespace client
     ICOMMAND(0, getplayervitem, "bi", (int *n, int *v), getvitem(game::player1, *n, *v));
 
     ICOMMAND(0, mastermode, "i", (int *val), addmsg(N_MASTERMODE, "ri", *val));
-    ICOMMAND(0, getplayername, "", (), result(game::player1->name));
+    ICOMMAND(0, getplayername, "", (), result(game::player1->name.c_str()));
     ICOMMAND(0, getplayercolour, "bg", (int *m, int *f), intret(game::getcolour(game::player1, *m, *f >= 0 && *f <= 10 ? *f : 1.f)));
     ICOMMAND(0, getplayermodel, "", (), intret(game::player1->model));
     ICOMMAND(0, getplayerpattern, "", (), intret(game::player1->pattern));
@@ -530,7 +530,7 @@ namespace client
     ICOMMAND(0, getplayerteamcolour, "", (), intret(TEAM(game::player1->team, colour)));
     ICOMMAND(0, getplayercn, "", (), intret(game::player1->clientnum));
 
-    const char *getname() { return game::player1->name; }
+    const char *getname() { return game::player1->name.c_str(); }
 
     void setplayername(const char *name)
     {
@@ -538,10 +538,10 @@ namespace client
         {
             string namestr;
             filterstring(namestr, name, true, true, true, true, MAXNAMELEN);
-            if(*namestr && strcmp(game::player1->name, namestr))
+            if(*namestr && strcmp(game::player1->name.c_str(), namestr))
             {
                 game::player1->setname(namestr);
-                if(initing == NOT_INITING) conoutft(CON_EVENT, "\fm* you are now known as %s", game::player1->name);
+                if(initing == NOT_INITING) conoutft(CON_EVENT, "\fm* you are now known as %s", game::player1->name.c_str());
                 sendplayerinfo = true;
             }
         }
@@ -723,8 +723,8 @@ namespace client
         }
         PARSEPLAYER(strcmp, game::colourname(o, NULL, false, true, 0));
         PARSEPLAYER(strcasecmp, game::colourname(o, NULL, false, true, 0));
-        PARSEPLAYER(strcmp, o->name);
-        PARSEPLAYER(strcasecmp, o->name);
+        PARSEPLAYER(strcmp, o->name.c_str());
+        PARSEPLAYER(strcasecmp, o->name.c_str());
         #define PARSEPLAYERN(op,val) \
         { \
             gameent *o = game::player1; \
@@ -738,8 +738,8 @@ namespace client
         size_t len = strlen(arg);
         PARSEPLAYERN(strncmp, game::colourname(o, NULL, false, true, 0));
         PARSEPLAYERN(strncasecmp, game::colourname(o, NULL, false, true, 0));
-        PARSEPLAYERN(strncmp, o->name);
-        PARSEPLAYERN(strncasecmp, o->name);
+        PARSEPLAYERN(strncmp, o->name.c_str());
+        PARSEPLAYERN(strncasecmp, o->name.c_str());
         return -1;
     }
     ICOMMAND(IDF_NAMECOMPLETE, getclientnum, "s", (char *who), intret(parseplayer(who)));
@@ -958,7 +958,7 @@ namespace client
         floatret(d->yaw-camera1->yaw);
     });
 
-    CLCOMMANDM(name, "sbbb", (char *who, int *colour, int *icon, int *dupname), result(game::colourname(d, NULL, *icon!=0, *dupname!=0, *colour >= 0 ? *colour : 3)));
+    CLCOMMANDM(name, "sbbb", (char *who, int *colour, int *icon, int *dupname), result(game::colourname(d,"", *icon!=0, *dupname!=0, *colour >= 0 ? *colour : 3)));
     CLCOMMANDM(colour, "sbg", (char *who, int *m, float *f), intret(game::getcolour(d, *m, *f >= 0 && *f <= 10 ? *f : 1.f)));
     CLCOMMANDM(vitem, "sbi", (char *who, int *n, int *v), getvitem(d, *n, *v));
 
@@ -996,10 +996,10 @@ namespace client
     CLCOMMAND(model, intret(d->model%PLAYERTYPES));
     CLCOMMAND(pattern, intret(d->pattern%PLAYERPATTERNS));
     CLCOMMAND(vanity, result(d->vanity));
-    CLCOMMAND(handle, result(d->handle));
-    CLCOMMAND(steamid, result(d->steamid));
-    CLCOMMAND(host, result(d->hostip));
-    CLCOMMAND(ip, result(d->hostip));
+    CLCOMMAND(handle, result(d->handle.c_str()));
+    CLCOMMAND(steamid, result(d->steamid.c_str()));
+    CLCOMMAND(host, result(d->hostip.c_str()));
+    CLCOMMAND(ip, result(d->hostip.c_str()));
     CLCOMMAND(ping, intret(d->ping));
     CLCOMMAND(pj, intret(d->plag));
     CLCOMMAND(team, intret(d->team));
@@ -1255,47 +1255,47 @@ namespace client
     ICOMMAND(0, clearlimits, "", (), addmsg(N_CLRCONTROL, "ri", ipinfo::LIMIT));
     ICOMMAND(0, clearexcepts, "", (), addmsg(N_CLRCONTROL, "ri", ipinfo::EXCEPT));
 
-    vector<char *> ignores;
+    vector<std::string> ignores;
     void ignore(int cn)
     {
         gameent *d = game::getclient(cn);
         if(!d || d == game::player1) return;
-        if(!strcmp(d->hostip, "*"))
+        if(d->hostip == "*")
         {
             conoutft(CON_EVENT, "\frCannot ignore %s: host information is private", game::colourname(d));
             return;
         }
         if(ignores.find(d->hostip) < 0)
         {
-            conoutft(CON_EVENT, "\fyIgnoring: \fs%s\fS (\fs\fc%s\fS)", game::colourname(d), d->hostip);
+            conoutft(CON_EVENT, "\fyIgnoring: \fs%s\fS (\fs\fc%s\fS)", game::colourname(d), d->hostip.c_str());
             ignores.add(d->hostip);
         }
         else
-            conoutft(CON_EVENT, "\frAlready ignoring: \fs%s\fS (\fs\fc%s\fS)", game::colourname(d), d->hostip);
+            conoutft(CON_EVENT, "\frAlready ignoring: \fs%s\fS (\fs\fc%s\fS)", game::colourname(d), d->hostip.c_str());
     }
 
     void unignore(int cn)
     {
         gameent *d = game::getclient(cn);
         if(!d) return;
-        if(!strcmp(d->hostip, "*"))
+        if(d->hostip == "*")
         {
             conoutft(CON_EVENT, "\frCannot unignore %s: host information is private", game::colourname(d));
             return;
         }
         if(ignores.find(d->hostip) >= 0)
         {
-            conoutft(CON_EVENT, "\fyStopped ignoring: \fs%s\fS (\fs\fc%s\fS)", game::colourname(d), d->hostip);
+            conoutft(CON_EVENT, "\fyStopped ignoring: \fs%s\fS (\fs\fc%s\fS)", game::colourname(d), d->hostip.c_str());
             ignores.removeobj(d->hostip);
         }
         else
-            conoutft(CON_EVENT, "\frYou are not ignoring: \fs%s\fS (\fs\fc%s\fS)", game::colourname(d), d->hostip);
+            conoutft(CON_EVENT, "\frYou are not ignoring: \fs%s\fS (\fs\fc%s\fS)", game::colourname(d), d->hostip.c_str());
     }
 
     bool isignored(int cn)
     {
         gameent *d = game::getclient(cn);
-        if(!d || !strcmp(d->hostip, "*")) return false;
+        if(!d || d->hostip == "*") return false;
         return ignores.find(d->hostip) >= 0;
     }
 
@@ -2009,7 +2009,7 @@ namespace client
 
         putint(p, N_CONNECT);
 
-        sendstring(game::player1->name, p);
+        sendstring(game::player1->name.c_str(), p);
         putint(p, game::player1->colour);
         putint(p, game::player1->model);
         putint(p, game::player1->pattern);
@@ -2143,7 +2143,7 @@ namespace client
                 sendplayerinfo = false;
                 lastplayerinfo = totalmillis ? totalmillis : 1;
                 putint(p, N_SETPLAYERINFO); // name colour model pattern checkpoint vanity count <loadweaps> count <randweaps>
-                sendstring(game::player1->name, p);
+                sendstring(game::player1->name.c_str(), p);
                 putint(p, game::player1->colour);
                 putint(p, game::player1->model);
                 putint(p, game::player1->pattern);
@@ -2439,7 +2439,9 @@ namespace client
                 {
                     game::player1->clientnum = getint(p);
                     sessionver = getint(p);
-                    getstring(game::player1->hostip, p);
+                    string hostip;
+                    getstring(hostip, p);
+                    game::player1->hostip = hostip;
                     sessionid = getint(p);
                     if(sessionver != VERSION_GAME)
                     {
@@ -2602,7 +2604,7 @@ namespace client
                     stringz(namestr);
                     filterstring(namestr, text, true, true, true, true, MAXNAMELEN);
                     if(!*namestr) copystring(namestr, "unnamed");
-                    if(strcmp(d->name, namestr))
+                    if(d->name.c_str() != namestr)
                     {
                         string oldname, newname;
                         copystring(oldname, game::colourname(d));
@@ -2647,16 +2649,22 @@ namespace client
                     int rw = getint(p);
                     vector<int> rweaps;
                     loopk(rw) rweaps.add(getint(p));
-                    getstring(d->handle, p);
-                    getstring(d->steamid, p);
-                    getstring(d->hostip, p);
+                    string handle;
+                    getstring(handle, p);
+                    d->handle = handle;
+                    string steamid;
+                    getstring(steamid, p);
+                    d->steamid = steamid;
+                    string hostip;
+                    getstring(hostip, p);
+                    d->hostip = hostip;
                     if(d != game::player1) d->version.get(p);
                     else dummy.get(p);
                     d->checkpointspawn = cps;
                     if(d == game::focus && d->team != team) hud::lastteam = 0;
                     d->team = team;
                     d->privilege = priv;
-                    if(d->name[0]) d->setinfo(namestr, colour, model, pattern, vanity, lweaps, rweaps); // already connected
+                    if(!d->name.empty()) d->setinfo(namestr, colour, model, pattern, vanity, lweaps, rweaps); // already connected
                     else // new client
                     {
                         d->setinfo(namestr, colour, model, pattern, vanity, lweaps, rweaps);
@@ -2664,10 +2672,10 @@ namespace client
                         {
                             int amt = otherclients(true);
                             stringz(ipaddr);
-                            if(showpresencehostinfo && client::haspriv(game::player1, G(iphostlock))) formatstring(ipaddr, " (%s)", d->hostip);
+                            if(showpresencehostinfo && client::haspriv(game::player1, G(iphostlock))) formatstring(ipaddr, " (%s)", d->hostip.c_str());
                             if(priv > PRIV_NONE)
                             {
-                                if(d->handle[0]) conoutft(CON_EVENT, "\fg%s%s joined the game (\fs\fy%s\fS: \fs\fc%s\fS) [%d.%d.%d-%s%d-%s] (%d %s)", game::colourname(d), ipaddr, server::privname(d->privilege), d->handle, d->version.major, d->version.minor, d->version.patch, plat_name(d->version.platform), d->version.arch, d->version.branch, amt, amt != 1 ? "players" : "player");
+                                if(d->handle[0]) conoutft(CON_EVENT, "\fg%s%s joined the game (\fs\fy%s\fS: \fs\fc%s\fS) [%d.%d.%d-%s%d-%s] (%d %s)", game::colourname(d), ipaddr, server::privname(d->privilege), d->handle.c_str(), d->version.major, d->version.minor, d->version.patch, plat_name(d->version.platform), d->version.arch, d->version.branch, amt, amt != 1 ? "players" : "player");
                                 else conoutft(CON_EVENT, "\fg%s%s joined the game (\fs\fy%s\fS) [%d.%d.%d-%s%d-%s] (%d %s)", game::colourname(d), ipaddr, server::privname(d->privilege), d->version.major, d->version.minor, d->version.patch, plat_name(d->version.platform), d->version.arch, d->version.branch, amt, amt != 1 ? "players" : "player");
                             }
                             else conoutft(CON_EVENT, "\fg%s%s joined the game [%d.%d.%d-%s%d-%s] (%d %s)", game::colourname(d), ipaddr, d->version.major, d->version.minor, d->version.patch, plat_name(d->version.platform), d->version.arch, d->version.branch, amt, amt != 1 ? "players" : "player");
@@ -3302,7 +3310,7 @@ namespace client
                     if(m)
                     {
                         m->privilege = priv;
-                        copystring(m->handle, text);
+                        m->handle = text;
                     }
                     break;
                 }

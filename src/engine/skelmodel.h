@@ -389,24 +389,19 @@ struct skelmodel : animmodel
 
     struct tag
     {
-        char *name;
+        std::string name;
         int bone;
         matrix4x3 matrix;
 
-        tag() : name(NULL) {}
-        ~tag() { DELETEA(name); }
+        tag() : name() {}
     };
 
     struct skelanimspec
     {
-        char *name;
+        std::string name;
         int frame, range;
 
-        skelanimspec() : name(NULL), frame(0), range(0) {}
-        ~skelanimspec()
-        {
-            DELETEA(name);
-        }
+        skelanimspec() : name(), frame(0), range(0) {}
     };
 
     struct boneinfo
@@ -487,19 +482,19 @@ struct skelmodel : animmodel
             }
         }
 
-        skelanimspec *findskelanim(const char *name, char sep = '\0')
+        skelanimspec *findskelanim(const std::string& name, char sep = '\0')
         {
-            int len = sep ? strlen(name) : 0;
+            int len = sep ? name.length() : 0;
             loopv(skelanims)
             {
-                if(skelanims[i].name)
+                if(!skelanims[i].name.empty())
                 {
                     if(sep)
                     {
-                        const char *end = strchr(skelanims[i].name, ':');
-                        if(end && end - skelanims[i].name == len && !memcmp(name, skelanims[i].name, len)) return &skelanims[i];
+                        const char *end = strchr(skelanims[i].name.c_str(), ':');
+                        if(end && end - skelanims[i].name.c_str() == len && !memcmp(name.c_str(), skelanims[i].name.c_str(), len)) return &skelanims[i];
                     }
-                    if(!strcmp(name, skelanims[i].name)) return &skelanims[i];
+                    if(name == skelanims[i].name) return &skelanims[i];
                 }
             }
             return NULL;
@@ -531,14 +526,14 @@ struct skelmodel : animmodel
 
         int findtag(const char *name)
         {
-            loopv(tags) if(cubematchstr(tags[i].name, name)) return i;
+            loopv(tags) if(cubematchstr(tags[i].name.c_str(), name)) return i;
             return -1;
         }
 
         int findtags(const char *name, vector<int> &elems)
         {
             int num = 0;
-            loopv(tags) if(cubepattern(tags[i].name, name) >= 0)
+            loopv(tags) if(cubepattern(tags[i].name.c_str(), name) >= 0)
             {
                 elems.add(i);
                 num++;
@@ -996,7 +991,7 @@ struct skelmodel : animmodel
                 loopvj(m->parenttags)
                 {
                     parenttag &t = m->parenttags[j];
-                    if(!cubematchstr(tags[i].name, t.name)) continue;
+                    if(!cubematchstr(tags[i].name.c_str(), t.name)) continue;
                     return t.matrix;
                 }
             }

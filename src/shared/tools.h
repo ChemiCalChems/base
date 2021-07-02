@@ -715,7 +715,7 @@ template <class T> struct vector
     
     bool inrange(size_t i) const { return i<_v.size(); }
 
-    T &pop() { _v.pop_back(); return _v.back();}
+    T pop() { auto result = _v.back(); _v.pop_back(); return result;}
     T &last() { return _v.back(); }
 //    T &first() { return _v.front(); }
     void drop() { _v.erase(_v.end() - 1); }
@@ -747,7 +747,7 @@ template <class T> struct vector
     
     void deletearrays(int n = 0) { 
         for (auto it = _v.begin() + n; it != _v.end(); it++) {
-            delete *it;
+            delete [] *it;
         }
         _v.erase(_v.begin() + n, _v.end());
     }
@@ -826,12 +826,17 @@ template <class T> struct vector
 
     void addunique(const T &o)
     {
-        if(std::find(_v.begin(), _v.end(), o) == _v.end()) _v.push_back(o);
+        if (std::find(_v.begin(), _v.end(), o) == _v.end()) _v.push_back(o);
     }
     
     void removeobj(const T &o)
     {
-        _v.erase(std::remove(_v.begin(), _v.end(), o));
+        for (auto it = _v.begin(); it != _v.end(); it++) {
+            if (*it == o) {
+                _v.erase(it);
+                break;
+            }
+        }
     }
 
     //void replacewithlast(const T &o)
@@ -860,58 +865,6 @@ template <class T> struct vector
         std::reverse(_v.begin(), _v.end());
     }
     
-    static int heapparent(int i) { return (i - 1) >> 1; }
-    static int heapchild(int i) { return (i << 1) + 1; }
-
-    void buildheap()
-    {
-        std::make_heap(_v.begin(), _v.end()); 
-    }
-
-    int upheap(int i)
-    {
-        float score = heapscore(_v[i]);
-        while(i > 0)
-        {
-            int pi = heapparent(i);
-            if(score >= heapscore(_v[pi])) break;
-            std::swap(_v.at(i), _v.at(pi));
-            i = pi;
-        }
-        return i;
-    }
-
-    void addheap(const T &x)
-    {
-        _v.push_back(x);
-        std::push_heap(_v.begin(), _v.end());
-    }
-
-    int downheap(int i)
-    {
-        float score = heapscore(_v[i]);
-        for(;;)
-        {
-            int ci = heapchild(i);
-            if(ci >= length()) break;
-            float cscore = heapscore(_v.at(ci));
-            if(score > cscore)
-            {
-               if(ci+1 < length() && heapscore(_v[ci+1]) < cscore) { std::swap(_v[ci+1], _v[i]); i = ci+1; }
-               else { std::swap(_v[ci], _v[i]); i = ci; }
-            }
-            else if(ci+1 < _v.size() && heapscore(_v[ci+1]) < score) { std::swap(_v[ci+1], _v[i]); i = ci+1; }
-            else break;
-        }
-        return i;
-    }
-
-    T removeheap()
-    {
-        std::pop_heap(_v.begin(), _v.end());
-        return _v.back();
-    }
-
     template<class K>
     int htfind(const K &key)
     {
@@ -1313,7 +1266,9 @@ template<class T> struct hashnameset : hashbase<hashnameset<T>, T, const char *,
     hashnameset(int size = basetype::DEFAULTSIZE) : basetype(size) {}
 
     template<class U> static inline const char *getkey(const U &elem) { return elem.name; }
+    template<class U> static inline const char *getkey(const U &elem) requires requires {elem.name.c_str();}{ return elem.name.c_str(); }
     template<class U> static inline const char *getkey(U *elem) { return elem->name; }
+    template<class U> static inline const char *getkey(U *elem) requires requires {elem->name.c_str();}{ return elem->name.c_str(); }
     static inline T &getdata(T &elem) { return elem; }
     template<class K> static inline void setkey(T &elem, const K &key) {}
 
@@ -1509,10 +1464,9 @@ template <class T, int SIZE> struct reversequeue : queue<T, SIZE>
 struct slot
 {
     int index;
-    char *name;
+    std::string name;
 
-    slot() : index(-1), name(NULL) {}
-    ~slot() { DELETEA(name); }
+    slot() : index(-1) {}
 
     bool isfree() const { return index < 0; }
 };
@@ -1547,7 +1501,7 @@ struct slotmanager
 
     const char *getname(int index)
     {
-        enumerate(slotmap, slot, s, if(s.index == index) return s.name; );
+        enumerate(slotmap, slot, s, if(s.index == index) return s.name.c_str(); );
         return NULL;
     }
 

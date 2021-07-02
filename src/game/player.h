@@ -255,29 +255,20 @@ APFVAR(IDF_GAMEMOD, 0, weightextra, FVAR_MIN, FVAR_MAX,
 struct vanity
 {
     int type, cond, style;
-    char *ref, *model, *proj, *name, *tag;
-    vector<char *> files;
+    std::string ref, model, proj, name, tag;
+    vector<std::string> files;
 
-    vanity() : type(-1), cond(0), style(0), ref(NULL), model(NULL), proj(NULL), name(NULL), tag(NULL) {}
-    vanity(int t, const char *r, const char *n, const char *g, int c, int s) : type(t), cond(c), style(s), ref(newstring(r)), model(NULL), proj(NULL), name(newstring(n)), tag(newstring(g)) { setmodel(r); }
-    ~vanity()
-    {
-        if(ref) delete[] ref;
-        if(model) delete[] model;
-        if(proj) delete[] proj;
-        if(name) delete[] name;
-        if(tag) delete[] tag;
-        files.deletearrays();
-    }
+    vanity() : type(-1), cond(0), style(0) {}
+    vanity(int t, const char *r, const char *n, const char *g, int c, int s) : type(t), cond(c), style(s), ref(r), name(n), tag(g) { setmodel(r); }
 
     void setmodel(const char *r)
     {
-        if(model) delete[] model;
+        if(model.empty()) model.clear();
         defformatstring(m, "vanities/%s", r);
-        model = newstring(m);
-        if(proj) delete[] proj;
-        formatstring(m, "%s/proj", model);
-        proj = newstring(m);
+        model = m;
+        if(proj.empty()) proj.clear();
+        formatstring(m, "%s/proj", model.c_str());
+        proj = m;
     }
 };
 #ifdef CPP_GAME_MAIN

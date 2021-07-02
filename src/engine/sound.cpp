@@ -4,29 +4,27 @@
 struct soundsample
 {
     Mix_Chunk *sound;
-    char *name;
+    std::string name;
 
-    soundsample() : name(NULL) {}
-    ~soundsample() { DELETEA(name); }
+    soundsample() : name() {}
 
     void cleanup()
     {
         Mix_FreeChunk(sound);
-        sound = NULL;
+        name.clear();
     }
 };
 
-soundslot::soundslot() : vol(255), maxrad(-1), minrad(-1), name(NULL) {}
-soundslot::~soundslot() { DELETEA(name); }
+soundslot::soundslot() : vol(255), maxrad(-1), minrad(-1), name() {}
 
 void soundslot::reset()
 {
-    DELETEA(name);
+    name.clear();
     samples.shrink(0);
 }
 
 sound::sound() : hook(NULL) { reset(); }
-sound::~sound() {}
+
 bool sound::playing() { return chan >= 0 && (Mix_Playing(chan) || Mix_Paused(chan)); }
 void sound::reset()
 {
@@ -193,7 +191,7 @@ void getsounds(bool mapsnd, int idx, int prop)
             case 0: intret(soundset[idx].vol); break;
             case 1: intret(soundset[idx].maxrad); break;
             case 2: intret(soundset[idx].minrad); break;
-            case 3: result(soundset[idx].name); break;
+            case 3: result(soundset[idx].name.c_str()); break;
             default: break;
         }
     }
@@ -310,9 +308,9 @@ void smartmusic(bool cond, bool init)
 }
 ICOMMAND(0, smartmusic, "i", (int *a), smartmusic(*a));
 
-int findsound(const char *name, int vol, vector<soundslot> &soundset)
+int findsound(const std::string& name, int vol, vector<soundslot> &soundset)
 {
-    loopv(soundset) if(!strcmp(soundset[i].name, name) && (!vol || soundset[i].vol == vol)) return i;
+    loopv(soundset) if(soundset[i].name == name && (!vol || soundset[i].vol == vol)) return i;
     return -1;
 }
 
@@ -355,7 +353,7 @@ static soundsample *loadsound(const char *name)
         {
             loopk(sizeof(exts)/sizeof(exts[0]))
             {
-                formatstring(buf, "%s%s%s", dirs[i], sample->name, exts[k]);
+                formatstring(buf, "%s%s%s", dirs[i], sample->name.c_str(), exts[k]);
                 if((sample->sound = loadwav(buf)) != NULL) found = true;
                 if(found) break;
             }
@@ -582,7 +580,7 @@ int playsound(int n, const vec &pos, physent *d, int flags, int vol, int maxrad,
             return -1;
         }
         soundslot *slot = &soundset[n];
-        if(!oldhook || !issound(*oldhook) || (n != sounds[*oldhook].slotnum && strcmp(slot->name, gamesounds[sounds[*oldhook].slotnum].name)))
+        if(!oldhook || !issound(*oldhook) || (n != sounds[*oldhook].slotnum && slot->name != gamesounds[sounds[*oldhook].slotnum].name))
             oldhook = NULL;
 
         vec o = d ? game::camerapos(d) : pos;
@@ -659,7 +657,7 @@ int playsound(int n, const vec &pos, physent *d, int flags, int vol, int maxrad,
                 return chan;
             }
             else if(verbose >= 2)
-                conoutf("\frCannot play sound %d (%s): %s", n, slot->name, Mix_GetError());
+                conoutf("\frCannot play sound %d (%s): %s", n, slot->name.c_str(), Mix_GetError());
         }
         else if(verbose >= 4) conoutf("Culled sound %d (%d)", n, cvol);
     }

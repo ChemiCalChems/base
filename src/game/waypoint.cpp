@@ -1,4 +1,5 @@
 #include "game.h"
+#include <queue>
 
 namespace ai
 {
@@ -420,7 +421,8 @@ namespace ai
             return false;
 
         static ushort routeid = 1;
-        static vector<waypoint *> queue;
+        static auto comp = [](const auto& a, const auto& b) {return a->score() > b->score();};
+        static std::priority_queue<waypoint *, std::vector<waypoint*>, decltype(comp)> queue(comp);
 
         if(!routeid)
         {
@@ -453,14 +455,15 @@ namespace ai
         waypoints[node].route = routeid;
         waypoints[node].curscore = waypoints[node].estscore = 0;
         waypoints[node].prev = 0;
-        queue.setsize(0);
-        queue.add(&waypoints[node]);
+        queue = decltype(queue)(comp);
+        queue.push(&waypoints[node]);
         route.setsize(0);
 
         int lowest = -1;
         while(!queue.empty())
         {
-            waypoint &m = *queue.removeheap();
+            waypoint &m = *queue.top();
+            queue.pop();
             float prevscore = m.curscore;
             m.curscore = -1;
             loopi(MAXWAYPOINTLINKS)
@@ -482,9 +485,9 @@ namespace ai
                             lowest = link;
                         n.route = routeid;
                         if(link == goal) goto foundgoal;
-                        queue.addheap(&n);
+                        queue.push(&n);
                     }
-                    else loopvj(queue) if(queue[j] == &n) { queue.upheap(j); break; }
+                    //else loopvj(queue) if(queue[j] == &n) { queue.upheap(j); break; }
                 }
             }
         }

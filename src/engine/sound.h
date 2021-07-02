@@ -35,10 +35,9 @@ struct soundslot
 {
     vector<soundsample *> samples;
     int vol, maxrad, minrad, variants, fardistance;
-    char *name;
+    std::string name;
 
     soundslot();
-    ~soundslot();
     void reset();
 };
 
@@ -53,7 +52,6 @@ struct sound
     vector<int> buffer;
 
     sound();
-    ~sound();
 
     void reset();
     bool playing();

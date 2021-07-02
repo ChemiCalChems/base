@@ -11,6 +11,31 @@ namespace fx
     int getfxindex(const char *name) { return fxdefs.getindex(name); }
     slot *getfxslot(const char *name) { return fxdefs.getslot(name); }
 
+    fxproperty::fxproperty(const fxproperty& o) : property(o) {
+        rand = new fxproperty;
+        lerp = new propmodlerp;
+        if(o.rand) *rand = *o.rand;
+        else rand = NULL;
+        if(o.lerp) *lerp = *o.lerp;
+        else lerp = NULL;
+        calcmodifiers = o.calcmodifiers;
+    }
+
+    fxproperty& fxproperty::operator=(const fxproperty& o) {
+        property::operator=(o);
+
+        if(rand) delete rand;
+        if(lerp) delete lerp;
+        rand = new fxproperty;
+        lerp = new propmodlerp;
+        if(o.rand) *rand = *o.rand;
+        else rand = NULL;
+        if(o.lerp) *lerp = *o.lerp;
+        else lerp = NULL;
+        calcmodifiers = o.calcmodifiers;
+        return *this;
+    }
+
     fxproperty::~fxproperty()
     {
         if(rand) delete rand;
@@ -201,7 +226,7 @@ namespace fx
         if(!(p.getdef()->modflags & BIT(mod)))
         {
             conoutf("\frError: %s, FX property %s modifier %d not supported",
-                newfx->getname(), p.getdef()->name, mod);
+                newfx->getname().c_str(), p.getdef()->name, mod);
 
             return false;
         }
@@ -215,14 +240,14 @@ namespace fx
         if(curmodifier < 0)
         {
             conoutf("\frError: %s, cannot set modifier property %s, not currently setting a modifier",
-                newfx->getname(), name);
+                newfx->getname().c_str(), name);
             return;
         }
 
         if(!lastfxprop)
         {
             conoutf("\frError: %s, no last property when setting modifier %s",
-                newfx->getname(), name);
+                newfx->getname().c_str(), name);
             return;
         }
 
@@ -239,7 +264,7 @@ namespace fx
 
         if(!modprops)
         {
-            conoutf("\frError: %s, no FX %s modifier properties available", newfx->getname(), name);
+            conoutf("\frError: %s, no FX %s modifier properties available", newfx->getname().c_str(), name);
             return;
         }
 
@@ -248,7 +273,7 @@ namespace fx
         if(!modp)
         {
             conoutf("\frError: %s, FX %s modifier property %s not found",
-                newfx->getname(), fxmodstring(curmodifier), name);
+                newfx->getname().c_str(), fxmodstring(curmodifier), name);
             return;
         }
 
@@ -309,7 +334,7 @@ namespace fx
                 p = findprop(name, newfx->getextprops(), extdefs[newfx->type].num);
                 if(!p)
                 {
-                    conoutf("\frError: %s, FX property %s not found", newfx->getname(), name);
+                    conoutf("\frError: %s, FX property %s not found", newfx->getname().c_str(), name);
                     return;
                 }
             }
@@ -345,7 +370,7 @@ namespace fx
         if(!newfx)
         {
             conoutf("\frError: cannot assign parent to %s, not loading FX",
-                newfx->name);
+                newfx->name.c_str());
             return;
         }
 
@@ -354,14 +379,14 @@ namespace fx
         if(parentindex < 0)
         {
             conoutf("\frError: cannot assign parent to %s, FX %s does not exist",
-                newfx->name, name);
+                newfx->name.c_str(), name);
             return;
         }
 
         if(parentindex == newfxindex)
         {
             conoutf("\frError: cannot assign parent %s to itself",
-                newfx->name);
+                newfx->name.c_str());
             return;
         }
 
@@ -370,7 +395,7 @@ namespace fx
         if(parent.children.find(newfxindex) < 0) parent.children.add(newfxindex);
         else
         {
-            conoutf("\fyWarning: %s already assigned to parent %s", newfx->name, name);
+            conoutf("\fyWarning: %s already assigned to parent %s", newfx->name.c_str(), name);
             return;
         }
     }
@@ -380,7 +405,7 @@ namespace fx
         if(!newfx)
         {
             conoutf("\frError: cannot assign end FX to %s, not loading FX",
-                newfx->name);
+                newfx->name.c_str());
             return;
         }
 

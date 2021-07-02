@@ -198,7 +198,7 @@ namespace ai
         gameent *o = game::getclient(d->ownernum);
         if(o)
         {
-            copystring(d->hostip, o->hostip);
+            d->hostip = o->hostip;
             d->version.grab(o->version);
         }
     }
@@ -1846,8 +1846,8 @@ namespace ai
                 if(!strncmp(w[0], "bots", 4)) pos = 1;
                 else
                 {
-                    size_t len = strlen(e->name);
-                    if(!len || strncasecmp(w[0], e->name, len)) continue;
+                    size_t len = strlen(e->name.c_str());
+                    if(!len || strncasecmp(w[0], e->name.c_str(), len)) continue;
                     switch(w[0][len])
                     {
                         case 0: break;

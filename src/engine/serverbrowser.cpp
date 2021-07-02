@@ -121,7 +121,7 @@ bool resolvercheck(const char **name, ENetAddress *address)
     SDL_LockMutex(resolvermutex);
     if(!resolverresults.empty())
     {
-        resolverresult &rr = resolverresults.pop();
+        resolverresult rr = resolverresults.pop();
         *name = rr.query;
         address->host = rr.address.host;
         resolved = true;

@@ -65,7 +65,7 @@ namespace hud
     {
         if(a->state == CS_SPECTATOR || a->state == CS_EDITING)
         {
-            if(b->state == CS_SPECTATOR || b->state == CS_EDITING) return strcmp(a->name, b->name) < 0;
+            if(b->state == CS_SPECTATOR || b->state == CS_EDITING) return a->name < b->name;
             else return false;
         }
         else if(b->state == CS_SPECTATOR || b->state == CS_EDITING) return true;
@@ -81,7 +81,7 @@ namespace hud
             if(a->frags > b->frags) return true;
             if(a->frags < b->frags) return false;
         }
-        return strcmp(a->name, b->name) < 0;
+        return a->name < b->name;
     }
 
     static inline bool scoregroupcmp(const scoregroup *x, const scoregroup *y)

@@ -973,7 +973,7 @@ namespace entities
                 if(mapsounds.inrange(attr[0]))
                 {
                     int samples = mapsounds[attr[0]].samples.length();
-                    defformatstring(ds, "%s (%d %s)", mapsounds[attr[0]].name, samples, samples == 1 ? "sample" : "samples");
+                    defformatstring(ds, "%s (%d %s)", mapsounds[attr[0]].name.c_str(), samples, samples == 1 ? "sample" : "samples");
                     addentinfo(ds);
                 }
                 if(full)

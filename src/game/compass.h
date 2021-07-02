@@ -7,19 +7,13 @@ TVAR(IDF_PERSIST, compassringtex, "<grey>textures/hud/progress", 3);
 
 struct cstate
 {
-    char *name, *contents;
-    cstate() : name(NULL), contents(NULL) {}
-    ~cstate()
-    {
-        DELETEA(name);
-        DELETEA(contents);
-    }
+    std::string name, contents;
+    cstate() : name(), contents() {}
 };
 struct caction : cstate
 {
     char code;
     caction() : code(0) {}
-    ~caction() {}
 };
 struct cmenu : cstate
 {
@@ -67,13 +61,13 @@ void resetcmenus()
 }
 ICOMMAND(0, resetcompass, "", (), resetcmenus());
 
-void addcmenu(const char *name, const char *a, const char *b)
+void addcmenu(const std::string& name, const char *a, const char *b)
 {
-    if(!name || !*name || !a || !*a) return;
+    if(name.empty() || !a || !*a) return;
     if(curcompass) clearcmenu();
-    loopvrev(cmenus) if(!strcmp(name, cmenus[i].name)) cmenus.remove(i);
+    loopvrev(cmenus) if(name == cmenus[i].name) cmenus.remove(i);
     cmenu &c = cmenus.add();
-    c.name = newstring(name);
+    c.name = name;
     if(b && *b)
     {
         c.icon = textureload(a, 3);
@@ -118,24 +112,24 @@ ICOMMAND(0, compass, "sss", (char *n, char *a, char *b), if(curcompass)
 
 ICOMMAND(0, keepcompass, "", (void), if(curcompass) curcompass->keep = true);
 
-void showcmenu(const char *name)
+void showcmenu(const std::string& name)
 {
-    if(!name || !*name) return;
-    loopv(cmenus) if(!strcmp(name, cmenus[i].name))
+    if(name.empty()) return;
+    loopv(cmenus) if(name == cmenus[i].name)
     {
         if(compassmillis <= 0) compassmillis = totalmillis;
         curcompass = &cmenus[i];
         compasspos = 0;
         curcompass->reset();
-        execute(curcompass->contents);
+        execute(curcompass->contents.c_str());
         playsound(S_PRESS, camera1->o, camera1, SND_FORCED);
         return;
     }
-    conoutft(CON_DEBUG, "\frNo such compass menu: %s", name);
+    conoutft(CON_DEBUG, "\frNo such compass menu: %s", name.c_str());
 }
 ICOMMAND(0, showcompass, "s", (char *n), showcmenu(n));
 
-ICOMMAND(0, compassactive, "", (), result(curcompass ? curcompass->name : ""));
+ICOMMAND(0, compassactive, "", (), result(curcompass ? curcompass->name.c_str() : ""));
 
 const struct compassdirs
 {
@@ -188,10 +182,10 @@ void rendercmenu()
     Texture *t = NULL;
     if(curcompass->icon && curcompass->icon != notexture) t = curcompass->icon;
     else if(*compassringtex) t = textureload(compassringtex, 3);
-    renderaction(0, size, t, 0, curcompass->name, hit < 0);
+    renderaction(0, size, t, 0, curcompass->name.c_str(), hit < 0);
     t = *compasstex ? textureload(compasstex, 3) : NULL;
     loopi(std::min(curcompass->actions.length(), 8))
-        renderaction(i+1, size, t, curcompass->actions[i].code, curcompass->actions[i].name, hit == i);
+        renderaction(i+1, size, t, curcompass->actions[i].code, curcompass->actions[i].name.c_str(), hit == i);
     if(curcompass->actions.length() > 8)
     {
         int x = hudwidth/2, y = hudheight/2+size+FONTH*4, maxy = hudheight-FONTH*2;
@@ -219,7 +213,7 @@ bool runcmenu(int idx)
         else if(curcompass->actions.inrange(idx))
         {
             foundmenu = true;
-            execute(curcompass->actions[idx].contents);
+            execute(curcompass->actions[idx].contents.c_str());
             if(oldcompass == curcompass && !curcompass->keep) clearcmenu();
         }
     }

@@ -83,6 +83,9 @@ void property::set(const char *value)
 
 void property::set(const property &prop)
 {
+    if(prop.def) def = prop.def;
+    type = prop.type;
+
     if(prop.type == PROP_NOTYPE) clear();
     else switch(type)
     {
