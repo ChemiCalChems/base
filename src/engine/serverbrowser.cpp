@@ -1,184 +1,65 @@
 // serverbrowser.cpp: eihrul's concurrent resolver, and server browser window management
 
 #include "engine.h"
+#include <memory>
+#include <thread>
+#include <optional>
+#include <unordered_map>
+#include <mutex>
 
 struct resolverthread
 {
-    SDL_Thread *thread;
-    const char *query;
+    std::unique_ptr<std::thread> thread;
+    std::string query;
     int starttime;
 };
 
 struct resolverresult
 {
-    const char *query;
+    std::string query;
     ENetAddress address;
 };
 
-vector<resolverthread> resolverthreads;
-vector<const char *> resolverqueries;
-vector<resolverresult> resolverresults;
-SDL_mutex *resolvermutex;
-SDL_cond *querycond, *resultcond;
+std::unordered_map<std::string /* hostname */, ENetAddress /* address */> resolverresults;
+std::mutex resolvermutex;
 
-#define RESOLVERTHREADS 2
 #define RESOLVERLIMIT 3500
 
-int resolverloop(void * data)
+std::optional<ENetAddress> resolve(std::string query, bool block = true)
 {
-    resolverthread *rt = (resolverthread *)data;
-    SDL_LockMutex(resolvermutex);
-    SDL_Thread *thread = rt->thread;
-    SDL_UnlockMutex(resolvermutex);
-    if(!thread || SDL_GetThreadID(thread) != SDL_ThreadID())
-        return 0;
-    while(thread == rt->thread)
-    {
-        SDL_LockMutex(resolvermutex);
-        while(resolverqueries.empty()) SDL_CondWait(querycond, resolvermutex);
-        rt->query = resolverqueries.pop();
-        rt->starttime = totalmillis;
-        SDL_UnlockMutex(resolvermutex);
-
-        ENetAddress address = { ENET_HOST_ANY, ENET_PORT_ANY };
-        enet_address_set_host(&address, rt->query);
-
-        SDL_LockMutex(resolvermutex);
-        if(rt->query && thread == rt->thread)
-        {
-            resolverresult &rr = resolverresults.add();
-            rr.query = rt->query;
-            rr.address = address;
-            rt->query = NULL;
-            rt->starttime = 0;
-            SDL_CondSignal(resultcond);
-        }
-        SDL_UnlockMutex(resolvermutex);
+    std::unique_lock<std::mutex> lock {resolvermutex};
+    if (resolverresults.contains(query)) {
+        return resolverresults.at(query);
     }
-    return 0;
-}
+    lock.unlock();
 
-void resolverinit()
-{
-    resolvermutex = SDL_CreateMutex();
-    querycond = SDL_CreateCond();
-    resultcond = SDL_CreateCond();
+    if(!block) return std::nullopt;
 
-    SDL_LockMutex(resolvermutex);
-    loopi(RESOLVERTHREADS)
-    {
-        resolverthread &rt = resolverthreads.add();
-        rt.query = NULL;
-        rt.starttime = 0;
-        rt.thread = SDL_CreateThread(resolverloop, "resolver", &rt);
-    }
-    SDL_UnlockMutex(resolvermutex);
-}
+    ENetAddress address = { ENET_HOST_ANY, ENET_PORT_ANY };
+    if(enet_address_set_host(&address, query.c_str()) != 0) return std::nullopt;
 
-void resolverstop(resolverthread &rt)
-{
-    SDL_LockMutex(resolvermutex);
-    if(rt.query)
-    {
-#if SDL_VERSION_ATLEAST(2, 0, 2)
-        SDL_DetachThread(rt.thread);
-#endif
-        rt.thread = SDL_CreateThread(resolverloop, "resolver", &rt);
-    }
-    rt.query = NULL;
-    rt.starttime = 0;
-    SDL_UnlockMutex(resolvermutex);
+    lock.lock();
+    resolverresults.insert(std::make_pair(query, address)); 
+    return address;
 }
 
 void resolverclear()
 {
-    if(resolverthreads.empty()) return;
-
-    SDL_LockMutex(resolvermutex);
-    resolverqueries.shrink(0);
-    resolverresults.shrink(0);
-    loopv(resolverthreads)
-    {
-        resolverthread &rt = resolverthreads[i];
-        resolverstop(rt);
-    }
-    SDL_UnlockMutex(resolvermutex);
+    std::unique_lock<std::mutex> lock {resolvermutex};
+    resolverresults.clear();
 }
 
-void resolverquery(const char *name)
+void resolverquery(std::string name)
 {
-    if(resolverthreads.empty()) resolverinit();
-
-    SDL_LockMutex(resolvermutex);
-    resolverqueries.add(name);
-    SDL_CondSignal(querycond);
-    SDL_UnlockMutex(resolvermutex);
-}
-
-bool resolvercheck(const char **name, ENetAddress *address)
-{
-    bool resolved = false;
-    SDL_LockMutex(resolvermutex);
-    if(!resolverresults.empty())
-    {
-        resolverresult rr = resolverresults.pop();
-        *name = rr.query;
-        address->host = rr.address.host;
-        resolved = true;
-    }
-    else loopv(resolverthreads)
-    {
-        resolverthread &rt = resolverthreads[i];
-        if(rt.query && totalmillis - rt.starttime > RESOLVERLIMIT)
-        {
-            resolverstop(rt);
-            *name = rt.query;
-            resolved = true;
-        }
-    }
-    SDL_UnlockMutex(resolvermutex);
-    return resolved;
+    std::thread t{resolve, name, true};
+    t.detach();
 }
 
 bool resolverwait(const char *name, ENetAddress *address)
 {
-    if(resolverthreads.empty()) resolverinit();
-
-    defformatstring(text, "Resolving %s..", name);
-    progress(0, "%s", text);
-
-    SDL_LockMutex(resolvermutex);
-    resolverqueries.add(name);
-    SDL_CondSignal(querycond);
-    int starttime = SDL_GetTicks(), timeout = 0;
-    bool resolved = false;
-    for(;;)
-    {
-        SDL_CondWaitTimeout(resultcond, resolvermutex, 250);
-        loopv(resolverresults) if(resolverresults[i].query == name)
-        {
-            address->host = resolverresults[i].address.host;
-            resolverresults.remove(i);
-            resolved = true;
-            break;
-        }
-        if(resolved) break;
-
-        timeout = SDL_GetTicks() - starttime;
-        progress(std::min(float(timeout)/RESOLVERLIMIT, 1.0f), "%s", text);
-        if(interceptkey(SDLK_ESCAPE)) timeout = RESOLVERLIMIT + 1;
-        if(timeout > RESOLVERLIMIT) break;
-    }
-    if(!resolved && timeout > RESOLVERLIMIT)
-    {
-        loopv(resolverthreads)
-        {
-            resolverthread &rt = resolverthreads[i];
-            if(rt.query == name) { resolverstop(rt); break; }
-        }
-    }
-    SDL_UnlockMutex(resolvermutex);
-    return resolved && address->host != ENET_HOST_ANY;
+    auto result = resolve(name);
+    if (result.has_value()) {address->host = result.value().host; return true;}
+    return false;
 }
 
 #define CONNLIMIT 20000
@@ -313,21 +194,18 @@ void checkresolver()
     }
     if(!resolving) return;
 
-    const char *name = NULL;
     for(;;)
     {
-        ENetAddress addr = { ENET_HOST_ANY, ENET_PORT_ANY };
-        if(!resolvercheck(&name, &addr)) break;
         loopv(servers)
         {
             serverinfo &si = *servers[i];
-            if(name == si.name)
+            if(auto resolveresult = resolve(si.name, false); resolveresult.has_value())
             {
                 si.resolved = serverinfo::RESOLVED;
-                si.address.host = addr.host;
-                break;
+                si.address.host = resolveresult->host;
             }
         }
+        if(std::find_if_not(servers._v.begin(), servers._v.end(), [](const auto& s){return s->resolved == serverinfo::RESOLVED;}) == servers._v.end()) break;
     }
 }
 
@@ -493,7 +371,7 @@ void updatefrommaster()
     retrieveservers(data);
     if(data.length() && data[0])
     {
-        //clearservers();
+        clearservers();
         execute(data.getbuf());
         if(verbose) conoutf("\faRetrieved %d server(s) from master", servers.length());
         else conoutf("\faRetrieved list from master successfully");//, servers.length());
