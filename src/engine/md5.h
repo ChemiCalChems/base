@@ -1,3 +1,5 @@
+#pragma once
+
 struct md5;
 
 struct md5joint

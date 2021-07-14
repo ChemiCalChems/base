@@ -1,3 +1,5 @@
+#pragma once
+
 struct iqm;
 
 struct iqmheader

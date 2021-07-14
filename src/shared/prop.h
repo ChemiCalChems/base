@@ -1,3 +1,5 @@
+#pragma once
+
 enum
 {
     PROP_NOTYPE = -1,

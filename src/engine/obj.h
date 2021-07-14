@@ -1,3 +1,5 @@
+#pragma once
+
 struct obj;
 
 struct obj : vertloader<obj>

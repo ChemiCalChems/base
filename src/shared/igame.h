@@ -1,3 +1,5 @@
+#pragma once
+
 // the interface the engine uses to run the gameplay module
 #ifndef STANDALONE
 namespace entities

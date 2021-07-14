@@ -1,3 +1,5 @@
+#pragma once
+
 VAR(0, ragdolltimestepmin, 1, 10, 50);
 VAR(0, ragdolltimestepmax, 1, 20, 50);
 FVAR(0, ragdollrotfric, 0, 0.85f, 1);

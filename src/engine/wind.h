@@ -1,3 +1,5 @@
+#pragma once
+
 enum
 {
     // 0 is a constant localized wind source

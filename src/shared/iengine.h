@@ -1,3 +1,5 @@
+#pragma once
+
 // the interface the game uses to access the engine
 
 extern int verbose, curtime, lastmillis, totalmillis, timescale, paused;

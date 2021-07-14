@@ -1,3 +1,5 @@
+#pragma once
+
 struct GlobalShaderParamState
 {
     const char *name;

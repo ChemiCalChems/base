@@ -1,3 +1,5 @@
+#pragma once
+
 VAR(IDF_PERSIST, softexplosion, 0, 1, 1);
 VAR(IDF_PERSIST, softexplosionblend, 1, 16, 64);
 

@@ -1,3 +1,5 @@
+#pragma once
+
 VAR(IDF_PERSIST, gpuskel, 0, 1, 1);
 
 VAR(0, maxskelanimdata, 1, 192, 0);

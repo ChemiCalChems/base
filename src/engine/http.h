@@ -1,3 +1,5 @@
+#pragma once
+
 // HTTP server and client
 
 #define HTTP_LIMIT  4096

@@ -1,3 +1,5 @@
+#pragma once
+
 #define isbomberaffinity(a) (a.enabled && a.team == T_NEUTRAL)
 #define isbomberhome(a,b)   (a.enabled && !isbomberaffinity(a) && a.team != T_NEUTRAL && a.team == b)
 #define isbombertarg(a,b)   (a.enabled && !isbomberaffinity(a) && a.team != T_NEUTRAL && a.team != b)

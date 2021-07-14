@@ -1,3 +1,5 @@
+#pragma once
+
 // 6-directional octree heightfield map format
 
 struct elementset

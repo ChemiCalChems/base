@@ -1,5 +1,4 @@
-#ifndef __GAME_H__
-#define __GAME_H__
+#pragma once
 
 #include "engine.h"
 
@@ -2527,5 +2526,3 @@ namespace entities
 #include "capture.h"
 #include "defend.h"
 #include "bomber.h"
-
-#endif

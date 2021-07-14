@@ -1,3 +1,5 @@
+#pragma once
+
 #ifdef CPP_GAME_SERVER
 struct duelservmode : servmode
 {

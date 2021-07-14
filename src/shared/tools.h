@@ -1,3 +1,5 @@
+#pragma once
+
 // generic useful stuff for any C++ program
 
 #ifndef _TOOLS_H

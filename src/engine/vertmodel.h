@@ -1,3 +1,5 @@
+#pragma once
+
 struct vertmodel : animmodel
 {
     struct vert { vec pos, norm; vec4 tangent; };

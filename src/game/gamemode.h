@@ -1,3 +1,5 @@
+#pragma once
+
 enum
 {
     G_DEMO = 0, G_EDITMODE, G_DEATHMATCH, G_CAPTURE, G_DEFEND, G_BOMBER, G_RACE, G_MAX,

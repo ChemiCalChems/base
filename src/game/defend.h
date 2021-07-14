@@ -1,3 +1,5 @@
+#pragma once
+
 #ifdef CPP_GAME_SERVER
     #define defendstate stfservstate
     #define defendcount (m_dac_king(gamemode, mutators) ? G(defendking) : G(defendoccupy))

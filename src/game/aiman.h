@@ -1,3 +1,5 @@
+#pragma once
+
 // server-side ai manager
 namespace aiman
 {

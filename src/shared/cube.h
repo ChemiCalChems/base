@@ -1,5 +1,4 @@
-#ifndef __CUBE_H__
-#define __CUBE_H__
+#pragma once
 
 #define _FILE_OFFSET_BITS 64
 
@@ -73,6 +72,4 @@
 
 #include "iengine.h"
 #include "igame.h"
-
-#endif
 

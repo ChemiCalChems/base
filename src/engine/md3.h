@@ -1,3 +1,5 @@
+#pragma once
+
 struct md3;
 
 struct md3frame

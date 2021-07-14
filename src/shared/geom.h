@@ -1,3 +1,5 @@
+#pragma once
+
 struct vec;
 struct vec4;
 

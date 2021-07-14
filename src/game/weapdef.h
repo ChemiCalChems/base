@@ -1,3 +1,5 @@
+#pragma once
+
 #ifdef CPP_GAME_SERVER
     #define WPVAR(flags, level, name, mn, mx, w00, w01, w02, w03, w04, w05, w06, w07, w08, w09, w10, w11, w12) \
         GVAR(flags, level, claw##name, mn, w00, mx); \

@@ -1,3 +1,5 @@
+#pragma once
+
 struct PackNode
 {
     PackNode *child1, *child2;

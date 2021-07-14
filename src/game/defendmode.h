@@ -1,3 +1,5 @@
+#pragma once
+
 struct defendservmode : defendstate, servmode
 {
     int scoresec;

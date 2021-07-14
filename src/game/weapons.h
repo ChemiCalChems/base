@@ -1,3 +1,5 @@
+#pragma once
+
 // weapons.h configuration file
 // default weapon variables baked into the game
 enum

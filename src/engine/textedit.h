@@ -1,3 +1,5 @@
+#pragma once
+
 struct editline
 {
     enum { CHUNKSIZE = 256 };

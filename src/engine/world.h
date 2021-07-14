@@ -1,3 +1,5 @@
+#pragma once
+
 enum                            // hardcoded texture numbers
 {
     DEFAULT_SKY = 0,

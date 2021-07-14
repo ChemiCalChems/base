@@ -1,3 +1,5 @@
+#pragma once
+
 struct bomberservmode : bomberstate, servmode
 {
     bool hasflaginfo, hasstarted;

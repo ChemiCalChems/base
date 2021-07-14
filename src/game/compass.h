@@ -1,3 +1,5 @@
+#pragma once
+
 FVAR(IDF_PERSIST, compasssize, 0, 0.15f, 1000);
 FVAR(IDF_PERSIST, compassblend, 0, 0.75f, 1);
 VAR(IDF_PERSIST, compassfade, 0, 250, VAR_MAX);

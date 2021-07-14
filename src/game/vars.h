@@ -1,3 +1,5 @@
+#pragma once
+
 GVAR(IDF_WORLD, 0, numplayers, 0, 4, MAXCLIENTS); // 0 = determine from number of spawns
 GVAR(IDF_WORLD, 0, maxplayers, 0, 0, MAXCLIENTS); // 0 = numplayers*3
 GVAR(IDF_WORLD, 0, mapbalance, 0, 0, 3); // switches teams for asymmetrical maps, 0 = off, 1 = ctf/dnc/bb, 2 = with team spawns, 3 = forced

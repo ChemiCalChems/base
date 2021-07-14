@@ -1,3 +1,5 @@
+#pragma once
+
 struct skelbih
 {
     struct node

@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef APIENTRY
 #define APIENTRY
 #endif

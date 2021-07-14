@@ -1,3 +1,5 @@
+#pragma once
+
 enum
 {
     S_PRESS = 0, S_BACK, S_ACTION, S_NUM_GENERIC,

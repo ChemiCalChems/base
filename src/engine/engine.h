@@ -1,5 +1,4 @@
-#ifndef __ENGINE_H__
-#define __ENGINE_H__
+#pragma once
 
 #include "version.h"
 #include "cube.h"
@@ -1001,5 +1000,3 @@ extern void blendhalos();
 extern void cleanuphalo();
 
 #endif // STANDALONE
-
-#endif

@@ -1,3 +1,5 @@
+#pragma once
+
 enum { MDL_MD2 = 0, MDL_MD3, MDL_MD5, MDL_OBJ, MDL_SMD, MDL_IQM, NUMMODELTYPES };
 enum { MDL_BLEND_TEST = 0, MDL_BLEND_ALPHA };
 

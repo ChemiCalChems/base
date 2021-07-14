@@ -1,3 +1,5 @@
+#pragma once
+
 struct md2;
 
 static const float md2normaltable[256][3] =

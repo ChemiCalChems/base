@@ -1,3 +1,5 @@
+#pragma once
+
 #ifdef CPP_GAME_SERVER
     #define TPVAR(flags, level, name, mn, mx, w00, w01, w02, w03) \
         GVAR(flags, level, teamneutral##name, mn, w00, mx); \

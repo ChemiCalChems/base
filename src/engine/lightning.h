@@ -1,3 +1,5 @@
+#pragma once
+
 #define MAXLIGHTNINGSTEPS 64
 #define LIGHTNINGSTEP 8
 int lnjitterx[2][MAXLIGHTNINGSTEPS], lnjittery[2][MAXLIGHTNINGSTEPS];

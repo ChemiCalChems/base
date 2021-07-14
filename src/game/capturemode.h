@@ -1,3 +1,5 @@
+#pragma once
+
 struct captureservmode : capturestate, servmode
 {
     bool hasflaginfo;

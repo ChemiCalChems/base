@@ -1,3 +1,5 @@
+#pragma once
+
 VAR(IDF_PERSIST, fullbrightmodels, 0, 0, 200);
 VAR(0, testtags, 0, 0, 1);
 VARF(0, dbgcolmesh, 0, 0, 1,

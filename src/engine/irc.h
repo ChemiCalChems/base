@@ -1,3 +1,5 @@
+#pragma once
+
 enum { IRCC_NONE = 0, IRCC_JOINING, IRCC_JOINED, IRCC_KICKED, IRCC_BANNED };
 enum { IRCCT_NONE = 0, IRCCT_AUTO };
 #ifndef STANDALONE
