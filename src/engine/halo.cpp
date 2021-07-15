@@ -1,4 +1,4 @@
-#include "engine.h"
+#include "engine.hpp"
 
 static GLuint halofbo = 0, halotex = 0;
 static int halow = -1, haloh = -1;

@@ -1,6 +1,6 @@
 // main.cpp: initialisation & main loop
 
-#include "engine.h"
+#include "engine.hpp"
 #include <signal.h>
 
 #ifdef SDL_VIDEO_DRIVER_X11

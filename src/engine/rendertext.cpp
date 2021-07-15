@@ -1,4 +1,4 @@
-#include "engine.h"
+#include "engine.hpp"
 
 VAR(IDF_PERSIST, textblinking, 0, 250, VAR_MAX);
 float curtextscale = 1;

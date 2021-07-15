@@ -1,4 +1,4 @@
-#include "game.h"
+#include "game.hpp"
 namespace physics
 {
     FVAR(IDF_WORLD, stairheight, 0, 4.1f, 1000);

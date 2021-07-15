@@ -1,6 +1,6 @@
 // serverbrowser.cpp: eihrul's concurrent resolver, and server browser window management
 
-#include "engine.h"
+#include "engine.hpp"
 #include <memory>
 #include <thread>
 #include <optional>

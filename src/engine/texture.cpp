@@ -1,6 +1,6 @@
 // texture.cpp: texture slot management
 
-#include "engine.h"
+#include "engine.hpp"
 #include "SDL_image.h"
 
 TVAR(IDF_PERSIST|IDF_PRELOAD, notexturetex, "textures/notexture", 3);

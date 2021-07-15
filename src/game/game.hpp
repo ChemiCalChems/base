@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine.h"
+#include "engine.hpp"
 
 #define VERSION_GAMEID "fps"
 #define VERSION_GAME 254
@@ -375,8 +375,8 @@ extern const char * const sendmaptypes[SENDMAP_MAX];
 #define CLCOMMANDM(name, fmt, args, body) CLCOMMANDMK(name, fmt, args, body,)
 #endif
 
-#include "gamemode.h"
-#include "weapons.h"
+#include "gamemode.hpp"
+#include "weapons.hpp"
 
 // network messages codes, c2s, c2c, s2c
 enum
@@ -449,10 +449,10 @@ struct demoheader
     int gamever, gamemode, mutators, starttime;
     string mapname;
 };
-#include "player.h"
-#include "vars.h"
+#include "player.hpp"
+#include "vars.hpp"
 #ifndef CPP_GAME_SERVER
-#include "ai.h"
+#include "ai.hpp"
 #endif
 
 template<class T>
@@ -2520,6 +2520,6 @@ namespace entities
     extern void reset();
 }
 #endif
-#include "capture.h"
-#include "defend.h"
-#include "bomber.h"
+#include "capture.hpp"
+#include "defend.hpp"
+#include "bomber.hpp"

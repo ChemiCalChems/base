@@ -1,6 +1,6 @@
 // world.cpp: core map management stuff
 
-#include "engine.h"
+#include "engine.hpp"
 
 mapz hdr;
 VARN(0, mapscale, worldscale, 1, 0, 0);

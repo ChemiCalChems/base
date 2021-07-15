@@ -1,4 +1,4 @@
-#include "engine.h"
+#include "engine.hpp"
 
 VAR(0, showpastegrid, 0, 0, 1);
 VAR(0, showcursorgrid, 0, 0, 1);

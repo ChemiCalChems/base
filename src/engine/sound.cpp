@@ -1,4 +1,4 @@
-#include "engine.h"
+#include "engine.hpp"
 #include "SDL_mixer.h"
 
 struct soundsample

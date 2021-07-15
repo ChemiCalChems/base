@@ -1,4 +1,4 @@
-#include "engine.h"
+#include "engine.hpp"
 
 VARN(IDF_PERSIST, dynlights, usedynlights, 0, 1, 1);
 VAR(IDF_PERSIST, dynlightdist, 0, 1024, 10000);

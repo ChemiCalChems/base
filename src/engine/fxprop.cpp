@@ -1,6 +1,6 @@
-#include "cube.h"
-#include "engine.h"
-#include "fxprop.h"
+#include "cube.hpp"
+#include "engine.hpp"
+#include "fxprop.hpp"
 
 namespace fx
 {

@@ -1,4 +1,4 @@
-#include "cube.h"
+#include "cube.hpp"
 
 void vecfromyaw(float yaw, int move, int strafe, vec2 &m)
 {

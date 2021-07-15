@@ -4,7 +4,7 @@
 // WARNING * WARNING * WARNING * WARNING * WARNING * WARNING * WARNING * WARNING
 
 #define CPP_GAME_SERVER 1
-#include "game.h"
+#include "game.hpp"
 #include "errno.h"
 
 namespace server
@@ -3112,7 +3112,7 @@ namespace server
     void connected(clientinfo *ci);
     void welcomeinitclient(clientinfo *ci, packetbuf &p, int exclude = -1, bool nobots = false);
 
-    #include "auth.h"
+    #include "auth.hpp"
 
     enum { ALST_TRY = 0, ALST_SPAWN, ALST_SPEC, ALST_EDIT, ALST_WALK, ALST_MAX };
 
@@ -3466,11 +3466,11 @@ namespace server
         }
     }
 
-    #include "capturemode.h"
-    #include "defendmode.h"
-    #include "bombermode.h"
-    #include "duelmut.h"
-    #include "aiman.h"
+    #include "capturemode.hpp"
+    #include "defendmode.hpp"
+    #include "bombermode.hpp"
+    #include "duelmut.hpp"
+    #include "aiman.hpp"
 
     void changemap(const char *name, int mode, int muts)
     {

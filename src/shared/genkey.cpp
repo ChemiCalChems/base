@@ -1,4 +1,4 @@
-#include "cube.h"
+#include "cube.hpp"
 
 int main(int argc, char **argv)
 {

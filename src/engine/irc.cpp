@@ -1,4 +1,4 @@
-#include "engine.h"
+#include "engine.hpp"
 
 VAR(0, ircfilter, 0, 2, 2);
 VAR(0, ircverbose, 0, 0, 2);

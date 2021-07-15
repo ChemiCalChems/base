@@ -1,7 +1,7 @@
 #pragma once
 
-#include "version.h"
-#include "cube.h"
+#include "version.hpp"
+#include "cube.hpp"
 
 extern int version, versioning, versionmajor, versionminor, versionpatch, versionbuild, versionplatform, versionarch, versionisserver, versioncrc, versionsteamid;
 extern char *versionstring, *versionname, *versionfname, *versionuname, *versionvname, *versionrelease, *versionurl, *versioncopy, *versiondesc, *versionmaster, *versionplatname, *versionplatlongname, *versionbranch, *versionrevision, *versiondiscordid;
@@ -81,9 +81,9 @@ extern int masterserver, masterport;
 extern char *masterip;
 extern int nextcontrolversion();
 
-#include "http.h"
-#include "irc.h"
-#include "sound.h"
+#include "http.hpp"
+#include "irc.hpp"
+#include "sound.hpp"
 
 extern const char * const disc_reasons[];
 struct ipinfo
@@ -111,12 +111,12 @@ extern void shutdownsignal(int signum);
 enum { CON_DEBUG = 0, CON_EVENT, CON_GAME, CON_MESG, CON_MAX };
 
 #ifndef STANDALONE
-#include "world.h"
-#include "octa.h"
-#include "light.h"
-#include "texture.h"
-#include "bih.h"
-#include "model.h"
+#include "world.hpp"
+#include "octa.hpp"
+#include "light.hpp"
+#include "texture.hpp"
+#include "bih.hpp"
+#include "model.hpp"
 
 extern physent *camera1, camera;
 extern mapz hdr;

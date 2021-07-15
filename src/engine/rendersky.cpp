@@ -1,4 +1,4 @@
-#include "engine.h"
+#include "engine.hpp"
 
 Texture *sky[6] = { 0, 0, 0, 0, 0, 0 }, *clouds[6] = { 0, 0, 0, 0, 0, 0 };
 

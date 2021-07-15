@@ -1,6 +1,6 @@
 // console.cpp: the console buffer, its display, and command line control
 
-#include "engine.h"
+#include "engine.hpp"
 
 reversequeue<cline, MAXCONLINES> conlines[CON_MAX];
 

@@ -1,7 +1,7 @@
 // server.cpp: little more than enhanced multicaster
 // runs dedicated or as client coroutine
 
-#include "engine.h"
+#include "engine.hpp"
 #include <signal.h>
 #ifdef WIN32
 #include <shlobj.h>
@@ -1042,7 +1042,7 @@ int updatetimer(bool limit)
 }
 
 #ifdef WIN32
-#include "shellapi.h"
+#include "shellapi.hpp"
 
 #define IDI_ICON1 1
 

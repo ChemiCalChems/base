@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cube.h"
+#include "cube.hpp"
 
 namespace fx
 {

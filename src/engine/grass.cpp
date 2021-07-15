@@ -1,4 +1,4 @@
-#include "engine.h"
+#include "engine.hpp"
 
 VAR(IDF_PERSIST, grass, 0, 1, 1);
 VAR(0, dbggrass, 0, 0, 1);

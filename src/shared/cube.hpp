@@ -27,8 +27,8 @@
   #undef _WIN32_WINNT
   #endif
   #define _WIN32_WINNT 0x0500
-  #include "windows.h"
-  #include "io.h"
+  #include "windows.hpp"
+  #include "io.hpp"
   #ifndef _WINDOWS
     #define _WINDOWS
   #endif
@@ -57,19 +57,19 @@
 
 #include <zlib.h>
 
-#include "tools.h"
-#include "command.h"
-#include "geom.h"
-#include "prop.h"
-#include "ents.h"
-#include "wind.h"
-#include "fx.h"
+#include "tools.hpp"
+#include "command.hpp"
+#include "geom.hpp"
+#include "prop.hpp"
+#include "ents.hpp"
+#include "wind.hpp"
+#include "fx.hpp"
 
 #ifndef STANDALONE
-#include "glexts.h"
-#include "glemu.h"
+#include "glexts.hpp"
+#include "glemu.hpp"
 #endif
 
-#include "iengine.h"
-#include "igame.h"
+#include "iengine.hpp"
+#include "igame.hpp"
 

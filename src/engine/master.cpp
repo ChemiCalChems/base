@@ -6,7 +6,7 @@
 #define __FD_SETSIZE 4096
 #endif
 
-#include "engine.h"
+#include "engine.hpp"
 #include <enet/time.h>
 #include <sqlite3.h>
 

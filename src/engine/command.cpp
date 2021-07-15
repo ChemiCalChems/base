@@ -2,7 +2,7 @@
 // is largely backwards compatible with the quake console language.
 
 #define CPP_ENGINE_COMMAND 1
-#include "engine.h"
+#include "engine.hpp"
 
 hashnameset<ident> idents; // contains ALL vars/commands/aliases
 vector<ident *> identmap;

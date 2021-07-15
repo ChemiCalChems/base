@@ -179,7 +179,7 @@ struct hitmsg { int flags, proj, target, dist; ivec dir, vel; };
 #define wr_shocks(x,y)   (G(noweapshock) && hitdealt(y) && ((x == -1 && y&HIT(SHOCK)) || wr_shock(x, y)))
 #define wr_shocking(x,y) (G(noweapshock) && hitdealt(y) && ((x == -1 && y&HIT(MATERIAL) && y&HIT(SHOCK)) || wr_shock(x, y)))
 
-#include "weapdef.h"
+#include "weapdef.hpp"
 
 WPSVAR(IDF_GAMEMOD, 0, longname, // shown for weapon pickups and loadout menu
     "Claw Attack",

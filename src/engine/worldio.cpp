@@ -1,6 +1,6 @@
 // worldio.cpp: loading & saving of maps
 
-#include "engine.h"
+#include "engine.hpp"
 
 VAR(0, maploading, 1, 0, -1);
 VAR(0, mapcrc, 1, 0, -1);

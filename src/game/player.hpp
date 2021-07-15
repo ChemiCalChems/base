@@ -87,7 +87,7 @@ VAR(IDF_READONLY, teamidxnum, 1, T_NUM, -1);
 extern int mapbals[T_NUM][T_NUM];
 #endif
 
-#include "teamdef.h"
+#include "teamdef.hpp"
 
 TPSVAR(IDF_GAMEMOD, 0, name,
     "Neutral",  "Alpha",    "Omega",    "Enemy"
@@ -150,7 +150,7 @@ extern const char * const playertypes[PLAYERTYPES][7];
 extern const playerpattern playerpatterns[PLAYERPATTERNS];
 #endif
 
-#include "playerdef.h"
+#include "playerdef.hpp"
 
 APSVAR(IDF_GAMEMOD, 0, vname,
     "Player",       "Bot",          "Turret",       "Grunt",        "Drone",        "Roller"

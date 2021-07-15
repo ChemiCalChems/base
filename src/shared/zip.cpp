@@ -1,4 +1,4 @@
-#include "cube.h"
+#include "cube.hpp"
 
 extern size_t fixdir(char *dir);
 enum

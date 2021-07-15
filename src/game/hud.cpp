@@ -1,9 +1,9 @@
-#include "game.h"
+#include "game.hpp"
 namespace hud
 {
     int damageresidue = 0, hudwidth = 0, hudheight = 0, lastteam = 0, laststats = 0;
 
-    #include "compass.h"
+    #include "compass.hpp"
     vector<int> teamkills;
 
     struct dhloc

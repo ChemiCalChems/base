@@ -1,4 +1,4 @@
-#include "cube.h"
+#include "cube.hpp"
 
 void property::setdef(const propertydef *newdef)
 {

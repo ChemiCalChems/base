@@ -1,6 +1,6 @@
 // Content Delivery Platform Integrations
 
-#include "engine.h"
+#include "engine.hpp"
 #include <stddef.h>
 #if defined(USE_STEAM)
 #define HAS_STEAM 1

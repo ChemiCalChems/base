@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../shared/prop.h"
+#include "../shared/prop.hpp"
 
 namespace fx
 {

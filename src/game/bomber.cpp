@@ -1,4 +1,4 @@
-#include "game.h"
+#include "game.hpp"
 namespace bomber
 {
     bomberstate st;

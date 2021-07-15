@@ -1,4 +1,4 @@
-#include "game.h"
+#include "game.hpp"
 namespace weapons
 {
     VAR(IDF_PERSIST, weapautoreload, 0, 2, 4); // 0 = never, 1 = when empty, 2 = weapons that don't add a full clip, 3 = always (+1 zooming weaps too)

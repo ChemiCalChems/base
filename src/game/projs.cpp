@@ -1,4 +1,4 @@
-#include "game.h"
+#include "game.hpp"
 namespace projs
 {
     #define FWCOL(n,c,p) ((p).flags&HIT(FLAK) ? W##n##COL(&p, (p).weap, flak##c, WS((p).flags)) : W##n##COL(&p, (p).weap, c, WS((p).flags)))

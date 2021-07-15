@@ -1,5 +1,5 @@
-#include "cube.h"
-#include "engine.h"
+#include "cube.hpp"
+#include "engine.hpp"
 
 namespace fx
 {

@@ -1,5 +1,5 @@
 #define CPP_GAME_MAIN 1
-#include "game.h"
+#include "game.hpp"
 
 namespace game
 {
