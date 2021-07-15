@@ -198,7 +198,6 @@ namespace ai
         float score, tolerance;
         bool team;
         interest() : state(-1), node(-1), target(-1), targtype(-1), acttype(AI_A_NORMAL), overridetype(-1), score(0.f), tolerance(1.f), team(false) {}
-        ~interest() {}
     };
 
     struct aistate
@@ -210,7 +209,6 @@ namespace ai
         {
             reset();
         }
-        ~aistate() {}
 
         void reset()
         {
@@ -237,7 +235,6 @@ namespace ai
             reset();
             loopk(3) views[k] = aimrnd[k] = 0.f;
         }
-        ~aiinfo() {}
 
         void clean()
         {

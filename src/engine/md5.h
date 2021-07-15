@@ -413,15 +413,15 @@ struct md5 : skelloader<md5>
     bool loaddefaultparts()
     {
         skelpart &mdl = addpart();
-        const char *fname = name + strlen(name);
+        const char *fname = name.c_str() + strlen(name.c_str());
         do --fname; while(fname >= name && *fname!='/' && *fname!='\\');
         fname++;
-        defformatstring(meshname, "%s/%s.md5mesh", name, fname);
+        defformatstring(meshname, "%s/%s.md5mesh", name.c_str(), fname);
         mdl.meshes = sharemeshes(path(meshname));
         if(!mdl.meshes) return false;
         mdl.initanimparts();
         mdl.initskins();
-        defformatstring(animname, "%s/%s.md5anim", name, fname);
+        defformatstring(animname, "%s/%s.md5anim", name.c_str(), fname);
         ((md5meshgroup *)mdl.meshes)->loadanim(path(animname));
         return true;
     }

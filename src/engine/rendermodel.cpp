@@ -299,7 +299,7 @@ COMMAND(0, mdlparenttag, "sffffff");
 void mdlname()
 {
     checkmdl;
-    result(loadingmodel->name);
+    result(loadingmodel->name.c_str());
 }
 COMMAND(0, mdlname, "");
 
@@ -516,7 +516,7 @@ model *loadmodel(const char *name, int i, bool msg)
             failedmodels.add(newstring(name));
             return NULL;
         }
-        models.access(m->name, m);
+        models.access(m->name.c_str(), m);
     }
     if(mapmodels.inrange(i) && !mapmodels[i].m) mapmodels[i].m = m;
     return m;

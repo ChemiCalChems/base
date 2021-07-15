@@ -23,7 +23,6 @@ struct cmenu : cstate
     vector<caction> actions;
     bool keep;
     cmenu() : icon(NULL), keep(false) {}
-    ~cmenu() { reset(); }
     void reset()
     {
         loopvrev(actions) actions.remove(i);

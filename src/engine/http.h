@@ -1,6 +1,7 @@
 #pragma once
 
 // HTTP server and client
+#include <memory>
 
 #define HTTP_LIMIT  4096
 #define HTTP_TIME   15000
@@ -59,7 +60,6 @@ struct httppair
         copystring(name, n);
         copystring(value, v);
     }
-    ~httppair() {}
 };
 
 struct httpvars
@@ -67,7 +67,6 @@ struct httpvars
     vector<httppair> values;
 
     httpvars() { reset(); }
-    ~httpvars() {}
 
     void reset()
     {
@@ -116,7 +115,6 @@ struct httpreq
     httpvars inhdrs, outhdrs, vars;
 
     httpreq() { reset(); }
-    ~httpreq() {}
 
     void reset()
     {
@@ -164,7 +162,6 @@ struct httpclient : httpreq
     bigstring data;
 
     httpclient() { reset(); }
-    ~httpclient() {}
 
     void reset()
     {
@@ -203,23 +200,23 @@ enum
 
 struct jsobj
 {
-    string name, data;
+    std::string name, data;
     int type;
-    vector<jsobj *> children;
+    vector<std::unique_ptr<jsobj>> children;
 
-    jsobj() { reset(); }
-    ~jsobj() { clear(); }
+    jsobj() : type(JSON_INIT) {}
 
     void clear()
     {
-        children.deletecontents();
+        children._v.clear();
     }
 
     void reset()
     {
-        name[0] = data[0] = 0;
+        name.clear();
+        data.clear();
         type = JSON_INIT;
-        children.shrink(0);
+        children._v.clear();
     }
 };
 

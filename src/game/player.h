@@ -100,7 +100,6 @@ struct score
 {
     int team, total;
     score(int s = -1, int n = 0) : team(s), total(n) {}
-    ~score() {}
 };
 
 #define numteams(a,b)   (m_team(a,b) ? T_NUM : 1)

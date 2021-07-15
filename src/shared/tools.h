@@ -736,9 +736,18 @@ template <class T> struct vector
     }
 
     void shrink(const int i) { setsize(i); }
-    void setsize(const int i) { 
-        _v.clear();
+
+    void setsize(const int i)  { 
+        if (i <= length()) while(i < length()) _v.pop_back();
+        else throw std::logic_error("wrong setsize");
     }
+
+    void setsize(int i, const T &x)
+    {
+        if(i >= length()) add(x, i - length());
+        else shrink(i);
+    }
+
 
     void deletecontents(int n = 0) { 
         for (auto it = _v.begin() + n; it != _v.end(); it++) {
@@ -891,6 +900,29 @@ template <class T> struct vector
             delete [] *it;
         }
         unique();
+    }
+
+    void write(int i, const T *v, int n)
+    {
+        if(i < 0)
+        {
+            n += i;
+            v -= i;
+            i = 0;
+        }
+        if(n <= 0 || i > length()) return;
+        if(i + n > length()) growbuf(i + n);
+        std::copy(v, v + n, _v.begin() + i);
+    }
+
+    void write(int i, const vector<T>& v)
+    {
+        write(i, v.getbuf(), v.length());
+    }
+
+    void write(int i, const vector<T>& v, int n)
+    {
+        write(i, v.getbuf(), std::min(v.length(), n));
     }
 };
 

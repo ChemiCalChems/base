@@ -110,7 +110,6 @@ static void putemitter(windemitter *we)
 windemitter::windemitter(extentity *e) : ent(e), hook(NULL), curspeed(0), lastimpulse(lastmillis),
     unused(true) {}
 
-windemitter::~windemitter() {}
 
 void windemitter::updateimpulse()
 {

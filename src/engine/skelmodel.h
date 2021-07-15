@@ -993,7 +993,7 @@ struct skelmodel : animmodel
                 loopvj(m->parenttags)
                 {
                     parenttag &t = m->parenttags[j];
-                    if(!cubematchstr(tags[i].name.c_str(), t.name)) continue;
+                    if(!cubematchstr(tags[i].name.c_str(), t.name.c_str())) continue;
                     return t.matrix;
                 }
             }

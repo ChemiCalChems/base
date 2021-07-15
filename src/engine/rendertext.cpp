@@ -28,7 +28,7 @@ bool wantfontpass = false;
 void newfont(char *name, char *tex, int *defaultw, int *defaulth, float *scale)
 {
     font *f = &fonts[name];
-    if(!f->name) f->name = newstring(name);
+    if(f->name.empty()) f->name = name;
     f->texs.shrink(0);
     f->texs.add(textureload(tex));
     f->chars.shrink(0);
@@ -141,7 +141,7 @@ void fontalias(const char *dst, const char *src)
     font *s = loadfont(src);
     if(!s) return;
     font *d = &fonts[dst];
-    if(!d->name) d->name = newstring(dst);
+    if(d->name.empty()) d->name = dst;
     d->texs = s->texs;
     d->chars = s->chars;
     d->charoffset = s->charoffset;
@@ -745,29 +745,24 @@ void text_boundsf(const char *str, float &width, float &height, float xpad, floa
 
 struct textkey
 {
-    char *name, *file;
+    std::string name, file;
     Texture *tex;
-    textkey() : name(NULL), file(NULL), tex(NULL) {}
-    textkey(char *n, char *f, Texture *t) : name(newstring(n)), file(newstring(f)), tex(t) {}
-    ~textkey()
-    {
-        DELETEA(name);
-        DELETEA(file);
-    }
+    textkey() : tex(NULL) {}
+    textkey(const std::string& n, const std::string& f, Texture *t) : name(n), file(f), tex(t) {}
 };
 vector<textkey *> textkeys;
 
-textkey *findtextkey(const char *str)
+textkey *findtextkey(const std::string& str)
 {
-    loopv(textkeys) if(!strcmp(textkeys[i]->name, str)) return textkeys[i];
+    loopv(textkeys) if(textkeys[i]->name == str) return textkeys[i];
     string key = "textures/keys/";
     int q = strlen(key);
-    concatstring(key, str);
+    concatstring(key, str.c_str());
     for(int r = strlen(key); q < r; q++) key[q] = tolower(key[q]);
     textkey *t = new textkey;
-    t->name = newstring(str);
-    t->file = newstring(key);
-    t->tex = textureload(t->file, 0, true, false);
+    t->name = str;
+    t->file = key;
+    t->tex = textureload(t->file.c_str(), 0, true, false);
     if(t->tex == notexture) t->tex = NULL;
     textkeys.add(t);
     return t;
@@ -775,23 +770,19 @@ textkey *findtextkey(const char *str)
 
 struct tklookup
 {
-    char *name;
+    std::string name;
     int type;
     bindlist blist;
-    tklookup() : name(NULL), type(0) {}
-    tklookup(char *n, int t) : name(newstring(n)), type(t) {}
-    ~tklookup()
-    {
-        DELETEA(name);
-    }
+    tklookup() : type(0) {}
+    tklookup(const std::string& n, int t) : name(n), type(t) {}
 };
 vector<tklookup *> tklookups;
 
-tklookup *findtklookup(const char *str, int type)
+tklookup *findtklookup(const std::string& str, int type)
 {
-    loopv(tklookups) if(!strcmp(tklookups[i]->name, str) && tklookups[i]->type == type) return tklookups[i];
+    loopv(tklookups) if(tklookups[i]->name == str && tklookups[i]->type == type) return tklookups[i];
     tklookup *t = new tklookup;
-    t->name = newstring(str);
+    t->name = str;
     t->type = type;
     tklookups.add(t);
     return t;

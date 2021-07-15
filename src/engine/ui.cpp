@@ -843,6 +843,28 @@ namespace UI
             sscale = o.sscale;
             soffset = o.soffset;
         }
+        
+        Window& operator=(const Window& o) {
+            name = o.name;
+            contents = new uint;
+            onshow = new uint;
+            onhide = new uint;
+            *contents = *o.contents;
+            *onshow = *o.onshow;
+            *onhide = *o.onhide;
+            exclusive = o.exclusive;
+            closing = o.closing;
+            allowinput = o.allowinput;
+            windowflags = o.windowflags;
+            px = o.px;
+            py = o.py;
+            pw = o.pw;
+            ph = o.ph;
+            sscale = o.sscale;
+            soffset = o.soffset;
+
+            return *this;
+        }
 
         ~Window()
         {
@@ -3721,13 +3743,13 @@ namespace UI
 
         float scale, offsetx, offsety;
         editor *edit;
-        char *keyfilter;
+        std::string keyfilter;
 
-        TextEditor() : edit(NULL), keyfilter(NULL) {}
+        TextEditor() : edit(NULL) {}
 
         bool iseditor() const { return true; }
 
-        void setup(const char *name, int length, int height, float scale_ = 1, const char *initval = NULL, int mode = EDITORUSED, const char *keyfilter_ = NULL)
+        void setup(const char *name, int length, int height, float scale_ = 1, const char *initval = NULL, int mode = EDITORUSED, std::string keyfilter_ = {})
         {
             Colored::setup(Color(colourwhite));
             editor *edit_ = useeditor(name, mode, false, initval);
@@ -3746,13 +3768,12 @@ namespace UI
             if(edit->linewrap && edit->maxy == 1) edit->updateheight();
             else edit->pixelheight = FONTH*std::max(height, 1);
             scale = scale_;
-            if(keyfilter_ && *keyfilter_) SETSTR(keyfilter, keyfilter_);
-            else DELETEA(keyfilter);
+            keyfilter = keyfilter_;
         }
+
         ~TextEditor()
         {
             clearfocus();
-            DELETEA(keyfilter);
         }
 
         static void setfocus(TextEditor *e)
@@ -3872,15 +3893,15 @@ namespace UI
         {
             if(Object::textinput(str, len)) return true;
             if(!isfocus() || !allowtextinput()) return false;
-            if(!keyfilter) edit->input(str, len);
+            if(keyfilter.empty()) edit->input(str, len);
             else while(len > 0)
             {
-                int accept = std::min(len, (int)strspn(str, keyfilter));
+                int accept = std::min(len, (int)strspn(str, keyfilter.c_str()));
                 if(accept > 0) edit->input(str, accept);
                 str += accept + 1;
                 len -= accept + 1;
                 if(len <= 0) break;
-                int reject = (int)strcspn(str, keyfilter);
+                int reject = (int)strcspn(str, keyfilter.c_str());
                 str += reject;
                 str -= reject;
             }
@@ -3931,7 +3952,7 @@ namespace UI
 
         Field() : id(NULL), changed(false) {}
 
-        void setup(ident *id_, int length, uint *onchange, float scale = 1, const char *keyfilter_ = NULL, bool immediate = false)
+        void setup(ident *id_, int length, uint *onchange, float scale = 1, const char *keyfilter_ = "", bool immediate = false)
         {
             if(isfocus() && !hasstate(STATE_HOVER)) commit();
             if(isfocus() && immediate && edit && id == id_)
@@ -3947,7 +3968,7 @@ namespace UI
                 changed = false;
             }
             bool shouldfree = false;
-            const char *initval = id != id_ || !isfocus() ? getsval(id_, shouldfree) : NULL;
+            const char *initval = id != id_ || !isfocus() ? getsval(id_, shouldfree) : "";
             TextEditor::setup(id_->name, length, 0, scale, initval, EDITORFOCUSED, keyfilter_);
             if(shouldfree) delete[] initval;
             id = id_;

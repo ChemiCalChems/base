@@ -30,7 +30,7 @@ struct windemitter
     bool unused;
 
     windemitter(extentity *e = NULL);
-    virtual ~windemitter();
+    virtual ~windemitter() {}
 
     const vec &getwindpos();
     int getwindmode();

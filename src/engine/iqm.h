@@ -387,10 +387,10 @@ struct iqm : skelloader<iqm>
     bool loaddefaultparts()
     {
         skelpart &mdl = addpart();
-        const char *fname = name + strlen(name);
+        const char *fname = name.c_str() + strlen(name.c_str());
         do --fname; while(fname >= name && *fname!='/' && *fname!='\\');
         fname++;
-        defformatstring(meshname, "%s/%s.iqm", name, fname);
+        defformatstring(meshname, "%s/%s.iqm", name.c_str(), fname);
         mdl.meshes = sharemeshes(path(meshname));
         if(!mdl.meshes) return false;
         mdl.initanimparts();

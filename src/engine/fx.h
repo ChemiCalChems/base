@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../shared/prop.h"
+
 namespace fx
 {
     enum

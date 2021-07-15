@@ -1,4 +1,5 @@
 #include "engine.h"
+#include <memory>
 
 struct stainvert
 {
@@ -31,31 +32,26 @@ VAR(0, dbgstain, 0, 0, 1);
 
 struct stainbuffer
 {
-    stainvert *verts;
+    std::unique_ptr<stainvert[]> verts;
     int maxverts, startvert, endvert, lastvert, availverts;
     GLuint vbo;
     bool dirty;
 
-    stainbuffer() : verts(NULL), maxverts(0), startvert(0), endvert(0), lastvert(0), availverts(0), vbo(0), dirty(false)
+    stainbuffer() : maxverts(0), startvert(0), endvert(0), lastvert(0), availverts(0), vbo(0), dirty(false)
     {}
-
-    ~stainbuffer()
-    {
-        DELETEA(verts);
-    }
 
     void init(int tris)
     {
         if(verts)
         {
-            DELETEA(verts);
+            verts.reset();
             maxverts = startvert = endvert = lastvert = availverts = 0;
         }
         if(tris)
         {
             maxverts = tris*3 + 3;
             availverts = maxverts - 3;
-            verts = new stainvert[maxverts];
+            verts = std::unique_ptr<stainvert[]>(new stainvert[maxverts]);
         }
     }
 
@@ -100,7 +96,7 @@ struct stainbuffer
         }
         if(d.endvert < d.startvert)
         {
-            vert = verts;
+            vert = &verts[0];
             end = &verts[d.endvert];
             while(vert < end)
             {
@@ -125,7 +121,7 @@ struct stainbuffer
             glBufferSubData_(GL_ARRAY_BUFFER, 0, count*sizeof(stainvert), &verts[startvert]);
             if(endvert < startvert)
             {
-                glBufferSubData_(GL_ARRAY_BUFFER, count*sizeof(stainvert), endvert*sizeof(stainvert), verts);
+                glBufferSubData_(GL_ARRAY_BUFFER, count*sizeof(stainvert), endvert*sizeof(stainvert), verts.get());
                 count += endvert;
             }
             dirty = false;
@@ -178,7 +174,7 @@ struct stainrenderer
     const char *texname;
     int flags, fadeintime, fadeouttime, timetolive;
     Texture *tex;
-    staininfo *stains;
+    std::unique_ptr<staininfo[]> stains;
     int maxstains, startstain, endstain;
     stainbuffer verts[NUMSTAINBUFS];
 
@@ -186,14 +182,9 @@ struct stainrenderer
         : texname(texname), flags(flags),
           fadeintime(fadeintime), fadeouttime(fadeouttime), timetolive(timetolive),
           tex(NULL),
-          stains(NULL), maxstains(0), startstain(0), endstain(0),
+          maxstains(0), startstain(0), endstain(0),
           stainu(0), stainv(0)
     {
-    }
-
-    ~stainrenderer()
-    {
-        DELETEA(stains);
     }
 
     bool usegbuffer() const { return !(flags&(SF_INVMOD|SF_GLOW)); }
@@ -202,10 +193,10 @@ struct stainrenderer
     {
         if(stains)
         {
-            DELETEA(stains);
+            stains.reset();
             maxstains = startstain = endstain = 0;
         }
-        stains = new staininfo[tris];
+        stains = std::unique_ptr<staininfo[]>(new staininfo[tris]);
         maxstains = tris;
         loopi(NUMSTAINBUFS) verts[i].init(i == STAINBUF_TRANSPARENT ? tris/2 : tris);
     }
@@ -260,9 +251,9 @@ struct stainrenderer
         for(; d < end && d->millis <= threshold; d++)
             cleared[d->owner] = d;
         if(d >= end && endstain < startstain)
-            for(d = stains, end = &stains[endstain]; d < end && d->millis <= threshold; d++)
+            for(d = stains.get(), end = &stains[endstain]; d < end && d->millis <= threshold; d++)
                 cleared[d->owner] = d;
-        startstain = d - stains;
+        startstain = d - stains.get();
         if(startstain == endstain) loopi(NUMSTAINBUFS) verts[i].clear();
         else loopi(NUMSTAINBUFS) if(cleared[i]) verts[i].clearstains(*cleared[i]);
     }
@@ -309,7 +300,7 @@ struct stainrenderer
         }
         if(endstain < startstain)
         {
-            d = stains;
+            d = stains.get();
             end = &stains[endstain];
             while(d < end)
             {

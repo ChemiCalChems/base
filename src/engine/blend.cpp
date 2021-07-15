@@ -13,28 +13,76 @@ struct BlendMapImage;
 
 struct BlendMapNode
 {
+    uchar type;
     union
     {
         BlendMapBranch *branch;
         BlendMapSolid *solid;
         BlendMapImage *image;
     };
+    
+    BlendMapNode() = default;
 
-    void cleanup(int type);
+    BlendMapNode(BlendMapNode&& o) noexcept {
+        type = o.type;
+        o.type = -1;
+        
+        switch(type) {
+        case BM_BRANCH:
+            branch = o.branch;
+            o.branch = nullptr;
+            break;
+        case BM_SOLID:
+            solid = o.solid;
+            o.solid = nullptr;
+            break;
+        case BM_IMAGE:
+            image = o.image;
+            o.image = nullptr;
+            break;
+        default:
+            assert(!"Unimplimented BlendMapNode type in move constructor"); 
+        }   
+    }
+
+    BlendMapNode& operator=(BlendMapNode&& o) noexcept {
+        if(this == &o) return *this;
+        
+        type = o.type;
+        o.type = -1;
+        
+        switch(type) {
+        case BM_BRANCH:
+            branch = o.branch;
+            o.branch = nullptr;
+            break;
+        case BM_SOLID:
+            solid = o.solid;
+            o.solid = nullptr;
+            break;
+        case BM_IMAGE:
+            image = o.image;
+            o.image = nullptr;
+            break;
+        default:
+            assert(!"Unimplimented BlendMapNode type in move constructor"); 
+        }
+         
+        return *this;  
+    };
+
+    ~BlendMapNode() { cleanup(); }
+    
+
+    void cleanup();
     void splitsolid(uchar &type, uchar val);
 };
 
 struct BlendMapBranch
 {
-    uchar type[4];
     BlendMapNode children[4];
 
-    ~BlendMapBranch()
-    {
-        loopi(4) children[i].cleanup(type[i]);
-    }
-
-    uchar shrink(BlendMapNode &child, int quadrant);
+    BlendMapNode shrink(int quadrant);
 };
 
 struct BlendMapSolid
@@ -52,7 +100,7 @@ struct BlendMapImage
     uchar data[BM_IMAGE_SIZE*BM_IMAGE_SIZE];
 };
 
-void BlendMapNode::cleanup(int type)
+void BlendMapNode::cleanup()
 {
     switch(type)
     {
@@ -73,41 +121,34 @@ static BlendMapSolid bmsolids[256] =
 
 void BlendMapNode::splitsolid(uchar &type, uchar val)
 {
-    cleanup(type);
+    cleanup();
     type = BM_BRANCH;
     branch = new BlendMapBranch;
     loopi(4)
     {
-        branch->type[i] = BM_SOLID;
+        branch->children[i].type = BM_SOLID;
         branch->children[i].solid = &bmsolids[val];
     }
 }
 
-uchar BlendMapBranch::shrink(BlendMapNode &child, int quadrant)
+BlendMapNode BlendMapBranch::shrink(int quadrant)
 {
-    uchar childtype = type[quadrant];
-    child = children[quadrant];
-    type[quadrant] = BM_SOLID;
+    auto child = std::move(children[quadrant]);
+    children[quadrant].type = BM_SOLID;
     children[quadrant].solid = &bmsolids[0];
-    return childtype;
+    return child;
 }
 
 struct BlendMapRoot : BlendMapNode
 {
-    uchar type;
-
-    BlendMapRoot() : type(BM_SOLID) { solid = &bmsolids[0xFF]; }
-    BlendMapRoot(uchar type, const BlendMapNode &node) : BlendMapNode(node), type(type) {}
-
-    void cleanup() { BlendMapNode::cleanup(type); }
+    BlendMapRoot() { type = BM_SOLID; solid = &bmsolids[0xFF]; }
+    BlendMapRoot(BlendMapNode&& node) noexcept { BlendMapNode::operator=(std::forward<BlendMapNode>(node)); } 
 
     void shrink(int quadrant)
     {
         if(type == BM_BRANCH)
         {
-            BlendMapRoot oldroot = *this;
-            type = branch->shrink(*this, quadrant);
-            oldroot.cleanup();
+           *this = branch->shrink(quadrant);
         }
     }
 };
@@ -129,7 +170,7 @@ bool setblendmaporigin(BlendMapCache *cache, const ivec &o, int size)
 {
     if(blendmap.type!=BM_BRANCH)
     {
-        cache->node = blendmap;
+        cache->node = std::move(blendmap);
         cache->scale = worldscale-BM_SCALE;
         cache->origin = ivec2(0, 0);
         return cache->node.solid!=&bmsolids[0xFF];
@@ -146,9 +187,9 @@ bool setblendmaporigin(BlendMapCache *cache, const ivec &o, int size)
     {
         bmscale--;
         int n = (((y1>>bmscale)&1)<<1) | ((x1>>bmscale)&1);
-        if(bm->type[n]!=BM_BRANCH)
+        if(bm->children[n].type != BM_BRANCH)
         {
-            cache->node = BlendMapRoot(bm->type[n], bm->children[n]);
+            cache->node = BlendMapRoot(std::move(bm->children[n]));
             cache->scale = bmscale;
             cache->origin = ivec2(x1&(~0U<<bmscale), y1&(~0U<<bmscale));
             return cache->node.solid!=&bmsolids[0xFF];
@@ -174,7 +215,7 @@ static uchar lookupblendmap(int x, int y, BlendMapBranch *bm, int bmscale)
     {
         bmscale--;
         int n = (((y>>bmscale)&1)<<1) | ((x>>bmscale)&1);
-        switch(bm->type[n])
+        switch(bm->children[n].type)
         {
             case BM_SOLID: return bm->children[n].solid->val;
             case BM_IMAGE: return bm->children[n].image->data[(y&((1<<bmscale)-1))*BM_IMAGE_SIZE + (x&((1<<bmscale)-1))];
@@ -207,7 +248,7 @@ static void fillblendmap(uchar &type, BlendMapNode &node, int size, uchar val, i
 {
     if(std::max(x1, y1) <= 0 && std::min(x2, y2) >= size)
     {
-        node.cleanup(type);
+        node.cleanup();
         type = BM_SOLID;
         node.solid = &bmsolids[val];
         return;
@@ -218,20 +259,20 @@ static void fillblendmap(uchar &type, BlendMapNode &node, int size, uchar val, i
         size /= 2;
         if(y1 < size)
         {
-            if(x1 < size) fillblendmap(node.branch->type[0], node.branch->children[0], size, val,
+            if(x1 < size) fillblendmap(node.branch->children[0].type, node.branch->children[0], size, val,
                                         x1, y1, std::min(x2, size), std::min(y2, size));
-            if(x2 > size) fillblendmap(node.branch->type[1], node.branch->children[1], size, val,
+            if(x2 > size) fillblendmap(node.branch->children[1].type, node.branch->children[1], size, val,
                                         std::max(x1-size, 0), y1, x2-size, std::min(y2, size));
         }
         if(y2 > size)
         {
-            if(x1 < size) fillblendmap(node.branch->type[2], node.branch->children[2], size, val,
+            if(x1 < size) fillblendmap(node.branch->children[2].type, node.branch->children[2], size, val,
                                         x1, std::max(y1-size, 0), std::min(x2, size), y2-size);
-            if(x2 > size) fillblendmap(node.branch->type[3], node.branch->children[3], size, val,
+            if(x2 > size) fillblendmap(node.branch->children[3].type, node.branch->children[3], size, val,
                                         std::max(x1-size, 0), std::max(y1-size, 0), x2-size, y2-size);
         }
-        loopi(4) if(node.branch->type[i]!=BM_SOLID || node.branch->children[i].solid->val!=val) return;
-        node.cleanup(type);
+        loopi(4) if(node.branch->children[i].type!=BM_SOLID || node.branch->children[i].solid->val!=val) return;
+        node.cleanup();
         type = BM_SOLID;
         node.solid = &bmsolids[val];
         return;
@@ -279,16 +320,16 @@ static void invertblendmap(uchar &type, BlendMapNode &node, int size, int x1, in
         size /= 2;
         if(y1 < size)
         {
-            if(x1 < size) invertblendmap(node.branch->type[0], node.branch->children[0], size,
+            if(x1 < size) invertblendmap(node.branch->children[0].type, node.branch->children[0], size,
                                         x1, y1, std::min(x2, size), std::min(y2, size));
-            if(x2 > size) invertblendmap(node.branch->type[1], node.branch->children[1], size,
+            if(x2 > size) invertblendmap(node.branch->children[1].type, node.branch->children[1], size,
                                         std::max(x1-size, 0), y1, x2-size, std::min(y2, size));
         }
         if(y2 > size)
         {
-            if(x1 < size) invertblendmap(node.branch->type[2], node.branch->children[2], size,
+            if(x1 < size) invertblendmap(node.branch->children[2].type, node.branch->children[2], size,
                                         x1, std::max(y1-size, 0), std::min(x2, size), y2-size);
-            if(x2 > size) invertblendmap(node.branch->type[3], node.branch->children[3], size,
+            if(x2 > size) invertblendmap(node.branch->children[3].type, node.branch->children[3], size,
                                         std::max(x1-size, 0), std::max(y1-size, 0), x2-size, y2-size);
         }
         return;
@@ -330,18 +371,18 @@ static void optimizeblendmap(uchar &type, BlendMapNode &node)
             val |= val<<16;
             for(uint *data = (uint *)node.image->data, *end = &data[sizeof(node.image->data)/sizeof(uint)]; data < end; data++)
                 if(*data != val) return;
-            node.cleanup(type);
+            node.cleanup();
             type = BM_SOLID;
             node.solid = &bmsolids[val&0xFF];
             break;
         }
         case BM_BRANCH:
         {
-            loopi(4) optimizeblendmap(node.branch->type[i], node.branch->children[i]);
-            if(node.branch->type[3]!=BM_SOLID) return;
+            loopi(4) optimizeblendmap(node.branch->children[i].type, node.branch->children[i]);
+            if(node.branch->children[3].type!=BM_SOLID) return;
             uint val = node.branch->children[3].solid->val;
-            loopi(3) if(node.branch->type[i]!=BM_SOLID || node.branch->children[i].solid->val != val) return;
-            node.cleanup(type);
+            loopi(3) if(node.branch->children[i].type!=BM_SOLID || node.branch->children[i].solid->val != val) return;
+            node.cleanup();
             type = BM_SOLID;
             node.solid = &bmsolids[val];
             break;
@@ -369,13 +410,13 @@ static void blitblendmap(uchar &type, BlendMapNode &node, int bmx, int bmy, int 
         bmsize /= 2;
         if(sy < bmy + bmsize)
         {
-            if(sx < bmx + bmsize) blitblendmap(node.branch->type[0], node.branch->children[0], bmx, bmy, bmsize, src, sx, sy, sw, sh, smode);
-            if(sx + sw > bmx + bmsize) blitblendmap(node.branch->type[1], node.branch->children[1], bmx+bmsize, bmy, bmsize, src, sx, sy, sw, sh, smode);
+            if(sx < bmx + bmsize) blitblendmap(node.branch->children[0].type, node.branch->children[0], bmx, bmy, bmsize, src, sx, sy, sw, sh, smode);
+            if(sx + sw > bmx + bmsize) blitblendmap(node.branch->children[1].type, node.branch->children[1], bmx+bmsize, bmy, bmsize, src, sx, sy, sw, sh, smode);
         }
         if(sy + sh > bmy + bmsize)
         {
-            if(sx < bmx + bmsize) blitblendmap(node.branch->type[2], node.branch->children[2], bmx, bmy+bmsize, bmsize, src, sx, sy, sw, sh, smode);
-            if(sx + sw > bmx + bmsize) blitblendmap(node.branch->type[3], node.branch->children[3], bmx+bmsize, bmy+bmsize, bmsize, src, sx, sy, sw, sh, smode);
+            if(sx < bmx + bmsize) blitblendmap(node.branch->children[2].type, node.branch->children[2], bmx, bmy+bmsize, bmsize, src, sx, sy, sw, sh, smode);
+            if(sx + sw > bmx + bmsize) blitblendmap(node.branch->children[3].type, node.branch->children[3], bmx+bmsize, bmy+bmsize, bmsize, src, sx, sy, sw, sh, smode);
         }
         return;
     }
@@ -446,11 +487,10 @@ void enlargeblendmap()
 {
     if(blendmap.type == BM_SOLID) return;
     BlendMapBranch *branch = new BlendMapBranch;
-    branch->type[0] = blendmap.type;
-    branch->children[0] = blendmap;
+    branch->children[0] = std::move(blendmap);
     loopi(3)
     {
-        branch->type[i+1] = BM_SOLID;
+        branch->children[i+1].type = BM_SOLID;
         branch->children[i+1].solid = &bmsolids[0xFF];
     }
     blendmap.type = BM_BRANCH;
@@ -472,12 +512,12 @@ static int calcblendlayer(uchar &type, BlendMapNode &node, int bmx, int bmy, int
         {
             if(cx < bmx + bmsize)
             {
-                int clayer = calcblendlayer(node.branch->type[0], node.branch->children[0], bmx, bmy, bmsize, cx, cy, cw, ch);
+                int clayer = calcblendlayer(node.branch->children[0].type, node.branch->children[0], bmx, bmy, bmsize, cx, cy, cw, ch);
                 if(layer < 0) layer = clayer; else if(clayer != layer) return LAYER_BLEND;
             }
             if(cx + cw > bmx + bmsize)
             {
-                int clayer = calcblendlayer(node.branch->type[1], node.branch->children[1], bmx+bmsize, bmy, bmsize, cx, cy, cw, ch);
+                int clayer = calcblendlayer(node.branch->children[1].type, node.branch->children[1], bmx+bmsize, bmy, bmsize, cx, cy, cw, ch);
                 if(layer < 0) layer = clayer; else if(clayer != layer) return LAYER_BLEND;
             }
         }
@@ -485,12 +525,12 @@ static int calcblendlayer(uchar &type, BlendMapNode &node, int bmx, int bmy, int
         {
             if(cx < bmx + bmsize)
             {
-                int clayer = calcblendlayer(node.branch->type[2], node.branch->children[2], bmx, bmy+bmsize, bmsize, cx, cy, cw, ch);
+                int clayer = calcblendlayer(node.branch->children[2].type, node.branch->children[2], bmx, bmy+bmsize, bmsize, cx, cy, cw, ch);
                 if(layer < 0) layer = clayer; else if(clayer != layer) return LAYER_BLEND;
             }
             if(cx + cw > bmx + bmsize)
             {
-                int clayer = calcblendlayer(node.branch->type[3], node.branch->children[3], bmx+bmsize, bmy+bmsize, bmsize, cx, cy, cw, ch);
+                int clayer = calcblendlayer(node.branch->children[3].type, node.branch->children[3], bmx+bmsize, bmy+bmsize, bmsize, cx, cy, cw, ch);
                 if(layer < 0) layer = clayer; else if(clayer != layer) return LAYER_BLEND;
             }
         }
@@ -534,10 +574,10 @@ void moveblendmap(uchar type, BlendMapNode &node, int size, int x, int y, int dx
     if(type == BM_BRANCH)
     {
         size /= 2;
-        moveblendmap(node.branch->type[0], node.branch->children[0], size, x, y, dx, dy);
-        moveblendmap(node.branch->type[1], node.branch->children[1], size, x + size, y, dx, dy);
-        moveblendmap(node.branch->type[2], node.branch->children[2], size, x, y + size, dx, dy);
-        moveblendmap(node.branch->type[3], node.branch->children[3], size, x + size, y + size, dx, dy);
+        moveblendmap(node.branch->children[0].type, node.branch->children[0], size, x, y, dx, dy);
+        moveblendmap(node.branch->children[1].type, node.branch->children[1], size, x + size, y, dx, dy);
+        moveblendmap(node.branch->children[2].type, node.branch->children[2], size, x, y + size, dx, dy);
+        moveblendmap(node.branch->children[3].type, node.branch->children[3], size, x + size, y + size, dx, dy);
         return;
     }
     else if(type == BM_SOLID)
@@ -552,46 +592,50 @@ void moveblendmap(uchar type, BlendMapNode &node, int size, int x, int y, int dx
 
 void moveblendmap(int dx, int dy)
 {
-    BlendMapRoot old = blendmap;
+    BlendMapRoot old = std::move(blendmap);
     blendmap.type = BM_SOLID;
     blendmap.solid = &bmsolids[0xFF];
     moveblendmap(old.type, old, worldsize>>BM_SCALE, 0, 0, dx, dy);
-    old.cleanup();
 }
 
 struct BlendBrush
 {
-    char *name;
+    struct GLTexture {
+        GLuint texture;  
+
+        GLTexture() : texture{0} {}
+        ~GLTexture() { cleanup(); }
+
+        GLTexture(const GLTexture& o) = delete;
+        GLTexture operator=(const GLTexture& o) = delete; 
+        GLTexture(GLTexture&& o) noexcept = default;
+        GLTexture& operator=(GLTexture&& o) noexcept = default;
+
+        void cleanup() { glDeleteTextures(1, &texture); texture = 0;}
+
+    } tex;
+
+    std::string name;
     int w, h;
-    uchar *data;
-    GLuint tex;
+    std::unique_ptr<uchar[]> data;
 
     BlendBrush(const char *name, int w, int h) :
-      name(newstring(name)), w(w), h(h), data(new uchar[w*h]), tex(0)
+      name(name), w(w), h(h), data(new uchar[w*h])
     {}
 
-    ~BlendBrush()
-    {
-        cleanup();
-        delete[] name;
-        if(data) delete[] data;
-    }
+    void cleanup() { tex.cleanup(); }
 
-    void cleanup()
-    {
-        if(tex) { glDeleteTextures(1, &tex); tex = 0; }
-    }
 
     void gentex()
     {
-        if(!tex) glGenTextures(1, &tex);
+        if(!tex.texture) glGenTextures(1, &tex.texture);
         uchar *buf = new uchar[w*h];
-        uchar *dst = buf, *src = data;
+        uchar *dst = buf, *src = data.get();
         loopi(h)
         {
             loopj(w) *dst++ = 255 - *src++;
         }
-        createtexture(tex, w, h, buf, 3, 1, hasTRG ? GL_R8 : GL_LUMINANCE8);
+        createtexture(tex.texture, w, h, buf, 3, 1, hasTRG ? GL_R8 : GL_LUMINANCE8);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         GLfloat border[4] = { 0, 0, 0, 0 };
@@ -604,7 +648,7 @@ struct BlendBrush
         uchar *rdata = new uchar[w*h];
         int stridex = 1, stridey = 1;
         if(swapxy) stridex *= h; else stridey *= w;
-        uchar *src = data, *dst = rdata;
+        uchar *src = data.get(), *dst = rdata;
         if(flipx) { dst += (w-1)*stridex; stridex = -stridex; }
         if(flipy) { dst += (h-1)*stridey; stridey = -stridey; }
         loopi(h)
@@ -618,9 +662,8 @@ struct BlendBrush
             dst += stridey;
         }
         if(swapxy) std::swap(w, h);
-        delete[] data;
-        data = rdata;
-        if(tex) gentex();
+        data = std::unique_ptr<uchar[]>(rdata);
+        if(tex.texture) gentex();
     }
 };
 
@@ -639,6 +682,44 @@ struct BlendTexture
 
     BlendTexture() : x(0), y(0), size(0), data(NULL), tex(0), format(GL_FALSE), valid(false)
     {}
+    
+    BlendTexture(const BlendTexture& o) {
+        x = o.x;
+        y = o.y;
+        size = o.size;
+        tex = o.tex;
+        format = o.format;
+        valid = o.valid;
+
+        if (o.data) {
+            data = new uchar[size*size];
+            for (std::size_t i = 0; i < size*size; i++) {
+                data[i] = o.data[i];
+            }
+        }
+        else data = NULL;
+    }
+
+    BlendTexture& operator=(const BlendTexture& o) {
+        cleanup();
+
+        x = o.x;
+        y = o.y;
+        size = o.size;
+        tex = o.tex;
+        format = o.format;
+        valid = o.valid;
+
+        if (o.data) {
+            data = new uchar[size*size];
+            for (std::size_t i = 0; i < size*size; i++) {
+                data[i] = o.data[i];
+            }
+        }
+        else data = NULL;
+        
+        return *this;
+    }
 
     ~BlendTexture()
     {
@@ -700,13 +781,13 @@ static void renderblendtexture(uchar &type, BlendMapNode &node, int bmx, int bmy
         bmsize /= 2;
         if(dy < bmy + bmsize)
         {
-            if(dx < bmx + bmsize) renderblendtexture(node.branch->type[0], node.branch->children[0], bmx, bmy, bmsize, dst, dsize, dx, dy, dw, dh);
-            if(dx + dw > bmx + bmsize) renderblendtexture(node.branch->type[1], node.branch->children[1], bmx+bmsize, bmy, bmsize, dst, dsize, dx, dy, dw, dh);
+            if(dx < bmx + bmsize) renderblendtexture(node.branch->children[0].type, node.branch->children[0], bmx, bmy, bmsize, dst, dsize, dx, dy, dw, dh);
+            if(dx + dw > bmx + bmsize) renderblendtexture(node.branch->children[1].type, node.branch->children[1], bmx+bmsize, bmy, bmsize, dst, dsize, dx, dy, dw, dh);
         }
         if(dy + dh > bmy + bmsize)
         {
-            if(dx < bmx + bmsize) renderblendtexture(node.branch->type[2], node.branch->children[2], bmx, bmy+bmsize, bmsize, dst, dsize, dx, dy, dw, dh);
-            if(dx + dw > bmx + bmsize) renderblendtexture(node.branch->type[3], node.branch->children[3], bmx+bmsize, bmy+bmsize, bmsize, dst, dsize, dx, dy, dw, dh);
+            if(dx < bmx + bmsize) renderblendtexture(node.branch->children[2].type, node.branch->children[2], bmx, bmy+bmsize, bmsize, dst, dsize, dx, dy, dw, dh);
+            if(dx + dw > bmx + bmsize) renderblendtexture(node.branch->children[3].type, node.branch->children[3], bmx+bmsize, bmy+bmsize, bmsize, dst, dsize, dx, dy, dw, dh);
         }
         return;
     }
@@ -748,16 +829,16 @@ static bool usesblendmap(uchar &type, BlendMapNode &node, int bmx, int bmy, int 
         bmsize /= 2;
         if(uy < bmy + bmsize)
         {
-            if(ux < bmx + bmsize && usesblendmap(node.branch->type[0], node.branch->children[0], bmx, bmy, bmsize, ux, uy, uw, uh))
+            if(ux < bmx + bmsize && usesblendmap(node.branch->children[0].type, node.branch->children[0], bmx, bmy, bmsize, ux, uy, uw, uh))
                 return true;
-            if(ux + uw > bmx + bmsize && usesblendmap(node.branch->type[1], node.branch->children[1], bmx+bmsize, bmy, bmsize, ux, uy, uw, uh))
+            if(ux + uw > bmx + bmsize && usesblendmap(node.branch->children[1].type, node.branch->children[1], bmx+bmsize, bmy, bmsize, ux, uy, uw, uh))
                 return true;
         }
         if(uy + uh > bmy + bmsize)
         {
-            if(ux < bmx + bmsize && usesblendmap(node.branch->type[2], node.branch->children[2], bmx, bmy+bmsize, bmsize, ux, uy, uw, uh))
+            if(ux < bmx + bmsize && usesblendmap(node.branch->children[2].type, node.branch->children[2], bmx, bmy+bmsize, bmsize, ux, uy, uw, uh))
                 return true;
-            if(ux + uw > bmx + bmsize && usesblendmap(node.branch->type[3], node.branch->children[3], bmx+bmsize, bmy+bmsize, bmsize, ux, uy, uw, uh))
+            if(ux + uw > bmx + bmsize && usesblendmap(node.branch->children[3].type, node.branch->children[3], bmx+bmsize, bmy+bmsize, bmsize, ux, uy, uw, uh))
                 return true;
         }
         return false;
@@ -797,13 +878,13 @@ static void updateblendtextures(uchar &type, BlendMapNode &node, int bmx, int bm
             bmsize /= 2;
             if(uy < bmy + bmsize)
             {
-                if(ux < bmx + bmsize) updateblendtextures(node.branch->type[0], node.branch->children[0], bmx, bmy, bmsize, ux, uy, uw, uh);
-                if(ux + uw > bmx + bmsize) updateblendtextures(node.branch->type[1], node.branch->children[1], bmx+bmsize, bmy, bmsize, ux, uy, uw, uh);
+                if(ux < bmx + bmsize) updateblendtextures(node.branch->children[0].type, node.branch->children[0], bmx, bmy, bmsize, ux, uy, uw, uh);
+                if(ux + uw > bmx + bmsize) updateblendtextures(node.branch->children[1].type, node.branch->children[1], bmx+bmsize, bmy, bmsize, ux, uy, uw, uh);
             }
             if(uy + uh > bmy + bmsize)
             {
-                if(ux < bmx + bmsize) updateblendtextures(node.branch->type[2], node.branch->children[2], bmx, bmy+bmsize, bmsize, ux, uy, uw, uh);
-                if(ux + uw > bmx + bmsize) updateblendtextures(node.branch->type[3], node.branch->children[3], bmx+bmsize, bmy+bmsize, bmsize, ux, uy, uw, uh);
+                if(ux < bmx + bmsize) updateblendtextures(node.branch->children[2].type, node.branch->children[2], bmx, bmy+bmsize, bmsize, ux, uy, uw, uh);
+                if(ux + uw > bmx + bmsize) updateblendtextures(node.branch->children[3].type, node.branch->children[3], bmx+bmsize, bmy+bmsize, bmsize, ux, uy, uw, uh);
             }
             return;
         }
@@ -880,7 +961,7 @@ ICOMMAND(0, clearblendbrushes, "", (),
 
 void delblendbrush(const char *name)
 {
-    loopv(brushes) if(!strcmp(brushes[i]->name, name))
+    loopv(brushes) if(brushes[i]->name == name)
     {
         delete brushes[i];
         brushes.remove(i--);
@@ -904,7 +985,7 @@ void addblendbrush(const char *name, const char *imgname)
 
     BlendBrush *brush = new BlendBrush(name, s.w, s.h);
 
-    uchar *dst = brush->data, *srcrow = s.data;
+    uchar *dst = brush->data.get(), *srcrow = s.data;
     loopi(s.h)
     {
         for(uchar *src = srcrow, *end = &srcrow[s.w*s.bpp]; src < end; src += s.bpp)
@@ -928,7 +1009,7 @@ ICOMMAND(0, blendbrushdelta, "i", (int *dir),
     while(curbrush < 0) curbrush += brushes.length();
 });
 
-ICOMMAND(0, getblendbrushname, "i", (int *n), result(brushes.inrange(*n) ? brushes[*n]->name : ""));
+ICOMMAND(0, getblendbrushname, "i", (int *n), result(brushes.inrange(*n) ? brushes[*n]->name.c_str() : ""));
 
 ICOMMAND(0, blendbrush, "sN$", (char *s, int *numargs, ident *id),
 {
@@ -938,13 +1019,13 @@ ICOMMAND(0, blendbrush, "sN$", (char *s, int *numargs, ident *id),
         if(s != NULL)
         {
             if(isnumeric(*s)) n = atoi(s);
-            else loopv(brushes) if(!strcmp(brushes[i]->name, s)) { n = i; break; }
+            else loopv(brushes) if(brushes[i]->name == s) { n = i; break; }
         }
         if(brushes.inrange(n)) curbrush = n;
         else curbrush = -1;
     }
     else if(*numargs < 0) intret(curbrush);
-    else printvar(id, curbrush, brushes.inrange(curbrush) ? brushes[curbrush]->name : "");
+    else printvar(id, curbrush, brushes.inrange(curbrush) ? brushes[curbrush]->name.c_str() : "");
 });
 
 bool canpaintblendmap(bool brush = true, bool sel = false, bool msg = true)
@@ -991,7 +1072,7 @@ void paintblendmap(bool msg)
     BlendBrush *brush = brushes[curbrush];
     int x = 0, y = 0;
     getblendpos(brush, x, y);
-    blitblendmap(brush->data, x, y, brush->w, brush->h, blendpaintmode);
+    blitblendmap(brush->data.get(), x, y, brush->w, brush->h, blendpaintmode);
     previewblends(ivec((x-1)<<BM_SCALE, (y-1)<<BM_SCALE, 0),
                   ivec((x+brush->w+1)<<BM_SCALE, (y+brush->h+1)<<BM_SCALE, worldsize));
 }
@@ -1105,8 +1186,8 @@ void renderblendbrush()
 
     if(std::max(x1, y1) >= worldsize || std::min(x2, y2) <= 0 || x1>=x2 || y1>=y2) return;
 
-    if(!brush->tex) brush->gentex();
-    renderblendbrush(brush->tex, x1, y1, x2 - x1, y2 - y1);
+    if(!brush->tex.texture) brush->gentex();
+    renderblendbrush(brush->tex.texture, x1, y1, x2 - x1, y2 - y1);
 }
 
 bool loadblendmap(stream *f, uchar &type, BlendMapNode &node)
@@ -1130,8 +1211,8 @@ bool loadblendmap(stream *f, uchar &type, BlendMapNode &node)
 
         case BM_BRANCH:
             node.branch = new BlendMapBranch;
-            loopi(4) { node.branch->type[i] = BM_SOLID; node.branch->children[i].solid = &bmsolids[0xFF]; }
-            loopi(4) if(!loadblendmap(f, node.branch->type[i], node.branch->children[i]))
+            loopi(4) { node.branch->children[i].type = BM_SOLID; node.branch->children[i].solid = &bmsolids[0xFF]; }
+            loopi(4) if(!loadblendmap(f, node.branch->children[i].type, node.branch->children[i]))
                 return false;
             break;
 
@@ -1163,7 +1244,7 @@ void saveblendmap(stream *f, uchar type, BlendMapNode &node)
             break;
 
         case BM_BRANCH:
-            loopi(4) saveblendmap(f, node.branch->type[i], node.branch->children[i]);
+            loopi(4) saveblendmap(f, node.branch->children[i].type, node.branch->children[i]);
             break;
     }
 }

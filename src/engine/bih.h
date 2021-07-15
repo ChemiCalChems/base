@@ -58,15 +58,67 @@ struct BIH
     };
 
     mesh *meshes;
-    int nummeshes;
+    std::size_t nummeshes;
     node *nodes;
-    int numnodes;
+    std::size_t numnodes;
     tribb *tribbs;
-    int numtris;
+    std::size_t numtris;
     vec bbmin, bbmax, center;
     float radius, entradius;
 
     BIH(vector<mesh> &buildmeshes);
+    
+    BIH(const BIH& o) {
+        nummeshes = o.nummeshes;
+        numnodes = o.numnodes;
+        numtris = o.numtris;
+
+        radius = o.radius;
+        entradius = o.entradius;
+
+        meshes = new mesh[nummeshes];
+        nodes = new node[numnodes];
+        tribbs = new tribb[numtris];
+
+        for (std::size_t i = 0; i < nummeshes; i++) {
+            meshes[i] = o.meshes[i];
+        }
+
+        for (std::size_t i = 0; i < numnodes; i++) {
+            nodes[i] = o.nodes[i];
+        }
+
+        for (std::size_t i = 0; i < numnodes; i++) {
+            tribbs[i] = o.tribbs[i];
+        }
+    }
+
+    BIH& operator=(const BIH& o) {
+        nummeshes = o.nummeshes;
+        numnodes = o.numnodes;
+        numtris = o.numtris;
+
+        radius = o.radius;
+        entradius = o.entradius;
+
+        meshes = new mesh[nummeshes];
+        nodes = new node[numnodes];
+        tribbs = new tribb[numtris];
+
+        for (std::size_t i = 0; i < nummeshes; i++) {
+            meshes[i] = o.meshes[i];
+        }
+
+        for (std::size_t i = 0; i < numnodes; i++) {
+            nodes[i] = o.nodes[i];
+        }
+
+        for (std::size_t i = 0; i < numnodes; i++) {
+            tribbs[i] = o.tribbs[i];
+        }
+        
+        return *this;
+    }
 
     ~BIH();
 

@@ -92,13 +92,9 @@ struct ipinfo
     enum { TEMPORARY = 0, INTERNAL, LOCAL, GLOBAL };
     enet_uint32 ip, mask;
     int type, flag, time, version;
-    char *reason;
+    std::string reason;
 
-    ipinfo() : ip(0), mask(0), type(-1), flag(TEMPORARY), time(-1), version(-1), reason(NULL) {}
-    ~ipinfo()
-    {
-        if(reason) delete[] reason;
-    }
+    ipinfo() : ip(0), mask(0), type(-1), flag(TEMPORARY), time(-1), version(-1) {}
 };
 extern vector<ipinfo> control;
 extern const char *ipinfotypes[ipinfo::MAXTYPES];
@@ -145,14 +141,12 @@ struct font
         short x, y, w, h, offsetx, offsety, advance, tex;
     };
 
-    char *name;
+    std::string name;
     vector<Texture *> texs;
     vector<charinfo> chars;
     int charoffset, defaultw, defaulth, maxw, maxh, mw, mh;
     float scale, bordermin, bordermax, outlinemin, outlinemax;
 
-    font() : name(NULL) {}
-    ~font() { DELETEA(name); }
 };
 extern float textscale, curtextscale;
 

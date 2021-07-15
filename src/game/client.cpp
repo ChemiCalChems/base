@@ -117,9 +117,6 @@ namespace client
         string map;
         int millis, mode, muts;
 
-        mapvote() {}
-        ~mapvote() { players.shrink(0); }
-
         static bool compare(const mapvote &a, const mapvote &b)
         {
             if(sortvotes)
@@ -721,8 +718,8 @@ namespace client
                 if(!op(arg, val)) return o->clientnum; \
             } \
         }
-        PARSEPLAYER(strcmp, game::colourname(o, NULL, false, true, 0));
-        PARSEPLAYER(strcasecmp, game::colourname(o, NULL, false, true, 0));
+        PARSEPLAYER(strcmp, game::colourname(o, "", false, true, 0));
+        PARSEPLAYER(strcasecmp, game::colourname(o, "", false, true, 0));
         PARSEPLAYER(strcmp, o->name.c_str());
         PARSEPLAYER(strcasecmp, o->name.c_str());
         #define PARSEPLAYERN(op,val) \
@@ -736,8 +733,8 @@ namespace client
             } \
         }
         size_t len = strlen(arg);
-        PARSEPLAYERN(strncmp, game::colourname(o, NULL, false, true, 0));
-        PARSEPLAYERN(strncasecmp, game::colourname(o, NULL, false, true, 0));
+        PARSEPLAYERN(strncmp, game::colourname(o, "", false, true, 0));
+        PARSEPLAYERN(strncasecmp, game::colourname(o, "", false, true, 0));
         PARSEPLAYERN(strncmp, o->name.c_str());
         PARSEPLAYERN(strncasecmp, o->name.c_str());
         return -1;
@@ -3716,11 +3713,11 @@ namespace client
 
     int serverstat(serverinfo *a)
     {
-        if(a->attr.length() > 4 && a->numplayers >= a->attr[4])
+        if(a->attr.size() > 4 && a->numplayers >= a->attr[4])
         {
             return SSTAT_FULL;
         }
-        else if(a->attr.length() > 5) switch(a->attr[5])
+        else if(a->attr.size() > 5) switch(a->attr[5])
         {
             case MM_LOCKED:
             {
@@ -3780,25 +3777,25 @@ namespace client
                 }
                 case SINFO_DESC:
                 {
-                    retcp(strcmp(aa->sdesc, ab->sdesc));
+                    retcp(strcmp(aa->sdesc.c_str(), ab->sdesc.c_str()));
                     break;
                 }
                 case SINFO_MODE:
                 {
-                    if(aa->attr.length() > 1) ac = aa->attr[1];
+                    if(aa->attr.size() > 1) ac = aa->attr[1];
                     else ac = 0;
 
-                    if(ab->attr.length() > 1) bc = ab->attr[1];
+                    if(ab->attr.size() > 1) bc = ab->attr[1];
                     else bc = 0;
 
                     retsw(ac, bc, true);
                 }
                 case SINFO_MUTS:
                 {
-                    if(aa->attr.length() > 2) ac = aa->attr[2];
+                    if(aa->attr.size() > 2) ac = aa->attr[2];
                     else ac = 0;
 
-                    if(ab->attr.length() > 2) bc = ab->attr[2];
+                    if(ab->attr.size() > 2) bc = ab->attr[2];
                     else bc = 0;
 
                     retsw(ac, bc, true);
@@ -3806,15 +3803,15 @@ namespace client
                 }
                 case SINFO_MAP:
                 {
-                    retcp(strcmp(aa->map, ab->map));
+                    retcp(strcmp(aa->map.c_str(), ab->map.c_str()));
                     break;
                 }
                 case SINFO_TIME:
                 {
-                    if(aa->attr.length() > 3) ac = aa->attr[3];
+                    if(aa->attr.size() > 3) ac = aa->attr[3];
                     else ac = 0;
 
-                    if(ab->attr.length() > 3) bc = ab->attr[3];
+                    if(ab->attr.size() > 3) bc = ab->attr[3];
                     else bc = 0;
 
                     retsw(ac, bc, false);
@@ -3827,10 +3824,10 @@ namespace client
                 }
                 case SINFO_MAXPLRS:
                 {
-                    if(aa->attr.length() > 4) ac = aa->attr[4];
+                    if(aa->attr.size() > 4) ac = aa->attr[4];
                     else ac = 0;
 
-                    if(ab->attr.length() > 4) bc = ab->attr[4];
+                    if(ab->attr.size() > 4) bc = ab->attr[4];
                     else bc = 0;
 
                     retsw(ac, bc, false);
@@ -3849,7 +3846,7 @@ namespace client
                 default: break;
             }
         }
-        return strcmp(a->name, b->name);
+        return strcmp(a->name.c_str(), b->name.c_str());
     }
 
     void parsepacketclient(int chan, packetbuf &p)  // processes any updates from the server
@@ -3885,30 +3882,30 @@ namespace client
                     else switch(idx)
                     {
                         case 0: intret(serverstat(si)); break;
-                        case 1: result(si->name); break;
+                        case 1: result(si->name.c_str()); break;
                         case 2: intret(si->port); break;
-                        case 3: result(si->sdesc[0] ? si->sdesc : si->name); break;
-                        case 4: result(si->map); break;
+                        case 3: result(!si->sdesc.empty() ? si->sdesc.c_str() : si->name.c_str()); break;
+                        case 4: result(si->map.c_str()); break;
                         case 5: intret(si->numplayers); break;
                         case 6: intret(si->ping); break;
                         case 7: intret(si->lastinfo); break;
-                        case 8: result(si->authhandle); break;
-                        case 9: result(si->flags); break;
-                        case 10: result(si->branch); break;
+                        case 8: result(si->authhandle.c_str()); break;
+                        case 9: result(si->flags.c_str()); break;
+                        case 10: result(si->branch.c_str()); break;
                         case 11: intret(si->priority); break;
                     }
                     break;
                 case 1:
-                    if(idx < 0) intret(si->attr.length());
-                    else if(si->attr.inrange(idx)) intret(si->attr[idx]);
+                    if(idx < 0) intret(si->attr.size());
+                    else if(idx < si->attr.size()) intret(si->attr[idx]);
                     break;
                 case 2:
-                    if(idx < 0) intret(si->players.length());
-                    else if(si->players.inrange(idx)) result(si->players[idx]);
+                    if(idx < 0) intret(si->players.size());
+                    else if(idx < si->players.size()) result(si->players[idx].c_str());
                     break;
                 case 3:
-                    if(idx < 0) intret(si->handles.length());
-                    else if(si->handles.inrange(idx)) result(si->handles[idx]);
+                    if(idx < 0) intret(si->handles.size());
+                    else if(idx < si->handles.size()) result(si->handles[idx].c_str());
                     break;
             }
         }

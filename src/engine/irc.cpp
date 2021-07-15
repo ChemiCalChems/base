@@ -29,7 +29,7 @@ void ircprintf(ircnet *n, int relay, const char *target, const char *msg, ...)
         ircchan *c = ircfindchan(n, target);
         if(c)
         {
-            formatstring(s, "\fs\fa[%s:%s]\fS", n->name, c->name);
+            formatstring(s, "\fs\fa[%s:%s]\fS", n->name, c->name.c_str());
             #ifndef STANDALONE
             c->buffer.addline(str, MAXIRCLINES);
             c->updated |= IRCUP_MSG;
@@ -402,7 +402,7 @@ ircchan *ircfindchan(ircnet *n, const char *name)
 {
     if(n && name && *name)
     {
-        loopv(n->channels) if(!strcasecmp(n->channels[i].name, name))
+        loopv(n->channels) if(!strcasecmp(n->channels[i].name.c_str(), name))
             return &n->channels[i];
     }
     return NULL;
@@ -416,8 +416,8 @@ bool ircjoin(ircnet *n, ircchan *c)
         ircprintf(n, 4, NULL, "cannot join %s until connection is online", c->name);
         return false;
     }
-    if(*c->passkey) ircsend(n, "JOIN %s :%s", c->name, c->passkey);
-    else ircsend(n, "JOIN %s", c->name);
+    if(!c->passkey.empty()) ircsend(n, "JOIN %s :%s", c->name.c_str(), c->passkey.c_str());
+    else ircsend(n, "JOIN %s", c->name.c_str());
     c->state = IRCC_JOINING;
     c->lastjoin = clocktime;
     c->lastsync = 0;
@@ -456,9 +456,9 @@ bool ircnewchan(int type, const char *name, const char *channel, const char *fri
     d.type = type;
     d.relay = relay;
     d.lastjoin = d.lastsync = 0;
-    copystring(d.name, channel);
-    copystring(d.friendly, friendly && *friendly ? friendly : channel);
-    copystring(d.passkey, passkey);
+    d.name = channel;
+    d.friendly = friendly && *friendly ? friendly : channel;
+    d.passkey = passkey;
     if(n->state == IRC_ONLINE) ircjoin(n, &d);
     ircprintf(n, 4, NULL, "added channel: %s", d.name);
     return true;
@@ -478,8 +478,8 @@ ICOMMAND(0, ircpasschan, "sss", (const char *name, const char *chan, const char 
     if(!n) { conoutf("No such ircnet: %s", name); return; }
     ircchan *c = ircfindchan(n, chan);
     if(!c) { ircprintf(n, 4, NULL, "no such channel: %s", chan); return; }
-    if(!s || !*s) { ircprintf(n, 4, NULL, "channel %s current password is: %s", c->name, setdesc(c->passkey)); return; }
-    copystring(c->passkey, s);
+    if(!s || !*s) { ircprintf(n, 4, NULL, "channel %s current password is: %s", c->name.c_str(), setdesc(c->passkey.c_str())); return; }
+    c->passkey = s;
 });
 ICOMMAND(0, ircrelaychan, "sss", (const char *name, const char *chan, const char *s),
 {
@@ -497,7 +497,7 @@ ICOMMAND(0, ircfriendlychan, "sss", (const char *name, const char *chan, const c
     ircchan *c = ircfindchan(n, chan);
     if(!c) { ircprintf(n, 4, NULL, "no such channel: %s", chan); return; }
     if(!s || !*s) { ircprintf(n, 4, NULL, "channel %s current friendly name is: %s", c->name, c->friendly); return; }
-    copystring(c->friendly, s);
+    c->friendly = s;
 });
 
 bool ircmatchnick(ircnet *n, const char *str)
@@ -1014,7 +1014,7 @@ void irccmd(ircnet *n, ircchan *c, char *s)
                 if(c)
                 {
                     ircsend(n, "PRIVMSG %s :\vACTION %s\v", c->name, r);
-                    ircprintf(n, 1, c->name, "\fv* %s %s", n->nick, r);
+                    ircprintf(n, 1, c->name.c_str(), "\fv* %s %s", n->nick, r);
                 }
                 else ircprintf(n, 4, NULL, "\fyYou are not on a channel");
             }
@@ -1045,7 +1045,7 @@ void irccmd(ircnet *n, ircchan *c, char *s)
                 if(c)
                 {
                     ircsend(n, "PRIVMSG %s :%s v%s-%s%d-%s (%s); %s (%s v%s)", c->name, versionname, versionstring, versionplatname, versionarch, versionbranch, versionrelease, gfxrenderer, gfxvendor, gfxversion);
-                    ircprintf(n, 1, c->name, "\fw<%s> %s v%s-%s%d-%s (%s); %s (%s v%s)", n->nick, versionname, versionstring, versionplatname, versionarch, versionbranch, versionrelease, gfxrenderer, gfxvendor, gfxversion);
+                    ircprintf(n, 1, c->name.c_str(), "\fw<%s> %s v%s-%s%d-%s (%s); %s (%s v%s)", n->nick, versionname, versionstring, versionplatname, versionarch, versionbranch, versionrelease, gfxrenderer, gfxvendor, gfxversion);
                 }
                 else ircprintf(n, 4, NULL, "\fyYou are not on a channel");
             }
@@ -1054,12 +1054,12 @@ void irccmd(ircnet *n, ircchan *c, char *s)
             DELETEA(q); DELETEA(r);
             return;
         }
-        ircprintf(n, 4, c ? c->name : NULL, "\fyYou are not on a channel");
+        ircprintf(n, 4, c ? c->name.c_str() : NULL, "\fyYou are not on a channel");
     }
     else if(c)
     {
         ircsend(n, "PRIVMSG %s :%s", c->name, p);
-        ircprintf(n, 1, c->name, "\fw<%s> %s", n->nick, p);
+        ircprintf(n, 1, c->name.c_str(), "\fw<%s> %s", n->nick, p);
     }
     else
     {

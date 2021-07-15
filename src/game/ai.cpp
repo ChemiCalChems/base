@@ -469,7 +469,6 @@ namespace ai
         float dist;
 
         targcache() : d(NULL), dominated(false), visible(false), dist(0) {}
-        ~targcache() {}
 
         static bool tcsort(const targcache &a, const targcache &b)
         {

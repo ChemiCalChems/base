@@ -2,6 +2,8 @@
 
 // the interface the game uses to access the engine
 
+#include <vector>
+
 extern int verbose, curtime, lastmillis, totalmillis, timescale, paused;
 extern uint totalsecs;
 extern time_t clocktime, currenttime, clockoffset;
@@ -446,22 +448,20 @@ struct serverinfo
     };
     enum { UNRESOLVED = 0, RESOLVING, RESOLVED };
 
-    string name, map, sdesc, authhandle, flags, branch;
+    std::string name, map, sdesc, authhandle, flags, branch;
     int numplayers, lastping, lastinfo, nextping, ping, resolved, port, priority;
     int pings[MAXPINGS];
-    vector<int> attr;
-    vector<char *> players, handles;
+    std::vector<int> attr;
+    std::vector<std::string> players, handles;
     ENetAddress address;
 
     serverinfo(uint ip, int port, int priority = 0)
      : numplayers(0), resolved(ip==ENET_HOST_ANY ? UNRESOLVED : RESOLVED), port(port), priority(priority)
     {
-        name[0] = map[0] = sdesc[0] = authhandle[0] = flags[0] = branch[0] = '\0';
         address.host = ip;
         address.port = port+1;
         clearpings();
     }
-    ~serverinfo() { cleanup(); }
 
     void clearpings()
     {
@@ -474,9 +474,9 @@ struct serverinfo
     void cleanup()
     {
         clearpings();
-        attr.setsize(0);
-        players.deletearrays();
-        handles.deletearrays();
+        attr.clear();
+        players.clear();
+        handles.clear();
         numplayers = 0;
     }
 

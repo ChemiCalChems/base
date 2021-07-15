@@ -5,29 +5,26 @@ enum { MDL_BLEND_TEST = 0, MDL_BLEND_ALPHA };
 
 struct parenttag
 {
-    char *name;
+    std::string name;
     matrix4x3 matrix;
-
-    parenttag() : name(NULL) {}
-    ~parenttag() { DELETEA(name); }
 };
 
 struct model
 {
-    char *name;
+    std::string name;
     float spinyaw, spinpitch, spinroll, offsetyaw, offsetpitch, offsetroll;
     bool shadow, alphashadow, depthoffset;
     float wind, scale;
     vec translate;
-    BIH *bih;
+    BIH* bih;
     vec bbcenter, bbradius, bbextend, collidecenter, collideradius;
     float rejectradius, height, collidexyradius, collideheight;
     char *collidemodel;
     int collide, batch;
     vector<parenttag> parenttags;
 
-    model(const char *name) : name(name ? newstring(name) : NULL), spinyaw(0), spinpitch(0), spinroll(0), offsetyaw(0), offsetpitch(0), offsetroll(0), shadow(true), alphashadow(true), depthoffset(false), wind(0.0f), scale(1.0f), translate(0, 0, 0), bih(0), bbcenter(0, 0, 0), bbradius(-1, -1, -1), bbextend(0, 0, 0), collidecenter(0, 0, 0), collideradius(-1, -1, -1), rejectradius(-1), height(0.9f), collidexyradius(0), collideheight(0), collidemodel(NULL), collide(COLLIDE_OBB), batch(-1) {}
-    virtual ~model() { DELETEA(name); DELETEP(bih); }
+    model(const char *name) : name(name), spinyaw(0), spinpitch(0), spinroll(0), offsetyaw(0), offsetpitch(0), offsetroll(0), shadow(true), alphashadow(true), depthoffset(false), wind(0.0f), scale(1.0f), translate(0, 0, 0), bbcenter(0, 0, 0), bbradius(-1, -1, -1), bbextend(0, 0, 0), collidecenter(0, 0, 0), collideradius(-1, -1, -1), rejectradius(-1), height(0.9f), collidexyradius(0), collideheight(0), collidemodel(NULL), collide(COLLIDE_OBB), batch(-1) {}
+    virtual ~model() = default;
     virtual void calcbb(vec &center, vec &radius) = 0;
     virtual void calctransform(matrix4x3 &m) = 0;
     virtual int intersect(int anim, modelstate *state, dynent *d, const vec &o, const vec &ray, float &dist, int mode = 0) = 0;

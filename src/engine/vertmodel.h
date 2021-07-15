@@ -189,11 +189,8 @@ struct vertmodel : animmodel
 
     struct tag
     {
-        char *name;
+        std::string name;
         matrix4x3 matrix;
-
-        tag() : name(NULL) {}
-        ~tag() { DELETEA(name); }
     };
 
     struct vertmeshgroup : meshgroup
@@ -226,9 +223,9 @@ struct vertmodel : animmodel
             DELETEA(vdata);
         }
 
-        int findtag(const char *name)
+        int findtag(std::string name)
         {
-            loopi(numtags) if(!strcmp(tags[i].name, name)) return i;
+            loopi(numtags) if(tags[i].name == name) return i;
             return -1;
         }
 
@@ -277,7 +274,7 @@ struct vertmodel : animmodel
                 loopvj(m->parenttags)
                 {
                     parenttag &t = m->parenttags[j];
-                    if(!cubematchstr(tags[i].name, t.name)) continue;
+                    if(!cubematchstr(tags[i].name.c_str(), t.name.c_str())) continue;
                     return t.matrix;
                 }
             }

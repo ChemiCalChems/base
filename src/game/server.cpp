@@ -18,7 +18,6 @@ namespace server
         attrvector attrs, kin;
 
         srventity() :  o(0, 0, 0), type(NOTUSED), spawned(false), millis(0), last(0) { reset(); }
-        ~srventity() { reset(); }
 
         void reset()
         {
@@ -128,7 +127,6 @@ namespace server
         int id, ammo;
 
         projectile(int n, int a) : id(n), ammo(a) {}
-        ~projectile() {}
     };
 
     struct projectilestate
@@ -188,7 +186,6 @@ namespace server
 
         dmghist() {}
         dmghist(int c, int m) : clientnum(c), millis(m) {}
-        ~dmghist() {}
     };
 
     struct teamkill
@@ -197,7 +194,6 @@ namespace server
 
         teamkill() {}
         teamkill(int m, int t, int p) : millis(m), team(t), points(p) {}
-        ~teamkill() {}
     };
 
     struct weaponstats
@@ -208,7 +204,6 @@ namespace server
         int frags1, frags2, damage1, damage2;
 
         weaponstats() { reset(); }
-        ~weaponstats() {}
 
         void reset()
         {
@@ -225,7 +220,6 @@ namespace server
         int captured;
 
         capturestats() { reset(); }
-        ~capturestats() {}
 
         void reset()
         {
@@ -239,7 +233,6 @@ namespace server
         int bombed;
 
         bombstats() { reset(); }
-        ~bombstats() {}
 
         void reset()
         {
@@ -253,7 +246,6 @@ namespace server
         bool winner;
 
         ffaroundstats() { reset(); }
-        ~ffaroundstats() {}
 
         void reset()
         {
@@ -2071,7 +2063,6 @@ namespace server
         vector<int> cycle;
 
         spawn() { reset(); }
-        ~spawn() {}
 
         void reset()
         {
@@ -3014,7 +3005,6 @@ namespace server
         teamcheck(int n, float r) : team(n), score(r), clients(0) {}
         teamcheck(int n, int s) : team(n), score(s), clients(0) {}
 
-        ~teamcheck() {}
     };
 
     bool allowteam(clientinfo *ci, int team, int first = T_FIRST, bool check = true)
@@ -3203,7 +3193,6 @@ namespace server
         vector<clientinfo *> clients;
         clientcrcs() {}
         clientcrcs(int n, clientinfo *m) { id = n; clients.add(m); }
-        ~clientcrcs() { clients.setsize(0); }
     };
 
     void resetmapdata(bool get = false)

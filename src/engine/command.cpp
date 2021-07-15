@@ -634,14 +634,13 @@ char *svariable(const char *name, const char *cur, char **storage, identfun fun,
 
 struct defvar : identval
 {
-    char *name;
+    std::string name;
     uint *onchange;
 
-    defvar() : name(NULL), onchange(NULL) {}
+    defvar() : onchange(NULL) {}
 
     ~defvar()
     {
-        DELETEA(name);
         if(onchange) freecode(onchange);
     }
 

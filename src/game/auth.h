@@ -42,15 +42,10 @@ bool checkpassword(clientinfo *ci, const char *wanted, const char *given)
 
 struct localop
 {
-    char *name, *flags;
+    std::string name, flags;
 
-    localop() : name(NULL), flags(NULL) {}
-    localop(const char *n, const char *f) : name(newstring(n)), flags(newstring(f)) {}
-    ~localop()
-    {
-        if(name) delete[] name;
-        if(flags) delete[] flags;
-    }
+    localop() {}
+    localop(const char *n, const char *f) : name(n), flags(f) {}
 };
 vector<localop> localops;
 
@@ -63,14 +58,14 @@ ICOMMAND(0, resetlocalop, "", (), localopreset());
 void localopadd(const char *name, const char *flags)
 {
     if(!name || !flags) return;
-    loopv(localops) if(!strcmp(name, localops[i].name))
+    loopv(localops) if(name == localops[i].name)
     {
-        conoutf("Local operator %s already exists with flags %s", localops[i].name, localops[i].flags);
+        conoutf("Local operator %s already exists with flags %s", localops[i].name.c_str(), localops[i].flags.c_str());
         return;
     }
     localop &o = localops.add();
-    o.name = newstring(name);
-    o.flags = newstring(flags);
+    o.name = name;
+    o.flags = flags;
 }
 ICOMMAND(0, addlocalop, "ss", (char *n, char *f), localopadd(n, f));
 
@@ -266,7 +261,7 @@ namespace auth
             ipinfo *info = checkipinfo(control, ipinfo::BAN, ip);
             if(info)
             {
-                srvmsgftforce(ci->clientnum, CON_EVENT, "\foYou are \fs\fcbanned\fS: \fy%s", info->reason && *info->reason ? info->reason : "no reason specified");
+                srvmsgftforce(ci->clientnum, CON_EVENT, "\foYou are \fs\fcbanned\fS: \fy%s", !info->reason.empty() ? info->reason.c_str() : "no reason specified");
                 return DISC_IPBAN;
             }
         }
@@ -328,10 +323,10 @@ namespace auth
             default: break;
         }
         bool local = false;
-        loopv(localops) if(!strcmp(localops[i].name, name))
+        loopv(localops) if(localops[i].name == name)
         {
             int o = -1;
-            for(const char *c = localops[i].flags; *c; c++) switch(*c)
+            for(const char *c = localops[i].flags.c_str(); *c; c++) switch(*c)
             {
                 case 'a': case 'A': o = PRIV_ADMINISTRATOR; break;
                 case 'o': case 'O': case 'm': case 'M': o = PRIV_MODERATOR; break;

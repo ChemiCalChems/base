@@ -157,7 +157,7 @@ struct smd : skelloader<smd>
                 if(!strncmp(curbuf, "end", 3)) break;
                 string material;
                 readmaterial(curbuf, material, sizeof(material));
-                if(!curmesh || strcmp(curmesh->mesh->name, material))
+                if(!curmesh || curmesh->mesh->name != material)
                 {
                     curmesh = materials.access(material);
                     if(!curmesh)
@@ -166,7 +166,7 @@ struct smd : skelloader<smd>
                         m->group = this;
                         m->name = newstring(material);
                         meshes.add(m);
-                        curmesh = &materials[m->name];
+                        curmesh = &materials[m->name.c_str()];
                         curmesh->mesh = m;
                     }
                 }
@@ -414,10 +414,10 @@ struct smd : skelloader<smd>
     bool loaddefaultparts()
     {
         skelpart &mdl = addpart();
-        const char *fname = name + strlen(name);
+        const char *fname = name.c_str() + strlen(name.c_str());
         do --fname; while(fname >= name && *fname!='/' && *fname!='\\');
         fname++;
-        defformatstring(meshname, "%s/%s.smd", name, fname);
+        defformatstring(meshname, "%s/%s.smd", name.c_str(), fname);
         mdl.meshes = sharemeshes(path(meshname));
         if(!mdl.meshes) return false;
         mdl.initanimparts();

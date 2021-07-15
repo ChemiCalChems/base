@@ -1153,7 +1153,6 @@ struct actitem
     float score;
 
     actitem() : type(ENT), target(-1), score(0) {}
-    ~actitem() {}
 };
 
 static const char * const animnames[] =
@@ -2159,7 +2158,6 @@ struct passenger
     vec offset;
 
     passenger(physent *d = NULL, const vec &off = vec(0, 0, 0)) : ent(d), offset(off) {}
-    ~passenger() {}
 };
 
 struct inanimate : dynent
@@ -2305,7 +2303,6 @@ struct cament
         resetlast();
         o = c;
     }
-    ~cament() {}
 
     void reset()
     {

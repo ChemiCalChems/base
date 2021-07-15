@@ -246,10 +246,6 @@ struct listrenderer : partrenderer
     {
     }
 
-    virtual ~listrenderer()
-    {
-    }
-
     virtual void killpart(T *p)
     {
     }

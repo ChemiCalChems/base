@@ -58,7 +58,6 @@ struct authreq
     string hostname;
 
     authreq() { reset(); }
-    ~authreq() {}
 
     void reset()
     {
@@ -104,7 +103,6 @@ struct masterclient
             statstring name;
 
             team() { reset(); }
-            ~team() {}
 
             void reset()
             {
@@ -120,7 +118,6 @@ struct masterclient
             int score, timealive, frags, deaths, wid, timeactive;
 
             player() { reset(); }
-            ~player() {}
 
             void reset()
             {
@@ -141,7 +138,6 @@ struct masterclient
             int frags1, frags2, damage1, damage2;
 
             weaponstats() { reset(); }
-            ~weaponstats() {}
 
             void reset()
             {
@@ -162,7 +158,6 @@ struct masterclient
             int capturing, captured;
 
             capturestats() { reset(); }
-            ~capturestats() {}
 
             void reset()
             {
@@ -180,7 +175,6 @@ struct masterclient
             int bombing, bombed;
 
             bombstats() { reset(); }
-            ~bombstats() {}
 
             void reset()
             {
@@ -199,7 +193,6 @@ struct masterclient
             bool winner;
 
             ffaroundstats() { reset(); }
-            ~ffaroundstats() {}
 
             void reset()
             {
@@ -212,7 +205,6 @@ struct masterclient
         vector<ffaroundstats> ffarounds;
 
         statstate() { reset(); }
-        ~statstate() {}
 
         void reset()
         {
@@ -232,7 +224,6 @@ struct masterclient
     } stats;
 
     masterclient() { reset(); }
-    ~masterclient() {}
 
     void reset()
     {

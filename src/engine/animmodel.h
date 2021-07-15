@@ -418,17 +418,14 @@ struct animmodel : model
     struct mesh
     {
         meshgroup *group;
-        char *name;
+        std::string name; 
         bool cancollide, canrender, noclip;
 
-        mesh() : group(NULL), name(NULL), cancollide(true), canrender(true), noclip(false)
+        mesh() : group(NULL), cancollide(true), canrender(true), noclip(false)
         {
         }
 
-        virtual ~mesh()
-        {
-            DELETEA(name);
-        }
+        virtual ~mesh() {}
 
         virtual void calcbb(vec &bbmin, vec &bbmax, const matrix4x3 &m) {}
 
@@ -624,16 +621,35 @@ struct animmodel : model
     {
         meshgroup *next;
         int shared;
-        char *name;
+        std::string name;
         vector<mesh *> meshes;
 
-        meshgroup() : next(NULL), shared(0), name(NULL)
+        meshgroup() : next(NULL), shared(0)
         {
+        }
+
+        meshgroup(const meshgroup& o) {
+            if (o.next) next = new meshgroup(*o.next);
+            else next = NULL;
+
+            shared = o.shared;
+            name = o.name;
+            meshes = o.meshes;
+        }
+
+        meshgroup& operator=(const meshgroup& o) {
+            if (o.next) next = new meshgroup(*o.next);
+            else next = NULL;
+
+            shared = o.shared;
+            name = o.name;
+            meshes = o.meshes;
+            
+            return *this;
         }
 
         virtual ~meshgroup()
         {
-            DELETEA(name);
             meshes.deletecontents();
             DELETEP(next);
         }
@@ -773,7 +789,7 @@ struct animmodel : model
         meshgroup *meshes;
         vector<linkedpart> links;
         vector<skin> skins;
-        vector<animspec> *anims[MAXANIMPARTS];
+        vector<animspec>* anims[MAXANIMPARTS];
         int numanimparts;
         float pitchscale, pitchoffset, pitchmin, pitchmax;
 
@@ -781,6 +797,47 @@ struct animmodel : model
         {
             loopk(MAXANIMPARTS) anims[k] = NULL;
         }
+
+        part(const part& o) {
+            model = o.model;
+            index = o.index;
+            meshes = o.meshes;
+            links = o.links;
+            skins = o.skins;
+
+            numanimparts = o.numanimparts;
+            pitchscale = o.pitchscale;
+            pitchoffset = o.pitchoffset;
+            pitchmin = o.pitchmin;
+            pitchmax = o.pitchmax;
+
+            for (std::size_t i = 0; i < MAXANIMPARTS; i++) {
+                if (o.anims[i]) anims[i] = new vector<animspec>(*o.anims[i]);
+                else anims[i] = NULL;
+            }
+        }
+
+        part& operator=(const part& o) {
+            model = o.model;
+            index = o.index;
+            meshes = o.meshes;
+            links = o.links;
+            skins = o.skins;
+
+            numanimparts = o.numanimparts;
+            pitchscale = o.pitchscale;
+            pitchoffset = o.pitchoffset;
+            pitchmin = o.pitchmin;
+            pitchmax = o.pitchmax;
+
+            for (std::size_t i = 0; i < MAXANIMPARTS; i++) {
+                if (o.anims[i]) anims[i] = new vector<animspec>(*o.anims[i]);
+                else anims[i] = NULL;
+            }
+
+            return *this;
+        }
+
         virtual ~part()
         {
             loopk(MAXANIMPARTS) DELETEA(anims[k]);
@@ -1235,7 +1292,7 @@ struct animmodel : model
             if(animpart<0 || animpart>=MAXANIMPARTS || num<0 || num>=game::numanims()) return;
             if(frame<0 || range<=0 || !meshes || !meshes->hasframes(frame, range))
             {
-                conoutf("Invalid frame %d, range %d in model %s", frame, range, model->name);
+                conoutf("Invalid frame %d, range %d in model %s", frame, range, model->name.c_str());
                 return;
             }
             if(!anims[animpart]) anims[animpart] = new vector<animspec>[game::numanims()];
@@ -1593,6 +1650,26 @@ struct animmodel : model
 
     animmodel(const char *name) : model(name)
     {
+    }
+    
+    animmodel(const animmodel& o) : model(o) {
+        for (std::size_t i = 0; i < o.parts._v.size(); i++) {
+            part* p = new part(this, parts.length());
+            *p = *o.parts[i];
+            parts.add(p);
+        }
+    }
+
+    animmodel& operator=(const animmodel& o) {
+        model::operator=(o);
+        
+        for (std::size_t i = 0; i<parts._v.size(); i++) {
+            part* p = new part(this, parts.length());
+            *p = *o.parts[i];
+            parts.add(p);
+        }
+
+        return *this;
     }
 
     ~animmodel()
@@ -2001,19 +2078,18 @@ struct animmodel : model
 
     struct lodmdl
     {
-        char *name;
+        std::string name;
         float dist;
 
-        lodmdl() : name(NULL), dist(0) {}
-        ~lodmdl() { DELETEA(name); }
+        lodmdl() : dist(0) {}
     };
     vector<lodmdl> lod;
 
     void addlod(const char *str, float dist)
     {
         if(!str || !*str || dist <= 0) return;
-        loopv(lod) if(!strcmp(lod[i].name, str) || lod[i].dist == dist) return;
-        defformatstring(s, "%s/%s", name, str);
+        loopv(lod) if(lod[i].name == str || lod[i].dist == dist) return;
+        defformatstring(s, "%s/%s", name.c_str(), str);
         lodmdl &lm = lod.add();
         lm.name = newstring(s);
         lm.dist = dist;
@@ -2033,7 +2109,7 @@ struct animmodel : model
                 curdist = curlod;
             }
         }
-        return lod.inrange(curid) ? lod[curid].name : NULL;
+        return lod.inrange(curid) ? lod[curid].name.c_str() : NULL;
     }
 };
 
@@ -2089,8 +2165,8 @@ template<class MDL, class BASE> struct modelloader : BASE
 
     bool loadconfig()
     {
-        formatstring(dir, "%s", BASE::name);
-        defformatstring(cfgname, "%s/%s.cfg", BASE::name, MDL::formatname());
+        formatstring(dir, "%s", BASE::name.c_str());
+        defformatstring(cfgname, "%s/%s.cfg", BASE::name.c_str(), MDL::formatname());
         return execfile(cfgname, false);
     }
 };
@@ -2116,7 +2192,7 @@ template<class MDL, class MESH> struct modelcommands
         loopv(mdl.meshes->meshes) \
         { \
             MESH &m = *(MESH *)mdl.meshes->meshes[i]; \
-            if(cubepattern(m.name, meshname) >= 0) \
+            if(cubepattern(m.name.c_str(), meshname) >= 0) \
             { \
                 body; \
             } \
@@ -2267,7 +2343,7 @@ template<class MDL, class MESH> struct modelcommands
     {
         if(!MDL::loading) { conoutf("\frNot loading an %s", MDL::formatname()); return; }
         if(!MDL::loading->parts.inrange(*parent) || !MDL::loading->parts.inrange(*child)) { conoutf("\frNo models loaded to link"); return; }
-        if(!MDL::loading->parts[*parent]->link(MDL::loading->parts[*child], tagname, vec(*x, *y, *z), vec(*yaw, *pitch, *roll))) conoutf("\frCould not link model %s", MDL::loading->name);
+        if(!MDL::loading->parts[*parent]->link(MDL::loading->parts[*child], tagname, vec(*x, *y, *z), vec(*yaw, *pitch, *roll))) conoutf("\frCould not link model %s", MDL::loading->name.c_str());
     }
 
     template<class F> void modelcommand(F *fun, const char *suffix, const char *args)

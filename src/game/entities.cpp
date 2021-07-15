@@ -56,7 +56,6 @@ namespace entities
 
         rail() : ent(-1), length(0), rotstart(0), rotend(0), rotlen(0), flags(0), animtype(0), yaw(0), pitch(0), animspeed(0), pos(0, 0, 0), dir(0, 0, 0), offset(0, 0, 0) {}
         rail(int n, const vec &o, int d = 0, int f = 0, int at = 0, float as = 0) : ent(n), length(d), rotstart(0), rotend(0), rotlen(0), flags(f), animtype(at), yaw(0), pitch(0), animspeed(as), pos(o), dir(0, 0, 0), offset(0, 0, 0) {}
-        ~rail() {}
     };
 
     struct railway

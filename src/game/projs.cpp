@@ -2009,7 +2009,6 @@ namespace projs
         float dist;
 
         canrem(projent *p, float dist = 0) : p(p), dist(dist) {}
-        ~canrem() {}
 
         static bool cmsort(const canrem *a, const canrem *b)
         {

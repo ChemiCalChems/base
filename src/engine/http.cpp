@@ -615,25 +615,25 @@ namespace json
         {
             case JSON_STRING:
             {
-                if(j->data[0]) concformatstring(data, "\"%s\": \"%s\"", j->name, j->data);
-                else concformatstring(data, "\"%s\"", j->name);
+                if(j->data[0]) concformatstring(data, "\"%s\": \"%s\"", j->name.c_str(), j->data.c_str());
+                else concformatstring(data, "\"%s\"", j->name.c_str());
                 count++;
                 break;
             }
             case JSON_PRIMITIVE:
             {
-                if(j->data[0]) concformatstring(data, "\"%s\": %s", j->name, j->data);
-                else concformatstring(data, "%s", j->name);
+                if(j->data[0]) concformatstring(data, "\"%s\": %s", j->name.c_str(), j->data.c_str());
+                else concformatstring(data, "%s", j->name.c_str());
                 count++;
                 break;
             }
             case JSON_OBJECT: case JSON_ARRAY:
             {
-                if(j->name[0]) concformatstring(data, "\"%s\": %c ", j->name, int(j->type != JSON_OBJECT ? '[' : '{'));
+                if(j->name[0]) concformatstring(data, "\"%s\": %c ", j->name.c_str(), int(j->type != JSON_OBJECT ? '[' : '{'));
                 else concformatstring(data, "%c ", int(j->type != JSON_OBJECT ? '[' : '{'));
                 loopv(j->children)
                 {
-                    count += print(j->children[i], data, level+1, len);
+                    count += print(j->children[i].get(), data, level+1, len);
                     if(i < j->children.length()-1) concatstring(data, ", ");
                 }
                 concformatstring(data, " %c", int(j->type != JSON_OBJECT ? ']' : '}'));
@@ -660,24 +660,24 @@ namespace json
                     if(j->type != JSON_ARRAY && !hasname) break;
                     jsobj *k = new jsobj;
                     k->type = t[i].type != JSMN_PRIMITIVE ? JSON_STRING : JSON_PRIMITIVE;
-                    copystring(k->name, name);
-                    if(hasname) copystring(k->data, data);
+                    k->name = name;
+                    if(hasname) k->data = data;
                     name[0] = data[0] = 0;
                     objs++;
-                    j->children.add(k);
+                    j->children._v.push_back(std::unique_ptr<jsobj>(k));
                     break;
                 }
                 case JSMN_ARRAY: case JSMN_OBJECT:
                 {
                     jsobj *k = new jsobj;
                     k->type = t[i].type != JSMN_OBJECT ? JSON_ARRAY : JSON_OBJECT;
-                    copystring(k->name, name);
+                    k->name = name;
                     int a = process(str, k, t, r, i+1, t[i].size);
                     i += a;
                     count += a;
                     name[0] = data[0] = 0;
                     objs++;
-                    j->children.add(k);
+                    j->children._v.push_back(std::unique_ptr<jsobj>(k));
                     break;
                 }
                 default: break;

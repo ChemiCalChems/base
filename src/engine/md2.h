@@ -215,8 +215,8 @@ struct md2 : vertloader<md2>
     bool loaddefaultparts()
     {
         part &mdl = addpart();
-        const char *pname = parentdir(name);
-        defformatstring(name1, "%s/tris.md2", name);
+        const char *pname = parentdir(name.c_str());
+        defformatstring(name1, "%s/tris.md2", name.c_str());
         mdl.meshes = sharemeshes(path(name1));
         if(!mdl.meshes)
         {
@@ -225,10 +225,10 @@ struct md2 : vertloader<md2>
             if(!mdl.meshes) return false;
         }
         Texture *tex, *masks;
-        loadskin(name, pname, tex, masks);
+        loadskin(name.c_str(), pname, tex, masks);
         mdl.initskins(tex, masks);
         if(tex==notexture) conoutf("\frCould not load model skin for %s", name1);
-        defformatstring(name3, "%s/md2.cfg", name);
+        defformatstring(name3, "%s/md2.cfg", name.c_str());
         if(!execfile(name3, false))
         {
             formatstring(name3, "%s/md2.cfg", pname);

@@ -51,7 +51,7 @@ struct obj : vertloader<obj>
             #define STARTMESH do { \
                 vertmesh &m = *new vertmesh; \
                 m.group = this; \
-                m.name = meshname[0] ? newstring(meshname) : NULL; \
+                m.name = meshname[0] ? meshname : ""; \
                 meshes.add(&m); \
                 curmesh = &m; \
                 verthash.clear(); \
@@ -182,8 +182,8 @@ struct obj : vertloader<obj>
     bool loaddefaultparts()
     {
         part &mdl = addpart();
-        const char *pname = parentdir(name);
-        defformatstring(name1, "%s/tris.obj", name);
+        const char *pname = parentdir(name.c_str());
+        defformatstring(name1, "%s/tris.obj", name.c_str());
         mdl.meshes = sharemeshes(path(name1));
         if(!mdl.meshes)
         {
@@ -192,7 +192,7 @@ struct obj : vertloader<obj>
             if(!mdl.meshes) return false;
         }
         Texture *tex, *masks;
-        loadskin(name, pname, tex, masks);
+        loadskin(name.c_str(), pname, tex, masks);
         mdl.initskins(tex, masks);
         if(tex==notexture) conoutf("\frCould not load model skin for %s", name1);
         return true;

@@ -71,12 +71,11 @@ struct keym
     };
 
     int code;
-    char *name;
-    char *actions[NUMACTIONS];
+    std::string name;
+    std::array<std::string, NUMACTIONS> actions;
     bool pressed, persist[NUMACTIONS];
 
-    keym() : code(-1), name(NULL), pressed(false) { loopi(NUMACTIONS) { actions[i] = newstring(""); persist[i] = false; } }
-    ~keym() { DELETEA(name); loopi(NUMACTIONS) { DELETEA(actions[i]); persist[i] = false; } }
+    keym() : code(-1), pressed(false) { loopi(NUMACTIONS) { actions[i] = ""; persist[i] = false; } }
 
     void clear(int type);
     void clear() { loopi(NUMACTIONS) clear(i); }
@@ -89,19 +88,18 @@ void keymap(int *code, char *key)
     if(identflags&IDF_WORLD) { conoutf("\frCannot override keymap"); return; }
     keym &km = keyms[*code];
     km.code = *code;
-    DELETEA(km.name);
-    km.name = newstring(key);
+    km.name = key;
 }
 
 COMMAND(0, keymap, "is");
 
 keym *keypressed = NULL;
-char *keyaction = NULL;
+const char *keyaction = NULL;
 
 const char *getkeyname(int code)
 {
     keym *km = keyms.access(code);
-    return km ? km->name : NULL;
+    return km ? km->name.c_str() : NULL;
 }
 
 void searchbindlist(const char *action, int type, int limit, const char *s1, const char *s2, const char *sep1, const char *sep2, vector<char> &names, bool force)
@@ -110,11 +108,11 @@ void searchbindlist(const char *action, int type, int limit, const char *s1, con
     int found = 0;
     enumerate(keyms, keym, km,
     {
-        char *act = type && force && (!km.actions[type] || !*km.actions[type]) ? km.actions[keym::ACTION_DEFAULT] : km.actions[type];
+        const char *act = type && force && km.actions[type].empty() ? km.actions[keym::ACTION_DEFAULT].c_str() : km.actions[type].c_str();
         if(act && !strcmp(act, action))
         {
-            if(!name1) name1 = km.name;
-            else if(!name2) name2 = km.name;
+            if(!name1) name1 = km.name.c_str();
+            else if(!name2) name2 = km.name.c_str();
             else
             {
                 if(lastname)
@@ -134,7 +132,7 @@ void searchbindlist(const char *action, int type, int limit, const char *s1, con
                     names.put(name2, strlen(name2));
                     if(s2 && *s2) names.put(s2, strlen(s2));
                 }
-                lastname = km.name;
+                lastname = km.name.c_str();
             }
             ++found;
             if(limit > 0 && found >= limit) break;
@@ -172,8 +170,8 @@ const char *searchbind(const char *action, int type)
 {
     enumerate(keyms, keym, km,
     {
-        char *act = ((!km.actions[type] || !*km.actions[type]) && type ? km.actions[keym::ACTION_DEFAULT] : km.actions[type]);
-        if(!strcmp(act, action)) return km.name;
+        const char *act = (km.actions[type].empty() && type ? km.actions[keym::ACTION_DEFAULT].c_str() : km.actions[type].c_str());
+        if(!strcmp(act, action)) return km.name.c_str();
     });
     return NULL;
 }
@@ -186,8 +184,8 @@ void getkeypressed(int limit, const char *s1, const char *s2, const char *sep1, 
     {
         if(km.pressed)
         {
-            if(!name1) name1 = km.name;
-            else if(!name2) name2 = km.name;
+            if(!name1) name1 = km.name.c_str();
+            else if(!name2) name2 = km.name.c_str();
             else
             {
                 if(lastname)
@@ -207,7 +205,7 @@ void getkeypressed(int limit, const char *s1, const char *s2, const char *sep1, 
                     names.put(name2, strlen(name2));
                     if(s2 && *s2) names.put(s2, strlen(s2));
                 }
-                lastname = km.name;
+                lastname = km.name.c_str();
             }
             ++found;
             if(limit > 0 && found >= limit) break;
@@ -245,7 +243,7 @@ int findkeycode(char *key)
 {
     enumerate(keyms, keym, km,
     {
-        if(!strcasecmp(km.name, key)) return i;
+        if(!strcasecmp(km.name.c_str(), key)) return i;
     });
     return 0;
 }
@@ -254,7 +252,7 @@ keym *findbind(char *key)
 {
     enumerate(keyms, keym, km,
     {
-        if(!strcasecmp(km.name, key)) return &km;
+        if(!strcasecmp(km.name.c_str(), key)) return &km;
     });
     return NULL;
 }
@@ -262,7 +260,7 @@ keym *findbind(char *key)
 void getbind(char *key, int type)
 {
     keym *km = findbind(key);
-    result(km ? ((!km->actions[type] || !*km->actions[type]) && type ? km->actions[keym::ACTION_DEFAULT] : km->actions[type]) : "");
+    result(km ? (km->actions[type].empty() && type ? km->actions[keym::ACTION_DEFAULT].c_str() : km->actions[type].c_str()) : "");
 }
 
 int changedkeys = 0;
@@ -272,14 +270,14 @@ void bindkey(char *key, char *action, int state, const char *cmd)
     if(identflags&IDF_WORLD) { conoutf("\frCannot override %s \"%s\"", cmd, key); return; }
     keym *km = findbind(key);
     if(!km) { conoutf("\frUnknown key \"%s\"", key); return; }
-    char *&binding = km->actions[state];
+    std::string& binding = km->actions[state];
     bool *persist = &km->persist[state];
-    if(!keypressed || keyaction!=binding) delete[] binding;
+    if(!keypressed || keyaction!=binding) binding = "";
     // trim white-space to make searchbinds more reliable
     while(iscubespace(*action)) action++;
     int len = strlen(action);
     while(len>0 && iscubespace(action[len-1])) len--;
-    binding = newstring(action, len);
+    binding = std::string(action, len);
     *persist = initing != INIT_DEFAULTS;
     changedkeys = totalmillis;
 }
@@ -299,11 +297,10 @@ ICOMMAND(0, searchwaitbinds, "sissssb", (char *action, int *limit, char *s1, cha
 
 void keym::clear(int type)
 {
-    char *&binding = actions[type];
-    if(binding[0])
+    std::string& binding = actions[type];
+    if(!binding.empty())
     {
-        if(!keypressed || keyaction!=binding) delete[] binding;
-        binding = newstring("");
+        if(!keypressed || keyaction!=binding) binding = "";
     }
 }
 
@@ -375,61 +372,54 @@ SVAR(0, commandbuffer, "");
 
 struct hline
 {
-    char *buf, *action, *prompt, *icon;
+    std::string buf, action, prompt, icon;
     int colour, flags;
 
-    hline() : buf(NULL), action(NULL), prompt(NULL), icon(NULL), colour(0), flags(0) {}
-    ~hline()
-    {
-        DELETEA(buf);
-        DELETEA(action);
-        DELETEA(prompt);
-        DELETEA(icon);
-    }
+    hline() : colour(0), flags(0) {}
 
     void restore()
     {
-        copystring(commandbuf, buf);
+        copystring(commandbuf, buf.c_str());
         if(commandpos >= (int)strlen(commandbuf)) commandpos = -1;
         DELETEA(commandaction);
         DELETEA(commandprompt);
         DELETEA(commandicon);
-        if(action) commandaction = newstring(action);
-        if(prompt) commandprompt = newstring(prompt);
-        if(icon) commandicon = newstring(icon);
+        if(!action.empty()) commandaction = newstring(action.c_str());
+        if(!prompt.empty()) commandprompt = newstring(prompt.c_str());
+        if(!icon.empty()) commandicon = newstring(icon.c_str());
         commandcolour = colour;
         commandflags = flags;
     }
 
     bool shouldsave()
     {
-        return strcmp(commandbuf, buf) ||
-               (commandaction ? !action || strcmp(commandaction, action) : action!=NULL) ||
-               (commandprompt ? !prompt || strcmp(commandprompt, prompt) : prompt!=NULL) ||
-               (commandicon ? !icon || strcmp(commandicon, icon) : icon!=NULL) ||
+        return commandbuf !=  buf ||
+               (commandaction ? action.empty() || commandaction != action : !action.empty()) ||
+               (commandprompt ? prompt.empty() || commandprompt != prompt : !prompt.empty()) ||
+               (commandicon ? icon.empty() || commandicon != icon : !icon.empty()) ||
                commandcolour != colour ||
                commandflags != flags;
     }
 
     void save()
     {
-        buf = newstring(commandbuf);
-        if(commandaction) action = newstring(commandaction);
-        if(commandprompt) prompt = newstring(commandprompt);
-        if(commandicon) icon = newstring(commandicon);
+        buf = commandbuf;
+        if(commandaction) action = commandaction;
+        if(commandprompt) prompt = commandprompt;
+        if(commandicon) icon = commandicon;
         colour = commandcolour;
         flags = commandflags;
     }
 
     void run()
     {
-        if(flags&CF_EXECUTE && buf[0]=='/') execute(buf+1); // above all else
-        else if(action)
+        if(flags&CF_EXECUTE && buf[0]=='/') execute(buf.c_str()+1); // above all else
+        else if(!action.empty())
         {
-            setsvar("commandbuffer", buf, true);
-            execute(action);
+            setsvar("commandbuffer", buf.c_str(), true);
+            execute(action.c_str());
         }
-        else client::toserver(0, buf);
+        else client::toserver(0, buf.c_str());
     }
 };
 vector<hline *> history;
@@ -470,7 +460,7 @@ const char *addreleaseaction(char *s)
     ra.key = keypressed;
     ra.action = s;
     ra.numargs = -1;
-    return keypressed->name;
+    return keypressed->name.c_str();
 }
 
 tagval *addreleaseaction(ident *id, int numargs)
@@ -517,7 +507,7 @@ void execbind(keym &k, bool isdown)
             case CS_EDITING: state = keym::ACTION_EDITING; break;
             case CS_WAITING: state = keym::ACTION_WAITING; break;
         }
-        char *&action = k.actions[state][0] ? k.actions[state] : k.actions[keym::ACTION_DEFAULT];
+        const char *action = k.actions[state][0] ? k.actions[state].c_str() : k.actions[keym::ACTION_DEFAULT].c_str();
         keyaction = action;
         keypressed = &k;
         execute(keyaction);
@@ -740,9 +730,9 @@ void writebinds(stream *f)
             keym &km = *binds[i];
             if(km.persist[j])
             {
-                if(!*km.actions[j]) f->printf("%s %s []\n", cmds[j], escapestring(km.name));
-                else if(validateblock(km.actions[j])) f->printf("%s %s [%s]\n", cmds[j], escapestring(km.name), km.actions[j]);
-                else f->printf("%s %s %s\n", cmds[j], escapestring(km.name), escapestring(km.actions[j]));
+                if(km.actions[j].empty()) f->printf("%s %s []\n", cmds[j], escapestring(km.name.c_str()));
+                else if(validateblock(km.actions[j].c_str())) f->printf("%s %s [%s]\n", cmds[j], escapestring(km.name.c_str()), km.actions[j].c_str());
+                else f->printf("%s %s %s\n", cmds[j], escapestring(km.name.c_str()), escapestring(km.actions[j].c_str()));
                 found = true;
             }
         }
@@ -766,20 +756,21 @@ struct fileskey
 struct filesval
 {
     int type;
-    char *dir, *ext;
-    vector<char *> files;
+    std::string dir, ext;
+    vector<std::string> files;
     int millis;
 
-    filesval(int type, const char *dir, const char *ext) : type(type), dir(newstring(dir)), ext(ext && ext[0] ? newstring(ext) : NULL), millis(-1) {}
-    ~filesval() { DELETEA(dir); DELETEA(ext); files.deletearrays(); }
+    filesval(int type, const char *dir, const char *ext) : type(type), dir(dir), ext(ext && ext[0] ? ext : ""), millis(-1) {}
 
     void update()
     {
         if(type!=FILES_DIR || millis >= commandmillis) return;
-        files.deletearrays();
-        listfiles(dir, ext, files);
+        files._v.clear();
+        vector<char*> files_;
+        listfiles(dir.c_str(), ext.empty() ? NULL : ext.c_str(), files_);
+        for (auto elem : files_._v) files._v.push_back(elem);
         files.sort();
-        loopv(files) if(i && !strcmp(files[i], files[i-1])) delete[] files.remove(i--);
+        loopv(files) if(i && files[i] == files[i-1]) files.remove(i--);
         millis = totalmillis;
     }
 };
@@ -837,8 +828,10 @@ void addcomplete(char *command, int type, char *dir, char *ext)
     if(!val)
     {
         filesval *f = new filesval(type, dir, ext);
-        if(type==FILES_LIST) explodelist(dir, f->files);
-        val = &completefiles[fileskey(type, f->dir, f->ext)];
+        vector<char*> _files;
+        if(type==FILES_LIST) explodelist(dir, _files);
+        for (auto elem : _files._v) f->files.add(elem);
+        val = &completefiles[fileskey(type, f->dir.c_str(), f->ext.c_str())];
         *val = f;
     }
     filesval **hasfiles = filecompletions.access(command);
@@ -924,9 +917,9 @@ void complete(char *s, const char *cmdprefix, bool reverse)
         f->update();
         loopv(f->files)
         {
-            if(strncmp(f->files[i], &start[commandsize], completesize-commandsize)==0 &&
-                strcmp(f->files[i], lastcomplete)*(reverse ? -1 : 1) > 0 && (!nextcomplete || strcmp(f->files[i], nextcomplete)*(reverse ? -1 : 1) < 0))
-                    nextcomplete = f->files[i];
+            if(strncmp(f->files[i].c_str(), &start[commandsize], completesize-commandsize)==0 &&
+                strcmp(f->files[i].c_str(), lastcomplete)*(reverse ? -1 : 1) > 0 && (!nextcomplete || strcmp(f->files[i].c_str(), nextcomplete)*(reverse ? -1 : 1) < 0))
+                    nextcomplete = f->files[i].c_str();
         }
     }
     else if(p) // complete using player names

@@ -8,11 +8,11 @@ enum { IRCUP_NEW = 1<<0, IRCUP_MSG = 1<<1, IRCUP_LEAVE = 1<<2 };
 struct ircbuf
 {
     int newlines;
-    vector<char *> lines;
+    vector<std::string> lines;
 
     void reset()
     {
-        lines.deletearrays();
+        lines._v.clear();
         newlines = 0;
     }
 
@@ -20,35 +20,36 @@ struct ircbuf
     {
         while(lines.length() >= limit)
         {
-            delete[] lines.remove(0);
+            lines.remove(0);
             newlines = std::min(newlines, lines.length());
         }
     }
 
-    void addline(const char *str, int limit = -1)
+    void addline(const std::string& str, int limit = -1)
     {
         if(limit >= 0) choplines(limit);
-        lines.add(newstring(str));
+        lines.add(str);
     }
 };
 #endif
 struct ircchan
 {
     int state, type, relay, lastjoin, lastsync;
-    string name, friendly, passkey;
+    std::string name, friendly, passkey;
 #ifndef STANDALONE
     int updated;
     ircbuf buffer;
 #endif
     ircchan() { reset(); }
-    ~ircchan() { reset(); }
 
     void reset()
     {
         state = IRCC_NONE;
         type = IRCCT_NONE;
         relay = lastjoin = lastsync = 0;
-        name[0] = friendly[0] = passkey[0] = '\0';
+        name.clear();
+        friendly.clear();
+        passkey.clear();
 #ifndef STANDALONE
         updated = 0;
         buffer.reset();
@@ -71,7 +72,6 @@ struct ircnet
 #endif
 
     ircnet() { reset(true); }
-    ~ircnet() { reset(true); }
 
     void reset(bool start = false)
     {
