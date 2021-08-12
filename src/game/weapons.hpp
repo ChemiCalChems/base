@@ -68,19 +68,19 @@ enum
 {
     S_WEAPONS   = S_GAME,
     S_CLAW      = S_WEAPONS,
-    S_PISTOL    = S_CLAW+S_W_OFFSET,
-    S_SWORD     = S_PISTOL+S_W_OFFSET,
-    S_SHOTGUN   = S_SWORD+S_W_MAX,
-    S_SMG       = S_SHOTGUN+S_W_MAX,
-    S_FLAMER    = S_SMG+S_W_MAX,
-    S_PLASMA    = S_FLAMER+S_W_MAX,
-    S_ZAPPER    = S_PLASMA+S_W_MAX,
-    S_RIFLE     = S_ZAPPER+S_W_MAX,
-    S_GRENADE   = S_RIFLE+S_W_MAX,
-    S_MINE      = S_GRENADE+S_W_MAX,
-    S_ROCKET    = S_MINE+S_W_MAX,
-    S_MELEE     = S_ROCKET+S_W_MAX,
-    S_MAX       = S_MELEE+S_W_OFFSET
+    S_PISTOL    = S_CLAW + static_cast<int>(S_W_OFFSET),
+    S_SWORD     = S_PISTOL + static_cast<int>(S_W_OFFSET),
+    S_SHOTGUN   = S_SWORD + static_cast<int>(S_W_MAX),
+    S_SMG       = S_SHOTGUN + static_cast<int>(S_W_MAX),
+    S_FLAMER    = S_SMG + static_cast<int>(S_W_MAX),
+    S_PLASMA    = S_FLAMER + static_cast<int>(S_W_MAX),
+    S_ZAPPER    = S_PLASMA + static_cast<int>(S_W_MAX),
+    S_RIFLE     = S_ZAPPER + static_cast<int>(S_W_MAX),
+    S_GRENADE   = S_RIFLE + static_cast<int>(S_W_MAX),
+    S_MINE      = S_GRENADE + static_cast<int>(S_W_MAX),
+    S_ROCKET    = S_MINE + static_cast<int>(S_W_MAX),
+    S_MELEE     = S_ROCKET + static_cast<int>(S_W_MAX),
+    S_MAX       = S_MELEE + static_cast<int>(S_W_OFFSET)
 };
 
 // weapon shot fx

@@ -72,7 +72,7 @@ namespace projs
         PRJ_NUM_FX_SUBTYPES
     };
 
-    static slot *projfx[FX_P_TYPES * PRJ_NUM_FX_SUBTYPES];
+    static slot *projfx[static_cast<int>(FX_P_TYPES) * static_cast<int>(PRJ_NUM_FX_SUBTYPES)];
     #define PROJFXINDEX(type, subtype) (((type) * PRJ_NUM_FX_SUBTYPES) + (subtype))
 
     void mapprojfx()

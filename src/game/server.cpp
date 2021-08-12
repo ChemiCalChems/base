@@ -2300,7 +2300,7 @@ namespace server
         ci->spawnstate(gamemode, mutators, weap, health);
         ci->updatetimeplayed();
         loopv(sents) if(sents[i].type == WEAPON && isweap(sents[i].attrs[0]) && hasitem(i, false) && ci->weapent[sents[i].attrs[0]] < 0) ci->weapent[sents[i].attrs[0]] = i;
-        sendf(ci->clientnum, 1, "ri9ifi4vv", N_SPAWNSTATE, ci->clientnum, spawn, ci->state, ci->points, ci->frags, ci->deaths, ci->totalpoints, ci->totalfrags, ci->totaldeaths, ci->totalavgpos, ci->timeplayed, ci->health, ci->cptime, ci->weapselect, W_MAX*W_A_MAX, &ci->weapammo[0][0], W_MAX, &ci->weapent[0]);
+        sendf(ci->clientnum, 1, "ri9ifi4vv", N_SPAWNSTATE, ci->clientnum, spawn, ci->state, ci->points, ci->frags, ci->deaths, ci->totalpoints, ci->totalfrags, ci->totaldeaths, ci->totalavgpos, ci->timeplayed, ci->health, ci->cptime, ci->weapselect, static_cast<int>(W_MAX) * static_cast<int>(W_A_MAX), &ci->weapammo[0][0], W_MAX, &ci->weapent[0]);
         ci->lastspawn = gamemillis;
     }
 
@@ -3943,7 +3943,7 @@ namespace server
             ci->weapreset(false);
         }
         ci->updatetimeplayed();
-        sendf(target, 1, "ri9fi4vvi", N_RESUME, ci->clientnum, state, ci->points, ci->frags, ci->deaths, ci->totalpoints, ci->totalfrags, ci->totaldeaths, ci->totalavgpos, ci->timeplayed, ci->health, ci->cptime, ci->weapselect, W_MAX*W_A_MAX, &ci->weapammo[0][0], W_MAX, &ci->weapent[0], -1);
+        sendf(target, 1, "ri9fi4vvi", N_RESUME, ci->clientnum, state, ci->points, ci->frags, ci->deaths, ci->totalpoints, ci->totalfrags, ci->totaldeaths, ci->totalavgpos, ci->timeplayed, ci->health, ci->cptime, ci->weapselect, static_cast<int>(W_MAX) * static_cast<int>(W_A_MAX), &ci->weapammo[0][0], W_MAX, &ci->weapent[0], -1);
     }
 
     void putinitclient(clientinfo *ci, packetbuf &p, bool allow)

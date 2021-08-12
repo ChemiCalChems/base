@@ -55,7 +55,7 @@ namespace game
 
     void mapgamesounds()
     {
-        static const char *names[S_GAME - S_GAMESPECIFIC] =
+        static const char *names[static_cast<int>(S_GAME) - static_cast<int>(S_GAMESPECIFIC)] =
         {
             "S_JUMP", "S_IMPULSE", "S_LAND", "S_FOOTSTEP", "S_SWIMSTEP", "S_PAIN", "S_DEATH",
             "S_SPLASH1", "S_SPLASH2", "S_SPLOSH", "S_DEBRIS", "S_BURNLAVA",
